@@ -25,6 +25,7 @@ def extract_coords(df_list, up_name, dn_name, filter_empty = True):
         out = out[out.start != out.end]
     return(out)
 
+
 paf_file = sys.argv[1]
 
 maps = pd.read_table(paf_file, header  = None)
@@ -33,8 +34,8 @@ h = [g for _, g in maps.groupby(5)]
 map_list = {x[5].unique().tolist()[0]:x for x in h}
 
 
-ins_bed = extract_coords(map_list, 'insert_up', 'insert_dn')
-bc_bed = extract_coords(map_list, 'barcode_up', 'barcode_dn')
+ins_bed = extract_coords(map_list, 'INSERTUP', 'INSERTDN')
+bc_bed = extract_coords(map_list, 'BARCODEUP', 'BARCODEDN')
 
 
 bc_bed.to_csv("barcode_coords.bed", sep = "\t", index = False, header = False)
