@@ -14,7 +14,6 @@ workflow {
     
         }
 
-    input_ch.view()
 
     ref_ch = channel.fromPath(params.ref_fa)
     gff_ch = channel.fromPath(params.ref_gff)
@@ -52,6 +51,10 @@ workflow {
     map_ch = mapinserts(ins_seqs, ref_ch)
     insertcoverage(map_ch, gff_ch)
     
+    // report
+    channel.fromPath("${projectDir}/assets/report_template.ipynb") \
+        | preparereport
+
 }
 
 
@@ -242,9 +245,9 @@ process insertcoverage {
     path gff
 
     output:
-    path 'gene_coverage.bed'
-    path 'insert_coverage.bed'
-    path 'genome_coverage.tsv'
+    tuple val(meta), path('gene_coverage.bed')
+    tuple val(meta), path('insert_coverage.bed')
+    tuple val(meta), path('genome_coverage.tsv')
 
     script:
     """
@@ -253,4 +256,21 @@ process insertcoverage {
     bedtools genomecov -ibam $bam -dz > genome_coverage.tsv
     """
 
+}
+
+process preparereport {
+
+    publishDir("$params.outdir")
+    tag 'Preparing report'
+
+    input:
+    path report
+
+    output:
+    path 'report.ipynb'
+
+    script:
+    """
+    cp $report 'report.ipynb'
+    """
 }
