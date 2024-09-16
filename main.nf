@@ -1,67 +1,87 @@
 #!/usr/bin/env nextflow
 
 
-// sample sheet
-params.samplesheet = "TagLib_nanopore_samples.csv"
-
-// raw nanopore reads
-//params.reads = "reads.fastq"
-
-// fasta file with insert and barcode flanking regions
-params.flanking = "flanking.fasta"
-
-// output dir
-params.outdir = "results"
-
-// vector sequence to use for rotating and orienting reads (using rrnB terminator)
-params.rotate_anchor = "TTTATCTGTTGTTTGTCGGTGAACGCTCTC"
-
-// mapping paramaters for finding barcodes and inserts
-params.kmer_size = 6
-params.chaining_score = 5 
-params.mismatch = 4
-
-// genome files for mapping inserts
-params.ref_fa = "./data/Helongata.fna"
-params.ref_gff = "./data/Helongata.gff"
-
-
 // Run the workflow
 
 workflow {
 
-    raw_read_ch = channel.fromPath(params.reads)
-    flanking_ch = channel.fromPath(params.flanking)
+
+    input_ch = channel.fromPath(params.samplesheet)
+        .splitCsv(header:true)
+        .map { row -> 
+            meta = [id:row.id, construct:file(row.construct)]
+            [meta, file(row.file)]
+    
+        }
+
+    input_ch.view()
+
     ref_ch = channel.fromPath(params.ref_fa)
     gff_ch = channel.fromPath(params.ref_gff)
- 
-    read_ch = rotatereads(raw_read_ch)
+
+    // --- Prep
+
+    // reorient the reads
+    read_ch = rotatereads(input_ch)
+
+    // get the flanking sequences from the .dna file
+    flanking_ch = getflanks(input_ch)
     
-    // find and extract barcodes and inserts
+    
+    // --- find and extract barcodes and inserts
+
+    // map flanking sequences
     map_ch = mapflanking(read_ch, flanking_ch)
+
+    // convert maps to bed
     (bar_coords, ins_coords) = cleanmaps(map_ch)
+
+    // use bed to extract sequences
     (bar_seqs, ins_seqs) = extract_seqs(bar_coords, ins_coords, read_ch)
-    seqstats(bar_seqs, ins_seqs)
+
+    // convert to tabular
     (bar_tab, ins_tab) = seqtotab(bar_seqs, ins_seqs)
+    
+    // some stats
+    seqstats(bar_seqs, ins_seqs)
+
+    // count unique barcodes
     barcodecounts(bar_tab)
 
     // mapping inserts
-    map_ch = mapinserts(read_ch, ref_ch)
+    map_ch = mapinserts(ins_seqs, ref_ch)
     insertcoverage(map_ch, gff_ch)
+    
 }
 
 
 // Processes
 
+process getflanks {
+    publishDir("$params.outdir/$meta.id")
+    tag ("Extracting flanks")
+
+    input:
+    tuple val(meta), path(reads)
+
+    output:
+    tuple val(meta), path("flanking.fasta")
+
+    script:
+    """
+    get_flanking.py $meta.construct
+    """
+}
+
 process rotatereads {
-    publishDir(params.outdir)
+    publishDir("$params.outdir/$meta.id")
     tag 'Rotating reads'
 
     input:
-    path reads
+    tuple val(meta), path(reads)
     
     output:
-    path 'reads_rotated.fasta'
+    tuple val(meta), path("reads_rotated.fasta")
 
     script:
     """
@@ -70,16 +90,16 @@ process rotatereads {
 }
 
 process mapflanking {
-    publishDir(params.outdir)
+    publishDir("$params.outdir/$meta.id")
 
     tag "Mapping flanking regions"
     
     input:
-    path reads
-    path flanking
+    tuple val(meta), path(reads)
+    tuple val(meta), path(flanking)
 
     output:
-    path 'flanking_maps.paf'
+    tuple val(meta), path('flanking_maps.paf')
 
     script:
     """
@@ -91,16 +111,16 @@ process mapflanking {
 
 process cleanmaps {
 
-    publishDir(params.outdir)
+    publishDir("$params.outdir/$meta.id")
 
     tag 'Cleaning alignment output'
 
     input:
-    path flanking_maps
+    tuple val(meta), path(flanking_maps)
 
     output:
-    path 'barcode_coords.bed'
-    path 'insert_coords.bed'
+    tuple val(meta), path('barcode_coords.bed')
+    tuple val(meta), path('insert_coords.bed')
 
     script:
     """
@@ -111,18 +131,18 @@ process cleanmaps {
 
 process extract_seqs {
     
-    publishDir(params.outdir)
+    publishDir("$params.outdir/$meta.id")
 
     tag 'Extracting sequences'
 
     input:
-    path barcode_bed
-    path insert_bed
-    path reads
+    tuple val(meta), path(barcode_bed)
+    tuple val(meta), path(insert_bed)
+    tuple val(meta), path(reads)
 
     output:
-    path 'barcode_seqs.fasta'
-    path 'insert_seqs.fasta'
+    tuple val(meta), path('barcode_seqs.fasta')
+    tuple val(meta), path('insert_seqs.fasta')
 
     script:
     """
@@ -134,13 +154,13 @@ process extract_seqs {
 
 process seqstats {
        
-    publishDir(params.outdir)
+    publishDir("$params.outdir/$meta.id")
 
     tag 'Sequence stats'
 
     input:
-    path bc_seqs
-    path ins_seqs
+    tuple val(meta), path(bc_seqs)
+    tuple val(meta), path(ins_seqs)
 
     output:
     path 'seq_stats.out'
@@ -153,16 +173,16 @@ process seqstats {
 
 process seqtotab {
     
-    publishDir(params.outdir)   
+    publishDir("$params.outdir/$meta.id")
     tag 'Sequences to table'
 
     input:
-    path bc_seqs
-    path ins_seqs
+    tuple val(meta), path(bc_seqs)
+    tuple val(meta), path(ins_seqs)
 
     output:
-    path 'barcode_seqs.tsv'
-    path 'insert_seqs.tsv'
+    tuple val(meta), path('barcode_seqs.tsv')
+    tuple val(meta), path('insert_seqs.tsv')
 
     script:
     """
@@ -174,11 +194,11 @@ process seqtotab {
 
 process barcodecounts {
 
-    publishDir(params.outdir)
+    publishDir("$params.outdir/$meta.id")
     tag 'Counting unique barcodes'
 
     input:
-    path bc_seqs_tab
+    tuple val(meta), path(bc_seqs_tab)
 
     output:
     path 'barcode_counts.tsv'
@@ -193,40 +213,43 @@ process barcodecounts {
 
 process mapinserts {
 
-    publishDir(params.outdir)
+    publishDir("$params.outdir/$meta.id")
     tag 'Mapping inserts to genome'
 
     input:
-    path inserts
+    tuple val(meta), path(inserts)
     path ref
 
     output:
-    path 'mapped_inserts.bam'
+    tuple val(meta), path('mapped_inserts.bam'), path("mapped_inserts.bam.bai")
 
     script:
     """
     minimap2 -ax map-ont $ref $inserts | samtools view -b - | samtools sort - -o mapped_inserts.bam
+    samtools index mapped_inserts.bam
     """
 
 }
 
+
 process insertcoverage {
 
-    publishDir(params.outdir)
+    publishDir("$params.outdir/$meta.id")
     tag 'Calculating coverage'
 
     input:
-    path bam
+    tuple val(meta), path(bam), path(index)
     path gff
 
     output:
-    path 'genome_coverage.bed'
+    path 'gene_coverage.bed'
+    path 'insert_coverage.bed'
     path 'genome_coverage.tsv'
-    path 'gene_stats.tsv'
 
     script:
     """
-    bamtocov -r $gff -t 'CDS' --report gene_stats.tsv $bam > genome_coverage.bed
+    bedtools coverage -a $gff -b $bam > gene_coverage.bed
+    bedtools coverage -b $gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
     bedtools genomecov -ibam $bam -dz > genome_coverage.tsv
     """
 
