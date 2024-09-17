@@ -27,29 +27,34 @@ workflow {
     // get the flanking sequences from the .dna file
     flanking_ch = getflanks(input_ch)
     
-    
+
+
     // --- find and extract barcodes and inserts
-
+    
     // map flanking sequences
-    map_ch = mapflanking(read_ch, flanking_ch)
+    map_ch = mapflanking(read_ch.join(flanking_ch))
 
-    // convert maps to bed
-    (bar_coords, ins_coords) = cleanmaps(map_ch)
+    // convert maps to bed the filter
+    coords = extract_coords(map_ch)
 
+
+    (filtered_ch, stats) = filter_bed(coords)
+
+    
     // use bed to extract sequences
-    (bar_seqs, ins_seqs) = extract_seqs(bar_coords, ins_coords, read_ch)
+    seqs = extract_seqs(filtered_ch.join(read_ch))
 
     // convert to tabular
-    (bar_tab, ins_tab) = seqtotab(bar_seqs, ins_seqs)
+    tab = seqtotab(seqs)
     
     // some stats
-    seqstats(bar_seqs, ins_seqs)
+    seqstats(seqs)
 
     // count unique barcodes
-    barcodecounts(bar_tab)
+    barcodecounts(tab)
 
     // mapping inserts
-    map_ch = mapinserts(ins_seqs, ref_ch)
+    map_ch = mapinserts(seqs, ref_ch)
     insertcoverage(map_ch, gff_ch)
     
     // report
@@ -63,7 +68,7 @@ workflow {
 
 process getflanks {
     publishDir("$params.outdir/$meta.id")
-    tag ("Extracting flanks")
+    tag ("Extracting flanks for $meta.id")
 
     input:
     tuple val(meta), path(reads)
@@ -79,7 +84,7 @@ process getflanks {
 
 process rotatereads {
     publishDir("$params.outdir/$meta.id")
-    tag 'Rotating reads'
+    tag "Rotating reads for $meta.id"
 
     input:
     tuple val(meta), path(reads)
@@ -99,32 +104,30 @@ process mapflanking {
     tag "Mapping flanking regions"
     
     input:
-    tuple val(meta), path(reads)
-    tuple val(meta), path(flanking)
+    tuple val(meta), path(reads), path(flanking)
 
     output:
     tuple val(meta), path('flanking_maps.paf')
 
     script:
     """
-    minimap2 -cxsr -k $params.kmer_size -m $params.chaining_score -B $params.mismatch \
-     $flanking $reads > flanking_maps.paf 
+    minimap2 -cxsr -k $params.kmer_size -m $params.chaining_score -B $params.mismatch -N 0 \
+        $flanking $reads > flanking_maps.paf 
     """
 
 }
 
-process cleanmaps {
+process extract_coords {
 
     publishDir("$params.outdir/$meta.id")
 
-    tag 'Cleaning alignment output'
+    tag "Extracting coordinates for $meta.id"
 
     input:
     tuple val(meta), path(flanking_maps)
 
     output:
-    tuple val(meta), path('barcode_coords.bed')
-    tuple val(meta), path('insert_coords.bed')
+    tuple val(meta), path('barcode_coords.bed'), path('insert_coords.bed')
 
     script:
     """
@@ -133,20 +136,37 @@ process cleanmaps {
 
 }
 
+process filter_bed {
+    publishDir("$params.outdir/$meta.id")
+
+    tag "Filtering bed for $meta.id"
+
+    input:
+    tuple val(meta), path(barcode_bed), path(insert_bed)
+
+    output:
+    tuple val(meta), path('barcode_filtered.bed'), path('insert_filtered.bed')
+    tuple val(meta), path('barcode_stats.json'), path('insert_stats.json')
+
+    script:
+    """
+    filter_bed.py $barcode_bed 'barcode_filtered.bed' 'barcode_stats.json'
+    filter_bed.py $insert_bed 'insert_filtered.bed' 'insert_stats.json'
+    """
+}
+
+
 process extract_seqs {
     
     publishDir("$params.outdir/$meta.id")
 
-    tag 'Extracting sequences'
+    tag "Extracting sequences for $meta.id"
 
     input:
-    tuple val(meta), path(barcode_bed)
-    tuple val(meta), path(insert_bed)
-    tuple val(meta), path(reads)
+    tuple val(meta), path(barcode_bed), path(insert_bed), path(reads)
 
     output:
-    tuple val(meta), path('barcode_seqs.fasta')
-    tuple val(meta), path('insert_seqs.fasta')
+    tuple val(meta), path('barcode_seqs.fasta'), path('insert_seqs.fasta')
 
     script:
     """
@@ -163,15 +183,14 @@ process seqstats {
     tag 'Sequence stats'
 
     input:
-    tuple val(meta), path(bc_seqs)
-    tuple val(meta), path(ins_seqs)
+    tuple val(meta), path(bc_seqs), path(ins_seqs)
 
     output:
     path 'seq_stats.out'
 
     script:
     """
-    seqkit stats $bc_seqs $ins_seqs > seq_stats.out
+    seqkit stats -T $bc_seqs $ins_seqs > seq_stats.out
     """
 }
 
@@ -181,12 +200,10 @@ process seqtotab {
     tag 'Sequences to table'
 
     input:
-    tuple val(meta), path(bc_seqs)
-    tuple val(meta), path(ins_seqs)
+    tuple val(meta), path(bc_seqs), path(ins_seqs)
 
     output:
-    tuple val(meta), path('barcode_seqs.tsv')
-    tuple val(meta), path('insert_seqs.tsv')
+    tuple val(meta), path('barcode_seqs.tsv'), path('insert_seqs.tsv')
 
     script:
     """
@@ -202,7 +219,7 @@ process barcodecounts {
     tag 'Counting unique barcodes'
 
     input:
-    tuple val(meta), path(bc_seqs_tab)
+    tuple val(meta), path(bc_seqs_tab), path(insert_seqs_tab)
 
     output:
     path 'barcode_counts.tsv'
@@ -218,10 +235,10 @@ process barcodecounts {
 process mapinserts {
 
     publishDir("$params.outdir/$meta.id")
-    tag 'Mapping inserts to genome'
+    tag "Mapping inserts to genome for $meta.id"
 
     input:
-    tuple val(meta), path(inserts)
+    tuple val(meta), path(bc_seqs), path(ins_seqs)
     path ref
 
     output:
@@ -229,7 +246,7 @@ process mapinserts {
 
     script:
     """
-    minimap2 -ax map-ont $ref $inserts | samtools view -b - | samtools sort - -o mapped_inserts.bam
+    minimap2 -ax map-ont $ref $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
     samtools index mapped_inserts.bam
     """
 
@@ -239,7 +256,7 @@ process mapinserts {
 process insertcoverage {
 
     publishDir("$params.outdir/$meta.id")
-    tag 'Calculating coverage'
+    tag "Calculating coverage for $meta.id"
 
     input:
     tuple val(meta), path(bam), path(index)

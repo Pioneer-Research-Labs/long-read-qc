@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import sys
 
-def extract_coords(df_list, up_name, dn_name, filter_empty = True):
+def extract_coords(df_list, up_name, dn_name, filter_empty = False):
     up = df_list[up_name]
     dn = df_list[dn_name]
 

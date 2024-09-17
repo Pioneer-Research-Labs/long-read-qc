@@ -26,4 +26,4 @@ def extract_flanks(path):
 
 construct_file = sys.argv[1]
 flanks = extract_flanks(construct_file)
-SeqIO.write(flanks, "flanking.fasta", "fasta")
+SeqIO.write(flanks, "flanking.fasta", "fasta-2line")
