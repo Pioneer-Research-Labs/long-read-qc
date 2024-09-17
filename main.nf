@@ -18,6 +18,7 @@ workflow {
     ref_ch = channel.fromPath(params.ref_fa)
     gff_ch = channel.fromPath(params.ref_gff)
 
+
     // --- Prep
 
     // reorient the reads
