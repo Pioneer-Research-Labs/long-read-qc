@@ -15,9 +15,6 @@ workflow {
         }
 
 
-    ref_ch = channel.fromPath(params.ref_fa)
-    gff_ch = channel.fromPath(params.ref_gff)
-
 
     // --- Prep
 
@@ -54,8 +51,8 @@ workflow {
     barcodecounts(tab)
 
     // mapping inserts
-    map_ch = mapinserts(seqs, ref_ch)
-    insertcoverage(map_ch, gff_ch)
+    map_ch = mapinserts(seqs, params.ref_fa)
+    insertcoverage(map_ch, params.ref_gff)
     
     // report
     channel.fromPath("${projectDir}/assets/report_template.ipynb") \
@@ -263,9 +260,7 @@ process insertcoverage {
     path gff
 
     output:
-    tuple val(meta), path('gene_coverage.bed')
-    tuple val(meta), path('insert_coverage.bed')
-    tuple val(meta), path('genome_coverage.tsv')
+    tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'), path('genome_coverage.tsv')
 
     script:
     """
