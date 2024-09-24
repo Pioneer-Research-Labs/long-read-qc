@@ -19,17 +19,39 @@ workflow {
     // --- Prep
 
     // reorient the reads
-    read_ch = rotatereads(input_ch)
+    reads = rotate_reads(input_ch)
+
+    seq_stats(reads)
 
     // get the flanking sequences from the .dna file
-    flanking_ch = getflanks(input_ch)
+    flanking = get_flanks(reads)
     
+
+    // test cutadapt here
+    (barcodes, bc_report, bc_tab) = extract_barcodes(reads.join(flanking))
+    (inserts, ins_report, in_tab) = extract_inserts(reads.join(flanking)) 
+
+
+    barcode_counts(barcodes)
+
+    // mapping inserts
+    mapped = map_inserts(inserts, params.ref_fa)
+    insert_coverage(mapped, params.ref_gff)
+    
+    // report
+    report = channel.fromPath("${projectDir}/assets/report_template.ipynb")
+    report_utils = channel.fromPath("${projectDir}/assets/report_utils_template.py")
+
+    prepare_report(report, report_utils)
+
+    channel.fromPath(params.samplesheet) | samples
 
 
     // --- find and extract barcodes and inserts
     
+    /*
     // map flanking sequences
-    map_ch = mapflanking(read_ch.join(flanking_ch))
+    map_ch = mapflanking(reads.join(flanking))
 
     // convert maps to bed the filter
     coords = extract_coords(map_ch)
@@ -39,7 +61,7 @@ workflow {
 
     
     // use bed to extract sequences
-    seqs = extract_seqs(filtered_ch.join(read_ch))
+    seqs = extract_seqs(filtered_ch.join(reads))
 
     // convert to tabular
     tab = seqtotab(seqs)
@@ -49,23 +71,17 @@ workflow {
 
     // count unique barcodes
     barcodecounts(tab)
+    */
 
-    // mapping inserts
-    map_ch = mapinserts(seqs, params.ref_fa)
-    insertcoverage(map_ch, params.ref_gff)
     
-    // report
-    channel.fromPath("${projectDir}/assets/report_template.ipynb") \
-        | preparereport
-
 }
 
 
 // Processes
 
-process getflanks {
+process get_flanks {
     publishDir("$params.outdir/$meta.id")
-    tag ("Extracting flanks for $meta.id")
+    tag ("$meta.id")
 
     input:
     tuple val(meta), path(reads)
@@ -79,9 +95,9 @@ process getflanks {
     """
 }
 
-process rotatereads {
+process rotate_reads {
     publishDir("$params.outdir/$meta.id")
-    tag "Rotating reads for $meta.id"
+    tag "$meta.id"
 
     input:
     tuple val(meta), path(reads)
@@ -91,9 +107,205 @@ process rotatereads {
 
     script:
     """
-    seqkit fq2fa $reads | rotate -s $params.rotate_anchor -m 4 - > reads_rotated.fasta
+    seqkit fq2fa $reads | rotate -s $params.rotate_anchor -m 4 - | \
+         seqkit replace -p .+ -r "read_{nr}" > reads_rotated.fasta
     """
 }
+
+process seq_stats {
+       
+    publishDir("$params.outdir/$meta.id")
+
+    tag "$meta.id"
+
+    input:
+    tuple val(meta), path(seqs)
+
+    output:
+    path 'seq_stats.tsv'
+
+    script:
+    """
+    seqkit stats -T $seqs > seq_stats.tsv
+    """
+}
+
+process extract_barcodes {
+    publishDir "$params.outdir/$meta.id"
+    tag("$meta.id")
+
+    input:
+    tuple val(meta), path(reads), path(flanking)
+
+    output:
+    tuple val(meta), path("barcodes.fasta")
+    path "cutadapt_barcode_report.json"
+    path "barcodes.tsv"
+
+    script:
+    """
+    cutadapt \
+        -g \$(bc_template.py $flanking cutadapt_barcode) \
+        --discard-untrimmed \
+        --revcomp \
+        -e $params.error_rate \
+        -O $params.min_overlap \
+        -o barcodes_raw.fasta \
+        --json cutadapt_barcode_report.json \
+        $reads
+    seqkit seq --min-len $params.min_bc_len --max-len $params.max_bc_len \
+        barcodes_raw.fasta > barcodes.fasta
+    seqkit fx2tab -li barcodes.fasta > barcodes.tsv
+    """
+}
+
+process filter_barcodes {
+    publishDir "$params.outdir/$meta.id"
+    tag("$meta.id")
+
+    input:
+    tuple val(meta), path(barcodes)
+
+    output:
+    tuple val(meta), path("barcodes_filtered.fasta")
+
+    script:
+    """
+    seqkit seq --min-len $params.min_bc_len --max-len $params.max_bc_len \
+        $barcodes > barcodes_filtered.fasta
+    """
+}
+
+process barcode_counts {
+
+    publishDir("$params.outdir/$meta.id")
+    tag("$meta.id")
+
+    input:
+    tuple val(meta), path(barcodes)
+
+    output:
+    tuple val(meta), path('barcode_counts.tsv')
+
+    script:
+    """
+     seqkit fx2tab -i $barcodes | cut -f2 | sort | uniq -c | \
+        awk '{print \$2"\t"\$1}' > barcode_counts.tsv
+    """
+}
+
+process extract_inserts {
+    publishDir "$params.outdir/$meta.id"
+    tag("$meta.id")
+
+    input:
+    tuple val(meta), path(reads), path(flanking)
+
+    output:
+    tuple val(meta), path("inserts.fasta")
+    path "cutadapt_inserts_report.json"
+    path "inserts.tsv"
+
+    script:
+    """
+    cutadapt \
+        -g \$(bc_template.py $flanking cutadapt_insert) \
+        --discard-untrimmed \
+        --revcomp \
+        -e $params.error_rate \
+        -O $params.min_overlap \
+        -o inserts.fasta \
+        --json cutadapt_inserts_report.json \
+        $reads
+    seqkit fx2tab -li inserts.fasta > inserts.tsv
+    """
+}
+
+
+// Insert mapping
+
+process map_inserts {
+
+    publishDir("$params.outdir/$meta.id")
+    tag "$meta.id"
+
+    input:
+    tuple val(meta), path(ins_seqs)
+    path ref
+
+    output:
+    tuple val(meta), path('mapped_inserts.bam'), path("mapped_inserts.bam.bai")
+
+    script:
+    """
+    minimap2 -ax map-ont $ref $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
+    samtools index mapped_inserts.bam
+    """
+
+}
+
+
+process insert_coverage {
+
+    publishDir("$params.outdir/$meta.id")
+    tag "$meta.id"
+
+    input:
+    tuple val(meta), path(bam), path(index)
+    path gff
+
+    output:
+    tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'), path('genome_coverage.tsv'), path('genome_cov_stats.tsv')
+
+    script:
+    """
+    bedtools coverage -a $gff -b $bam > gene_coverage.bed
+    bedtools coverage -b $gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
+    bedtools genomecov -ibam $bam -dz > genome_coverage.tsv
+    samtools coverage $bam > genome_cov_stats.tsv
+    """
+
+}
+
+process prepare_report {
+
+    publishDir("$params.outdir")
+    tag 'Preparing report'
+
+    input:
+    path report
+    path report_utils
+
+    output:
+    path 'report.ipynb'
+    path 'report_utils.py'
+
+    script:
+    """
+    cp $report 'report.ipynb'
+    cp $report_utils 'report_utils.py'
+    """
+}
+
+process samples {
+
+    publishDir("$params.outdir")
+    tag 'Moving sample sheet'
+
+    input:
+    path samplesheet
+
+    output:
+    path 'samples.csv'
+
+    script:
+    """
+    cp $samplesheet 'samples.csv'
+    """
+}
+
+
+
 
 process mapflanking {
     publishDir("$params.outdir/$meta.id")
@@ -173,23 +385,7 @@ process extract_seqs {
 
 }
 
-process seqstats {
-       
-    publishDir("$params.outdir/$meta.id")
 
-    tag 'Sequence stats'
-
-    input:
-    tuple val(meta), path(bc_seqs), path(ins_seqs)
-
-    output:
-    path 'seq_stats.out'
-
-    script:
-    """
-    seqkit stats -T $bc_seqs $ins_seqs > seq_stats.out
-    """
-}
 
 process seqtotab {
     
@@ -227,64 +423,3 @@ process barcodecounts {
     """
 }
 
-// Insert mapping
-
-process mapinserts {
-
-    publishDir("$params.outdir/$meta.id")
-    tag "Mapping inserts to genome for $meta.id"
-
-    input:
-    tuple val(meta), path(bc_seqs), path(ins_seqs)
-    path ref
-
-    output:
-    tuple val(meta), path('mapped_inserts.bam'), path("mapped_inserts.bam.bai")
-
-    script:
-    """
-    minimap2 -ax map-ont $ref $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
-    samtools index mapped_inserts.bam
-    """
-
-}
-
-
-process insertcoverage {
-
-    publishDir("$params.outdir/$meta.id")
-    tag "Calculating coverage for $meta.id"
-
-    input:
-    tuple val(meta), path(bam), path(index)
-    path gff
-
-    output:
-    tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'), path('genome_coverage.tsv'), path('genome_cov_stats.tsv')
-
-    script:
-    """
-    bedtools coverage -a $gff -b $bam > gene_coverage.bed
-    bedtools coverage -b $gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
-    bedtools genomecov -ibam $bam -dz > genome_coverage.tsv
-    samtools coverage $bam > genome_cov_stats.tsv
-    """
-
-}
-
-process preparereport {
-
-    publishDir("$params.outdir")
-    tag 'Preparing report'
-
-    input:
-    path report
-
-    output:
-    path 'report.ipynb'
-
-    script:
-    """
-    cp $report 'report.ipynb'
-    """
-}
