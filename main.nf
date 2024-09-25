@@ -36,7 +36,7 @@ workflow {
 
     // mapping inserts
     mapped = map_inserts(inserts, params.ref_fa)
-    insert_coverage(mapped, params.ref_gff)
+    insert_coverage(mapped, params.ref_gff, params.ref_bed)
     
     // report
     report = channel.fromPath("${projectDir}/assets/report_template.ipynb")
@@ -253,16 +253,19 @@ process insert_coverage {
     input:
     tuple val(meta), path(bam), path(index)
     path gff
+    path bed
 
     output:
     tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'), 
-        path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed")
+        path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed"),
+        path('insert_intersect.out')
 
     script:
     """
     bedtools coverage -a $gff -b $bam > gene_coverage.bed
     bedtools coverage -b $gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
     bedtools coverage -b $gff -a <(bedtools bamtobed -i $bam) -F 1 > insert_coverage_full.bed
+    bedtools intersect -a <(bedtools bamtobed -i $bam) -b $bed  -wao > insert_intersect.out 
     bedtools genomecov -ibam $bam -dz > genome_coverage.tsv
     samtools coverage $bam > genome_cov_stats.tsv
     """
