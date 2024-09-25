@@ -255,12 +255,14 @@ process insert_coverage {
     path gff
 
     output:
-    tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'), path('genome_coverage.tsv'), path('genome_cov_stats.tsv')
+    tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'), 
+        path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed")
 
     script:
     """
     bedtools coverage -a $gff -b $bam > gene_coverage.bed
     bedtools coverage -b $gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
+    bedtools coverage -b $gff -a <(bedtools bamtobed -i $bam) -F 1 > insert_coverage_full.bed
     bedtools genomecov -ibam $bam -dz > genome_coverage.tsv
     samtools coverage $bam > genome_cov_stats.tsv
     """
