@@ -68,3 +68,19 @@ def load_cutadapt_report(samps, basename):
         report_list.append(pd.DataFrame.from_dict(out))
 
     return pd.concat(report_list)
+
+def load_intersects(path, samp):
+        cols = ['ins_chr', 'ins_start', 'ins_end', 'ins_id', 'ins_score', 'ins_strand',
+                'gene_chr', 'gene_start', 'gene_end', 'gene_name', 'gene_score', 'gene_strand', 'overlap']
+        insert_ovlps = pd.read_table(path, names = cols)[['ins_id', 'ins_start', 'ins_end', 'gene_name', 
+                                                                'gene_start', 'gene_end', 'gene_strand', 'overlap']]
+        insert_ovlps.insert(0, 'sample', samp)
+
+        out = insert_ovlps \
+                .assign(gene_size = lambda x: x.gene_end - x.gene_start) \
+                .assign(ins_size = lambda x: x.ins_end - x.ins_start) \
+                .assign(pct_gene_ovlp = lambda x: 100 * (x.overlap / x.gene_size)) \
+                .assign(pct_ins_ovlp = lambda x: 100 * (x.overlap / x.ins_size)) \
+                .sort_values('ins_start')                               
+        return out
+
