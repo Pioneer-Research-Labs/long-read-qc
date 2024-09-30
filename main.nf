@@ -30,8 +30,12 @@ workflow {
     (barcodes, bc_report, bc_tab) = extract_barcodes(reads.join(flanking))
     (inserts, ins_report, in_tab) = extract_inserts(reads.join(flanking)) 
 
-    
-    seq_stats(reads, inserts, barcodes, input_ch)
+    input_ch
+        .join(reads)
+        .join(inserts)
+        .join(barcodes) 
+     | seq_stats
+
 
     barcode_counts(barcodes)
 
@@ -95,17 +99,14 @@ process seq_stats {
     tag "$meta.id"
 
     input:
-    tuple val(meta), path(seqs)
-    tuple val(meta), path(ins_seqs)
-    tuple val(meta), path(bc_seqs)
-    tuple val(meta), path(reads)
+    tuple val(meta), path(raw), path(rotated), path(ins_seqs), path(bc_seqs)
 
     output:
     path 'seq_stats.tsv'
 
     script:
     """
-    seqkit stats -T $seqs $ins_seqs $bc_seqs $reads > seq_stats.tsv
+    seqkit stats -T $raw $rotated $ins_seqs $bc_seqs > seq_stats.tsv
     """
 }
 
