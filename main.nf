@@ -21,7 +21,6 @@ workflow {
     // reorient the reads
     reads = rotate_reads(input_ch)
 
-    seq_stats(reads)
 
     // get the flanking sequences from the .dna file
     flanking = get_flanks(reads)
@@ -31,8 +30,9 @@ workflow {
     (barcodes, bc_report, bc_tab) = extract_barcodes(reads.join(flanking))
     (inserts, ins_report, in_tab) = extract_inserts(reads.join(flanking)) 
 
-    extracted_stats(inserts, barcodes)
     
+    seq_stats(reads, inserts, barcodes, input_ch)
+
     barcode_counts(barcodes)
 
 
@@ -48,32 +48,6 @@ workflow {
 
     channel.fromPath(params.samplesheet) | samples
 
-
-    // --- find and extract barcodes and inserts
-    
-    /*
-    // map flanking sequences
-    map_ch = mapflanking(reads.join(flanking))
-
-    // convert maps to bed the filter
-    coords = extract_coords(map_ch)
-
-
-    (filtered_ch, stats) = filter_bed(coords)
-
-    
-    // use bed to extract sequences
-    seqs = extract_seqs(filtered_ch.join(reads))
-
-    // convert to tabular
-    tab = seqtotab(seqs)
-    
-    // some stats
-    seqstats(seqs)
-
-    // count unique barcodes
-    barcodecounts(tab)
-    */
 
     
 }
@@ -122,13 +96,16 @@ process seq_stats {
 
     input:
     tuple val(meta), path(seqs)
+    tuple val(meta), path(ins_seqs)
+    tuple val(meta), path(bc_seqs)
+    tuple val(meta), path(reads)
 
     output:
     path 'seq_stats.tsv'
 
     script:
     """
-    seqkit stats -T $seqs > seq_stats.tsv
+    seqkit stats -T $seqs $ins_seqs $bc_seqs $reads > seq_stats.tsv
     """
 }
 
@@ -223,24 +200,6 @@ process extract_inserts {
     """
 }
 
-// Insert & barcode stats
-process extracted_stats {
-    publishDir("$params.outdir/$meta.id")
-    tag "$meta.id"
-
-    input:
-    tuple val(meta), path(ins_seqs)
-    tuple val(meta), path(bc_seqs)
-
-    output:
-    path "extracted_stats.tsv"
-
-    shell:
-    """
-    seqkit stats -T $ins_seqs $bc_seqs > extracted_stats.tsv
-    """
-
-}
 
 // Insert mapping
 
