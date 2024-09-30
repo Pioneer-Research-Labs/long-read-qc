@@ -31,8 +31,10 @@ workflow {
     (barcodes, bc_report, bc_tab) = extract_barcodes(reads.join(flanking))
     (inserts, ins_report, in_tab) = extract_inserts(reads.join(flanking)) 
 
-
+    extracted_stats(inserts, barcodes)
+    
     barcode_counts(barcodes)
+
 
     // mapping inserts
     mapped = map_inserts(inserts, params.ref_fa)
@@ -221,6 +223,24 @@ process extract_inserts {
     """
 }
 
+// Insert & barcode stats
+process extracted_stats {
+    publishDir("$params.outdir/$meta.id")
+    tag "$meta.id"
+
+    input:
+    tuple val(meta), path(ins_seqs)
+    tuple val(meta), path(bc_seqs)
+
+    output:
+    path "extracted_stats.tsv"
+
+    shell:
+    """
+    seqkit stats -T $ins_seqs $bc_seqs > extracted_stats.tsv
+    """
+
+}
 
 // Insert mapping
 
