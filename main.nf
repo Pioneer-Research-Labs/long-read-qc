@@ -193,9 +193,10 @@ process extract_inserts {
         --revcomp \
         -e $params.error_rate \
         -O $params.min_overlap \
-        -o inserts.fasta \
+        -o inserts_cutadapt.fasta \
         --json cutadapt_inserts_report.json \
         $reads
+    seqkit seq --min-len 1 inserts_cutadapt.fasta > inserts.fasta
     seqkit fx2tab -li inserts.fasta > inserts.tsv
     """
 }
