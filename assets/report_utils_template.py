@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import os
+from pathlib import Path
 
 
 
@@ -103,7 +104,7 @@ def load_intersects(path, samp):
                 .sort_values('ins_start')                               
         return out
 
-def seq_summary(barcode_data, insert_data, seq_stat):
+def seq_summary(barcode_data, insert_data, seq_stat, samp_info = None):
     both = barcode_data.merge(insert_data, on = ['sample', 'read']) \
         .groupby('sample', as_index = False) \
         .size().rename(columns = {'size': 'both'})
@@ -125,5 +126,7 @@ def seq_summary(barcode_data, insert_data, seq_stat):
                         'both': 'Reads with both', 'bc_pct': '% with barcode', 'ins_pct': '% with insert',
                         'pl_pct': '% with plasmid', 'both_pct': '% with both', 'Sample': 'sample'})
 
-    num_seqs = samp_info.merge(num_seqs, on = 'sample')
+    if samp_info is not None:
+        num_seqs = samp_info.merge(num_seqs, on = 'sample')
+        
     return(num_seqs)
