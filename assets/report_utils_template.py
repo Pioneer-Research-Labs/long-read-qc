@@ -8,13 +8,21 @@ def list_files(samps, basename):
     files = {key:os.path.join(val, basename) for key,val in samps.items()}
     return {key:val for key,val in files.items() if os.path.exists(val)}
 
-def load_barcode_data(paths, samp):
-    barcode_path, counts_path = paths
-    barcodes = pd.read_table(barcode_path, names = ['read', 'barcode_seq', 'barcode_len'], usecols = [0,1,3])
-    barcode_counts = pd.read_table(counts_path, names = ['barcode_seq', 'barcode_count'])
-    barcodes = barcodes.merge(barcode_counts, on = 'barcode_seq')
-    barcodes['sample'] = samp
+def load_barcode_data(path, samp):
+    try:
+        barcodes = pd.read_table(path, names = ['read', 'barcode_seq', 'barcode_len'], usecols = [0,1,3])
+        barcodes['sample'] = samp
+    except:
+        barcodes = None
     return barcodes
+
+def load_barcode_counts(path, samp):
+    try:
+        counts = pd.read_table(path, names = ['barcode_seq', 'barcode_count']) \
+            .assign(sample = samp)
+    except:
+        counts = None
+    return counts
 
 def load_insert_data(path, samp):
     try:
@@ -95,3 +103,27 @@ def load_intersects(path, samp):
                 .sort_values('ins_start')                               
         return out
 
+def seq_summary(barcode_data, insert_data, seq_stat):
+    both = barcode_data.merge(insert_data, on = ['sample', 'read']) \
+        .groupby('sample', as_index = False) \
+        .size().rename(columns = {'size': 'both'})
+
+    seq_stat["name"] = seq_stat["file"].apply(lambda x: str(Path(x).with_suffix('')))
+    seq_stat["name"] = seq_stat["name"] \
+        .apply(lambda x: x if x in ['reads_rotated', 'inserts', 'barcodes'] else "raw_reads")
+    num_seqs = seq_stat[['sample', 'name', 'num_seqs']] \
+        .pivot(columns = "name", values = "num_seqs", index = "sample") \
+        .merge(both, on = 'sample', how = 'left') \
+        [['sample', 'raw_reads', 'reads_rotated', 'barcodes', 'inserts', 'both']] \
+        .assign(pl_pct = lambda x: round(100*(x.reads_rotated / x.raw_reads), 2)) \
+        .assign(bc_pct = lambda x: round(100*(x.barcodes / x.raw_reads), 2)) \
+        .assign(ins_pct = lambda x: round(100*(x.inserts / x.raw_reads), 2)) \
+        .assign(both_pct = lambda x: round(100*(x.both / x.raw_reads), 2)) \
+        .fillna(0) \
+        .rename(columns = {'raw_reads': 'Raw Reads', 'reads_rotated': "Reads with plasmid sequence", 
+                        'barcodes': 'Reads with barcodes', 'inserts': 'Reads with inserts',
+                        'both': 'Reads with both', 'bc_pct': '% with barcode', 'ins_pct': '% with insert',
+                        'pl_pct': '% with plasmid', 'both_pct': '% with both', 'Sample': 'sample'})
+
+    num_seqs = samp_info.merge(num_seqs, on = 'sample')
+    return(num_seqs)
