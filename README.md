@@ -47,20 +47,39 @@ To run the report and perform additional analysis if required the `results` dire
 #### General
 
 `--samplesheet`: Three column csv file with columns titled "id", "construct", and "file" (default: "samplesheet.csv")
+
 `--outdir`: Name of output directory to save the results (default: "results")
+
 `--rotate_anchor`: vector sequence to use for rotating and orienting reads (default: rrnB terminator, "TTTATCTGTTGTTTGTCGGTGAACGCTCTC")
 
 #### Genome files for mapping inserts
 
 `--ref_fa`: Fasta file of reference genome (default: "$HOME/shared/genomes/H_elongata/H_elongata_contigs.fna")
+
 `--ref_gff`: GFF file with gene annotations (default: "$HOME/shared/genomes/H_elongata/H_elongata_genes.gff")
+
 `--ref_bed`: BED file with gene annotations (default: "$HOME/shared/genomes/H_elongata/H_elongata_genes.bed")
 
 
 #### Barcode and insert searching parameters
+
 `--error_rate`: Error rate for matching flanking regions (default: 0.1)
+
 `--min_overlap`: Minimum overlap to identify an flanking region (default: 3)
 
+
 #### Barcode filtering
+
 `--min_bc_len`: Minimum barcode length to include in output (default: 20)
+
 `--max_bc_len`: Maximium barcode length to include in output (default: 60)
+
+## About
+
+This is a fairly straightforward pipeline that uses `cutadapt` to locate barcodes and inserts on the reads.  It first uses the [`rotate`](https://github.com/richarddurbin/rotate) to orient the reads using a provided anchor sequence present on the plasmid.  This also filters out reads that don't have plasmid sequence so best to use an anchor sequence that is close to the barcode/insert regions.  
+
+Using the provided `.dna` Snapgene file the annotations are extracted and flanking sequences saved in a format for `cutadapt`.   Then the reads are run through `cutadapt` twice, once to extract the barcode and once to extract the insert.  Cutadapt has a feature called "linked adapters"  which will uses the provided flanking sequence to locate the 5' and 3' flanking regions and then it trims off this sequence from the read and everything outside it, leaving just the barcode or insert.
+
+After counting unique barcodes the inserts are mapped to the provided genome and overlaps with genes and the genome are assesed using a variety of bedtools commands
+
+
