@@ -15,9 +15,18 @@ To determine the regions of the read that have the barcode and insert the pipeli
 
 ### Create sample sheet
 
-To run the pipeline a csv file describing the samples must be provided.  At minimum this file needs to have three columns titled, `id`, `construct`, and `file`.  The `id` column should be a unique sample id that is simple and not too long.  `construct` is the path to a SnapGene plasmid map with annotations described above.  Note this can also be an S3 URI for a file located in one of Pioneer's S3 buckets.  The `file` column is the path to the raw fastq file for that sample.  This can be a local file but it's highly recommended to have the raw data in an S3 bucket and use the S3 URI here.  
+To run the pipeline a csv file describing the samples must be provided.  At minimum this file needs to have three columns titled, `id`, `genome`, `construct`, and `file`.  The `id` column should be a unique sample id that is simple and not too long. `genome` is the genome id to use for mapping inserts and identifying genes.  See below for current list.  `construct` is the path to a SnapGene plasmid map with annotations described above.  Note this can also be an S3 URI for a file located in one of Pioneer's S3 buckets.  The `file` column is the path to the raw fastq file for that sample.  This can be a local file but it's highly recommended to have the raw data in an S3 bucket and use the S3 URI here.  
 
 Once you've created this file (probably easiest to do this on your local machine, not the server), you can upload it to the server in the working directory you'd like to use for the run.
+
+#### Current genomes
+
+- B_subtilis
+- C_psychrerythraea
+- G_obscurus
+- H_elongata
+- P_halocryophilus
+- R_radiotolerans
 
 ### Run the pipeline
 

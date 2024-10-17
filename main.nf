@@ -9,7 +9,7 @@ workflow {
     input_ch = channel.fromPath(params.samplesheet)
         .splitCsv(header:true)
         .map { row -> 
-            meta = [id:row.id, construct:file(row.construct)]
+            meta = [id:row.id, genome:row.genome, construct:file(row.construct)]
             [meta, file(row.file)]
     
         }
@@ -40,9 +40,13 @@ workflow {
     barcode_counts(barcodes)
 
 
+    
+
+   
+
     // mapping inserts
-    mapped = map_inserts(inserts, params.ref_fa)
-    insert_coverage(mapped, params.ref_gff, params.ref_bed)
+    mapped = map_inserts(inserts)
+    insert_coverage(mapped)
     
     // report
     report = channel.fromPath("${projectDir}/assets/report_template.ipynb")
@@ -212,14 +216,15 @@ process map_inserts {
 
     input:
     tuple val(meta), path(ins_seqs)
-    path ref
 
     output:
     tuple val(meta), path('mapped_inserts.bam'), path("mapped_inserts.bam.bai")
 
     script:
     """
-    minimap2 -ax map-ont $ref $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
+    export ref_fa="\$HOME/shared/genomes/${meta.genome}/${meta.genome}_contigs.fna"
+    
+    minimap2 -ax map-ont \$ref_fa $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
     samtools index mapped_inserts.bam
     """
 
@@ -233,8 +238,6 @@ process insert_coverage {
 
     input:
     tuple val(meta), path(bam), path(index)
-    path gff
-    path bed
 
     output:
     tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'), 
@@ -243,10 +246,13 @@ process insert_coverage {
 
     script:
     """
-    bedtools coverage -a $gff -b $bam > gene_coverage.bed
-    bedtools coverage -b $gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
-    bedtools coverage -b $gff -a <(bedtools bamtobed -i $bam) -F 1 > insert_coverage_full.bed
-    bedtools intersect -a <(bedtools bamtobed -i $bam) -b $bed  -wao > insert_intersect.out 
+    export gff="\$HOME/shared/genomes/${meta.genome}/${meta.genome}_genes.gff"
+    export bed="\$HOME/shared/genomes/${meta.genome}/${meta.genome}_genes.bed"
+
+    bedtools coverage -a \$gff -b $bam > gene_coverage.bed
+    bedtools coverage -b \$gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
+    bedtools coverage -b \$gff -a <(bedtools bamtobed -i $bam) -F 1 > insert_coverage_full.bed
+    bedtools intersect -a <(bedtools bamtobed -i $bam) -b \$bed  -wao > insert_intersect.out 
     bedtools genomecov -ibam $bam -dz > genome_coverage.tsv
     samtools coverage $bam > genome_cov_stats.tsv
     """
