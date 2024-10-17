@@ -61,14 +61,6 @@ To run the report and perform additional analysis if required the `results` dire
 
 `--rotate_anchor`: vector sequence to use for rotating and orienting reads (default: rrnB terminator, "TTTATCTGTTGTTTGTCGGTGAACGCTCTC")
 
-#### Genome files for mapping inserts
-
-`--ref_fa`: Fasta file of reference genome (default: "$HOME/shared/genomes/H_elongata/H_elongata_contigs.fna")
-
-`--ref_gff`: GFF file with gene annotations (default: "$HOME/shared/genomes/H_elongata/H_elongata_genes.gff")
-
-`--ref_bed`: BED file with gene annotations (default: "$HOME/shared/genomes/H_elongata/H_elongata_genes.bed")
-
 
 #### Barcode and insert searching parameters
 
@@ -92,3 +84,7 @@ Using the provided `.dna` Snapgene file the annotations are extracted and flanki
 After counting unique barcodes the inserts are mapped to the provided genome and overlaps with genes and the genome are assesed using a variety of bedtools commands
 
 
+## Developing
+
+### Adding genome files
+TODO
