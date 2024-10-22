@@ -38,6 +38,12 @@ def load_genome_cov(path, samp):
     genome_cov['sample'] = samp
     return genome_cov
 
+
+def load_map_stats(path, samp):
+    x = pd.read_table(path, names = ['value', 'key'], usecols=[0,2])
+    x['sample'] = samp
+    return(x)
+
 def load_gene_cov(path, samp):
     gene_cov_full = pd.read_table(path, header = None)
     gene_cov = gene_cov_full.loc[:, [9, 10, 11, 12]].rename(
@@ -104,27 +110,34 @@ def load_intersects(path, samp):
                 .sort_values('ins_start')                               
         return out
 
-def seq_summary(barcode_data, insert_data, seq_stat, samp_info = None):
+def seq_summary(barcode_data, insert_data, seq_stat, vec_map_stats, samp_info = None):
     both = barcode_data.merge(insert_data, on = ['sample', 'read']) \
         .groupby('sample', as_index = False) \
         .size().rename(columns = {'size': 'both'})
+    
+    map_stats = vec_map_stats \
+        .pivot(columns='key', values='value', index='sample').reset_index() \
+        [['sample', 'primary mapped']] 
 
     seq_stat["name"] = seq_stat["file"].apply(lambda x: str(Path(x).with_suffix('')))
     seq_stat["name"] = seq_stat["name"] \
-        .apply(lambda x: x if x in ['reads_rotated', 'inserts', 'barcodes'] else "raw_reads")
+        .apply(lambda x: x if x in ['inserts', 'barcodes'] else "raw_reads")
     num_seqs = seq_stat[['sample', 'name', 'num_seqs']] \
         .pivot(columns = "name", values = "num_seqs", index = "sample") \
         .merge(both, on = 'sample', how = 'left') \
-        [['sample', 'raw_reads', 'reads_rotated', 'barcodes', 'inserts', 'both']] \
-        .assign(pl_pct = lambda x: round(100*(x.reads_rotated / x.raw_reads), 2)) \
+        .merge(map_stats) \
+        [['sample', 'raw_reads', 'primary mapped', 'barcodes', 'inserts', 'both']] \
+        .assign(pct_mapped = lambda x: round(100*(x['primary mapped'].astype(int) / x.raw_reads), 2)) \
         .assign(bc_pct = lambda x: round(100*(x.barcodes / x.raw_reads), 2)) \
         .assign(ins_pct = lambda x: round(100*(x.inserts / x.raw_reads), 2)) \
         .assign(both_pct = lambda x: round(100*(x.both / x.raw_reads), 2)) \
         .fillna(0) \
-        .rename(columns = {'raw_reads': 'Raw Reads', 'reads_rotated': "Reads with plasmid sequence", 
-                        'barcodes': 'Reads with barcodes', 'inserts': 'Reads with inserts',
-                        'both': 'Reads with both', 'bc_pct': '% with barcode', 'ins_pct': '% with insert',
-                        'pl_pct': '% with plasmid', 'both_pct': '% with both', 'Sample': 'sample'})
+        .rename(columns = {'raw_reads': 'Raw Reads',  
+                           'primary mapped': 'Reads mapped to plasmid',
+                           'pct_mapped': '% mapped to plasmid',
+                            'barcodes': 'Reads with barcodes', 'inserts': 'Reads with inserts',
+                            'both': 'Reads with both', 'bc_pct': '% with barcode', 'ins_pct': '% with insert',
+                            'both_pct': '% with both', 'Sample': 'sample'})
 
     if samp_info is not None:
         num_seqs = samp_info.merge(num_seqs, on = 'sample')

@@ -7,3 +7,4 @@ data
 .fileid.db
 .nextflow*
 .DS_Store
+.Rproj.user

@@ -19,19 +19,20 @@ workflow {
     // --- Prep
 
     // reorient the reads
-    reads = rotate_reads(input_ch)
+    //reads = rotate_reads(input_ch)
 
+    map_vector(input_ch)
 
     // get the flanking sequences from the .dna file
-    flanking = get_flanks(reads)
+    flanking = get_flanks(input_ch)
     
 
     // test cutadapt here
-    (barcodes, bc_report, bc_tab) = extract_barcodes(reads.join(flanking))
-    (inserts, ins_report, in_tab) = extract_inserts(reads.join(flanking)) 
-
+    (barcodes, bc_report, bc_tab) = extract_barcodes(input_ch.join(flanking))
+    (inserts, ins_report, in_tab) = extract_inserts(input_ch.join(flanking)) 
+    
+    //.join(reads)
     input_ch
-        .join(reads)
         .join(inserts)
         .join(barcodes) 
      | seq_stats
@@ -39,10 +40,6 @@ workflow {
 
     barcode_counts(barcodes)
 
-
-    
-
-   
 
     // mapping inserts
     mapped = map_inserts(inserts)
@@ -96,6 +93,26 @@ process rotate_reads {
     """
 }
 
+process map_vector {
+    publishDir("$params.outdir/$meta.id")
+    tag "$meta.id"
+
+    input:
+    tuple val(meta), path(reads)
+
+    output:
+    tuple val(meta), path('mapped_vector.bam'), path("mapped_vector.bam.bai"), path("mapped_vector_stats.tsv")
+
+    script:
+    """
+    convert_dna.py $meta.construct | \
+        minimap2 -ax map-ont --secondary=no - $reads | samtools view -b - | samtools sort - -o 'mapped_vector.bam'
+    samtools index mapped_vector.bam
+    samtools flagstat -O tsv mapped_vector.bam > mapped_vector_stats.tsv
+    """
+
+}
+
 process seq_stats {
        
     publishDir("$params.outdir/$meta.id")
@@ -103,14 +120,16 @@ process seq_stats {
     tag "$meta.id"
 
     input:
-    tuple val(meta), path(raw), path(rotated), path(ins_seqs), path(bc_seqs)
-
+    tuple val(meta), path(raw), path(ins_seqs), path(bc_seqs)
+    
+    //path(rotated), 
+    
     output:
     path 'seq_stats.tsv'
 
     script:
     """
-    seqkit stats -T $raw $rotated $ins_seqs $bc_seqs > seq_stats.tsv
+    seqkit stats -T $raw $ins_seqs $bc_seqs > seq_stats.tsv
     """
 }
 
@@ -218,7 +237,7 @@ process map_inserts {
     tuple val(meta), path(ins_seqs)
 
     output:
-    tuple val(meta), path('mapped_inserts.bam'), path("mapped_inserts.bam.bai")
+    tuple val(meta), path('mapped_inserts.bam'), path("mapped_inserts.bam.bai"), path('mapped_insert_stats.tsv')
 
     script:
     """
@@ -226,6 +245,7 @@ process map_inserts {
     
     minimap2 -ax map-ont \$ref_fa $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
     samtools index mapped_inserts.bam
+    samtools flagstats -O tsv mapped_inserts.bam > mapped_insert_stats.tsv
     """
 
 }
@@ -237,7 +257,7 @@ process insert_coverage {
     tag "$meta.id"
 
     input:
-    tuple val(meta), path(bam), path(index)
+    tuple val(meta), path(bam), path(index), path(stats)
 
     output:
     tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'), 
