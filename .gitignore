@@ -1,10 +1,8 @@
 *.log*
-samplesheets
 results
 work
-data
+test_data
 .ipynb_checkpoints
 .fileid.db
 .nextflow*
 .DS_Store
-.Rproj.user
