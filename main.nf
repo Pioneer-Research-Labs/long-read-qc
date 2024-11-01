@@ -42,7 +42,17 @@ workflow {
 
 
     // mapping inserts
-    mapped = map_inserts(inserts)
+
+    // split based on single genome or metagenome mode
+    splits = inserts.branch { meta, path ->
+        single: meta.genome != 'meta'
+            [meta, path]
+        multi: meta.genome == 'meta'
+            [meta, path]
+    }
+
+
+    mapped = map_inserts(splits.single)
     insert_coverage(mapped)
     
     // report
@@ -319,119 +329,5 @@ process samples {
 
 
 
-process mapflanking {
-    publishDir("$params.outdir/$meta.id")
 
-    tag "Mapping flanking regions"
-    
-    input:
-    tuple val(meta), path(reads), path(flanking)
-
-    output:
-    tuple val(meta), path('flanking_maps.paf')
-
-    script:
-    """
-    minimap2 -cxsr -k $params.kmer_size -m $params.chaining_score -B $params.mismatch -N 0 \
-        $flanking $reads > flanking_maps.paf 
-    """
-
-}
-
-process extract_coords {
-
-    publishDir("$params.outdir/$meta.id")
-
-    tag "Extracting coordinates for $meta.id"
-
-    input:
-    tuple val(meta), path(flanking_maps)
-
-    output:
-    tuple val(meta), path('barcode_coords.bed'), path('insert_coords.bed')
-
-    script:
-    """
-    align_coords.py $flanking_maps
-    """
-
-}
-
-process filter_bed {
-    publishDir("$params.outdir/$meta.id")
-
-    tag "Filtering bed for $meta.id"
-
-    input:
-    tuple val(meta), path(barcode_bed), path(insert_bed)
-
-    output:
-    tuple val(meta), path('barcode_filtered.bed'), path('insert_filtered.bed')
-    tuple val(meta), path('barcode_stats.json'), path('insert_stats.json')
-
-    script:
-    """
-    filter_bed.py $barcode_bed 'barcode_filtered.bed' 'barcode_stats.json'
-    filter_bed.py $insert_bed 'insert_filtered.bed' 'insert_stats.json'
-    """
-}
-
-
-process extract_seqs {
-    
-    publishDir("$params.outdir/$meta.id")
-
-    tag "Extracting sequences for $meta.id"
-
-    input:
-    tuple val(meta), path(barcode_bed), path(insert_bed), path(reads)
-
-    output:
-    tuple val(meta), path('barcode_seqs.fasta'), path('insert_seqs.fasta')
-
-    script:
-    """
-    seqkit subseq --bed $barcode_bed $reads > barcode_seqs.fasta
-    seqkit subseq --bed $insert_bed $reads > insert_seqs.fasta
-    """
-
-}
-
-
-
-process seqtotab {
-    
-    publishDir("$params.outdir/$meta.id")
-    tag 'Sequences to table'
-
-    input:
-    tuple val(meta), path(bc_seqs), path(ins_seqs)
-
-    output:
-    tuple val(meta), path('barcode_seqs.tsv'), path('insert_seqs.tsv')
-
-    script:
-    """
-    seqkit fx2tab -l $bc_seqs > 'barcode_seqs.tsv'
-    seqkit fx2tab -l $ins_seqs > 'insert_seqs.tsv'
-    """
-    
-}
-
-process barcodecounts {
-
-    publishDir("$params.outdir/$meta.id")
-    tag 'Counting unique barcodes'
-
-    input:
-    tuple val(meta), path(bc_seqs_tab), path(insert_seqs_tab)
-
-    output:
-    path 'barcode_counts.tsv'
-
-    script:
-    """
-    cut -f 2 $bc_seqs_tab | sort | uniq -c | awk '{print \$2"\t"\$1}' > barcode_counts.tsv
-    """
-}
 
