@@ -55,6 +55,10 @@ workflow {
     mapped = map_inserts(splits.single)
     insert_coverage(mapped)
     
+    // metagenomic samples
+    sketch(splits.multi) | classify | taxonomy
+
+
     // report
     report = channel.fromPath("${projectDir}/assets/report_template.ipynb")
     report_utils = channel.fromPath("${projectDir}/assets/report_utils_template.py")
@@ -329,5 +333,58 @@ process samples {
 
 
 
+// --- Metagenomics
 
+process sketch {
+    
+    publishDir("$params.outdir/$meta.id")
+    tag "$meta.id"
+    
+    input:
+    tuple val(meta), path(ins_seqs)
 
+    output:
+    tuple val(meta), path('inserts.sig.gz')
+
+    script:
+    """
+    sourmash sketch dna -p k=21,abund $ins_seqs -o inserts.sig.gz --name inserts
+    """
+}
+
+process classify {
+    
+    publishDir("$params.outdir/$meta.id")
+    tag "$meta.id"
+
+    cpus params.cores
+
+    input:
+    tuple val(meta), path(insert_sig)
+  
+    output:
+    tuple val(meta), path('insert_matches.csv')
+  
+    script:
+    """
+    sourmash scripts fastgather -o insert_matches.csv -c $task.cpus -t $params.meta_ovlp -k 21 \
+        inserts.sig.gz $params.sourmash_db
+    """
+}
+
+process taxonomy {
+    publishDir("$params.outdir/$meta.id")
+    tag "$meta.id"
+
+    input:
+    tuple val(meta), path(insert_matches)
+
+    output:
+    tuple val(meta), path('insert_taxonomy.csv')
+
+    script:
+    """
+     sourmash tax metagenome -g $insert_matches -t $params.taxonomy -F csv_summary > insert_taxonomy.csv
+    """
+
+}
