@@ -5,9 +5,47 @@ from pathlib import Path
 
 
 
+# for organizing our data a bit better
+class PipelineData(dict):
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError as k:
+            raise AttributeError(k)
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+    def __delattr__(self, key):
+        try:
+            del self[key]
+        except KeyError as k:
+            raise AttributeError(k)
+
+    def __repr__(self):
+        return '<PipelineData' + dict.__repr__(self) + '>'
+
+
+def load_report_data(samps):
+    out = PipelineData({x['name']: load_sample_data(samps, x['load_fun'], x['path']) for x in to_load})
+    return out
+
 def list_files(samps, basename):
     files = {key:os.path.join(val, basename) for key,val in samps.items()}
     return {key:val for key,val in files.items() if os.path.exists(val)}
+
+def load_sample_data(samps, load_fun, path):
+    out = pd.concat([load_fun(val, key) for key, val in list_files(samps, path).items()])
+    return(out)
+
+
+def load_csv(path, samp):
+    try:
+        x = pd.read_csv(path)
+        x['sample'] = samp
+    except:
+        x = None
+    return x 
 
 def load_barcode_data(path, samp):
     try:
@@ -34,21 +72,30 @@ def load_insert_data(path, samp):
     return inserts
 
 def load_genome_cov(path, samp):
-    genome_cov = pd.read_table(path, names = ['chr', 'pos', 'cov'])
-    genome_cov['sample'] = samp
+    try:
+        genome_cov = pd.read_table(path, names = ['chr', 'pos', 'cov'])
+        genome_cov['sample'] = samp
+    except:
+        genome_cov = None
     return genome_cov
 
 
 def load_map_stats(path, samp):
-    x = pd.read_table(path, names = ['value', 'key'], usecols=[0,2])
-    x['sample'] = samp
+    try:
+        x = pd.read_table(path, names = ['value', 'key'], usecols=[0,2])
+        x['sample'] = samp
+    except:
+        x = None
     return(x)
 
 def load_gene_cov(path, samp):
-    gene_cov_full = pd.read_table(path, header = None)
-    gene_cov = gene_cov_full.loc[:, [9, 10, 11, 12]].rename(
-        columns={9:'count', 10:'bases', 11:'gene_length', 12:'percent_cov'})
-    gene_cov['sample'] = samp
+    try:
+        gene_cov_full = pd.read_table(path, header = None)
+        gene_cov = gene_cov_full.loc[:, [9, 10, 11, 12]].rename(
+            columns={9:'count', 10:'bases', 11:'gene_length', 12:'percent_cov'})
+        gene_cov['sample'] = samp
+    except:
+        gene_cov = None
     return gene_cov
 
 def load_insert_cov(path, samp):
@@ -143,3 +190,21 @@ def seq_summary(barcode_data, insert_data, seq_stat, vec_map_stats, samp_info = 
         num_seqs = samp_info.merge(num_seqs, on = 'sample')
         
     return(num_seqs)
+
+
+to_load = [
+    {'name': 'barcodes', 'load_fun': load_barcode_data, 'path': 'barcodes.tsv'},
+    {'name': 'barcode_counts', 'load_fun': load_barcode_counts, 'path': 'barcode_counts.tsv'},
+    {'name': 'inserts', 'load_fun': load_insert_data, 'path': 'inserts.tsv'},
+    {'name': 'genome_cov', 'load_fun': load_genome_cov, 'path': 'genome_coverage.tsv'},
+    {'name': 'gene_cov', 'load_fun': load_gene_cov, 'path': 'gene_coverage.bed'},
+    {'name': 'insert_cov', 'load_fun': load_insert_cov, 'path': 'insert_coverage.bed'},
+    {'name': 'insert_cov_full', 'load_fun': load_insert_cov, 'path': 'insert_coverage_full.bed'},
+    {'name': 'intersect', 'load_fun': load_intersects, 'path': 'insert_intersect.out'},
+    {'name': 'seq_stat', 'load_fun': load_seq_stats, 'path': 'seq_stats.tsv'},
+    {'name': 'vec_map_stats', 'load_fun': load_map_stats, 'path': 'mapped_vector_stats.tsv'},
+    {'name': 'ins_map_stats', 'load_fun': load_map_stats, 'path': 'mapped_insert_stats.tsv'},
+    {'name': 'cov_stat', 'load_fun': load_cov_stats, 'path': 'genome_cov_stats.tsv'},
+    {'name': 'matches', 'load_fun': load_csv, 'path': 'insert_matches.csv'},
+    {'name': 'tax', 'load_fun': load_csv, 'path': 'insert_taxonomy.csv'}
+]
