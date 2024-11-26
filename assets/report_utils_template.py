@@ -208,3 +208,21 @@ to_load = [
     {'name': 'matches', 'load_fun': load_csv, 'path': 'insert_matches.csv'},
     {'name': 'tax', 'load_fun': load_csv, 'path': 'insert_taxonomy.csv'}
 ]
+
+
+# taxonomy
+
+def rank_summary(tax, rank):
+    
+    all_ranks = ['superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species']
+    i = [all_ranks.index(r) + 1 for r in all_ranks if r  == rank]
+    ranks = all_ranks[0:i[0]]
+
+    x = tax.query(f'rank == "{rank}"')[['fraction', 'lineage', 'sample']]
+    x[ranks] = x.lineage.str.split(';', expand = True)
+    x = x.drop(['lineage'], axis = 1)
+    x[ranks] = x[ranks].apply(lambda x: x.str.replace("(^[a-z]__)", "", regex = True)) 
+    x['Percentage'] = round(x['fraction'] * 100, 2)
+
+    return x
+
