@@ -1,12 +1,5 @@
 # Analysis pipeline for long reads
 
-Possible names:
-* Extractify
-* Genomicode
-* Extract-a-seq
-* FATTSeq (Find All The Things)
-* BubbleSeq
-
 ## Usage
 
 ### Prep construct file
@@ -30,16 +23,12 @@ Once you've created this file (probably easiest to do this on your local machine
 
 ### Run the pipeline
 
-Pull the latest version of the pipeline:
 
-```
-nextflow pull Pioneer-Research-Labs/long-read-qc
-```
 
 Start the run:
 
 ```
-nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet mysample.csv
+nextflow run Pioneer-Research-Labs/long-read-qc -latest --samplesheet mysample.csv 
 ```
 
 For low-depth QC samples this should run in less than a minute
@@ -53,31 +42,33 @@ To run the report and perform additional analysis if required the `results` dire
 
 ### Pipeline options
 
-#### General
+```
+▗▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖▗▄▄▄▖▗▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▄▄▄▖▗▖   ▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖
+▐▌ ▐▌ █  ▐▌ ▐▌▐▛▚▖▐▌▐▌   ▐▌   ▐▌ ▐▌    ▐▌ ▐▌ █  ▐▌ ▐▌▐▌   ▐▌     █  ▐▛▚▖▐▌▐▌   ▐▌   
+▐▛▀▘  █  ▐▌ ▐▌▐▌ ▝▜▌▐▛▀▀▘▐▛▀▀▘▐▛▀▚▖    ▐▛▀▘  █  ▐▛▀▘ ▐▛▀▀▘▐▌     █  ▐▌ ▝▜▌▐▛▀▀▘ ▝▀▚▖
+▐▌  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖▐▙▄▄▖▐▌ ▐▌    ▐▌  ▗▄█▄▖▐▌   ▐▙▄▄▖▐▙▄▄▖▗▄█▄▖▐▌  ▐▌▐▙▄▄▖▗▄▄▞▘
 
-`--samplesheet`: Three column csv file with columns titled "id", "construct", and "file" (default: "samplesheet.csv")
-
-`--outdir`: Name of output directory to save the results (default: "results")
-
-`--rotate_anchor`: vector sequence to use for rotating and orienting reads (default: rrnB terminator, "TTTATCTGTTGTTTGTCGGTGAACGCTCTC")
-
-
-#### Barcode and insert searching parameters
-
-`--error_rate`: Error rate for matching flanking regions (default: 0.1)
-
-`--min_overlap`: Minimum overlap to identify an flanking region (default: 3)
+Long Read Processing and QC Pipeline          
 
 
-#### Barcode filtering
+Usage: nextflow run Pioneer-Research-Labs/long-read-qc -latest
 
-`--min_bc_len`: Minimum barcode length to include in output (default: 20)
-
-`--max_bc_len`: Maximium barcode length to include in output (default: 60)
+Options:
+--samplesheet <file>      Path to the sample sheet (default: samplesheet.csv)
+--outdir <dir>            Output directory (default: results)
+--error_rate <float>      Error rate for barcode searching (default: 0.1)
+--min_overlap <int>       Minimum overlap for barcode searching (default: 3)
+--min_bc_len <int>        Minimum barcode length (default: 20)
+--max_bc_len <int>        Maximum barcode length (default: 60)
+--meta_ovlp <int>         Overlap bp for sourmash (default: 1000)
+--sourmash_db <file>      Path to the sourmash database (default: /srv/shared/databases/sourmash/gtdb-rs220-k21.zip)
+--taxonomy <file>         Path to the taxonomy database (default: /srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb)
+--cores <int>             Number of cores to use (default: 4)
+```
 
 ## About
 
-This is a fairly straightforward pipeline that uses `cutadapt` to locate barcodes and inserts on the reads.  It first uses the [`rotate`](https://github.com/richarddurbin/rotate) to orient the reads using a provided anchor sequence present on the plasmid.  This also filters out reads that don't have plasmid sequence so best to use an anchor sequence that is close to the barcode/insert regions.  
+This is a fairly straightforward pipeline that uses `cutadapt` to locate barcodes and inserts on the reads. 
 
 Using the provided `.dna` Snapgene file the annotations are extracted and flanking sequences saved in a format for `cutadapt`.   Then the reads are run through `cutadapt` twice, once to extract the barcode and once to extract the insert.  Cutadapt has a feature called "linked adapters"  which will uses the provided flanking sequence to locate the 5' and 3' flanking regions and then it trims off this sequence from the read and everything outside it, leaving just the barcode or insert.
 

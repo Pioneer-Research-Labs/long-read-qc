@@ -1,37 +1,77 @@
 #!/usr/bin/env nextflow
 
+def helpMessage() {
+    log.info """
+Usage: nextflow run Pioneer-Research-Labs/long-read-qc -latest
+
+Options:
+--samplesheet <file>      Path to the sample sheet (default: samplesheet.csv)
+--outdir <dir>            Output directory (default: results)
+--error_rate <float>      Error rate for barcode searching (default: 0.1)
+--min_overlap <int>       Minimum overlap for barcode searching (default: 3)
+--min_bc_len <int>        Minimum barcode length (default: 20)
+--max_bc_len <int>        Maximum barcode length (default: 60)
+--meta_ovlp <int>         Overlap bp for sourmash (default: 1000)
+--sourmash_db <file>      Path to the sourmash database (default: /srv/shared/databases/sourmash/gtdb-rs220-k21.zip)
+--taxonomy <file>         Path to the taxonomy database (default: /srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb)
+--cores <int>             Number of cores to use (default: 4)
+
+"""
+}
+
 
 // Run the workflow
 
 workflow {
 
+    log.info """
+▗▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖▗▄▄▄▖▗▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▄▄▄▖▗▖   ▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖
+▐▌ ▐▌ █  ▐▌ ▐▌▐▛▚▖▐▌▐▌   ▐▌   ▐▌ ▐▌    ▐▌ ▐▌ █  ▐▌ ▐▌▐▌   ▐▌     █  ▐▛▚▖▐▌▐▌   ▐▌   
+▐▛▀▘  █  ▐▌ ▐▌▐▌ ▝▜▌▐▛▀▀▘▐▛▀▀▘▐▛▀▚▖    ▐▛▀▘  █  ▐▛▀▘ ▐▛▀▀▘▐▌     █  ▐▌ ▝▜▌▐▛▀▀▘ ▝▀▚▖
+▐▌  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖▐▙▄▄▖▐▌ ▐▌    ▐▌  ▗▄█▄▖▐▌   ▐▙▄▄▖▐▙▄▄▖▗▄█▄▖▐▌  ▐▌▐▙▄▄▖▗▄▄▞▘
 
-    input_ch = channel.fromPath(params.samplesheet)
+Long Read Processing and QC Pipeline          
+"""    
+
+ // Show help message
+
+    if (params.help) {
+        helpMessage()
+        exit 0
+    }
+
+    channel.fromPath(params.samplesheet)
         .splitCsv(header:true)
         .map { row -> 
-            meta = [id:row.id, genome:row.genome, construct:file(row.construct)]
+            meta = [id:row.id, genome:row.genome]
             [meta, file(row.file)]
     
+        } 
+        | set {input_ch}
+
+    channel.fromPath(params.samplesheet)
+        .splitCsv(header:true)
+        .map { row -> 
+            meta = [id:row.id, genome:row.genome]
+            [meta, file(row.construct)]
         }
+        | set {constructs}
 
-
-
-    // --- Prep
 
     // reorient the reads
     //reads = rotate_reads(input_ch)
 
     map_vector(input_ch)
 
+   
     // get the flanking sequences from the .dna file
-    flanking = get_flanks(input_ch)
-    
+    flanking = get_flanks(constructs)
 
-    // test cutadapt here
+    // extract barcodes and inserts
     (barcodes, bc_report, bc_tab) = extract_barcodes(input_ch.join(flanking))
     (inserts, ins_report, in_tab) = extract_inserts(input_ch.join(flanking)) 
     
-    //.join(reads)
+    // combine for read stats
     input_ch
         .join(inserts)
         .join(barcodes) 
@@ -43,20 +83,21 @@ workflow {
 
     // mapping inserts
 
-    // split based on single genome or metagenome mode
-    splits = inserts.branch { meta, path ->
-        single: meta.genome != 'meta'
-            [meta, path]
-        multi: meta.genome == 'meta'
-            [meta, path]
+    //split based on single genome or metagenome mode
+    splits = inserts.branch { meta2, path ->
+        single: meta2.genome != 'meta'
+            [meta2, path]
+        multi: meta2.genome == 'meta'
+            [meta2, path]
     }
-
 
     mapped = map_inserts(splits.single)
     insert_coverage(mapped)
     
     // metagenomic samples
-    sketch(splits.multi) | classify | taxonomy
+    sketched = sketch(splits.multi) 
+    classified = classify(sketched, params.sourmash_db)
+    taxonomy(classified, params.taxonomy)
 
 
     // report
@@ -79,14 +120,14 @@ process get_flanks {
     tag ("$meta.id")
 
     input:
-    tuple val(meta), path(reads)
+    tuple val(meta), path(construct)
 
     output:
     tuple val(meta), path("flanking.fasta")
 
     script:
     """
-    get_flanking.py $meta.construct
+    get_flanking.py $construct
     """
 }
 
@@ -247,6 +288,10 @@ process map_inserts {
     publishDir("$params.outdir/$meta.id")
     tag "$meta.id"
 
+    cpus params.cores
+
+    containerOptions '--volume $HOME/shared/genomes:/genomes'
+
     input:
     tuple val(meta), path(ins_seqs)
 
@@ -255,9 +300,9 @@ process map_inserts {
 
     script:
     """
-    export ref_fa="\$HOME/shared/genomes/${meta.genome}/${meta.genome}_contigs.fna"
+    export ref_fa="/genomes/${meta.genome}/${meta.genome}_contigs.fna"
     
-    minimap2 -ax map-ont \$ref_fa $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
+    minimap2 -ax map-ont -t $task.cpus \$ref_fa $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
     samtools index mapped_inserts.bam
     samtools flagstats -O tsv mapped_inserts.bam > mapped_insert_stats.tsv
     """
@@ -270,6 +315,8 @@ process insert_coverage {
     publishDir("$params.outdir/$meta.id")
     tag "$meta.id"
 
+    containerOptions '--volume $HOME/shared/genomes:/genomes'
+
     input:
     tuple val(meta), path(bam), path(index), path(stats)
 
@@ -280,8 +327,8 @@ process insert_coverage {
 
     script:
     """
-    export gff="\$HOME/shared/genomes/${meta.genome}/${meta.genome}_genes.gff"
-    export bed="\$HOME/shared/genomes/${meta.genome}/${meta.genome}_genes.bed"
+    export gff="/genomes/${meta.genome}/${meta.genome}_genes.gff"
+    export bed="/genomes/${meta.genome}/${meta.genome}_genes.bed"
 
     bedtools coverage -a \$gff -b $bam > gene_coverage.bed
     bedtools coverage -b \$gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
@@ -361,6 +408,7 @@ process classify {
 
     input:
     tuple val(meta), path(insert_sig)
+    path sourmash_db
   
     output:
     tuple val(meta), path('insert_matches.csv')
@@ -368,7 +416,7 @@ process classify {
     script:
     """
     sourmash scripts fastgather -o insert_matches.csv -c $task.cpus -t $params.meta_ovlp -k 21 \
-        inserts.sig.gz $params.sourmash_db
+        inserts.sig.gz $sourmash_db
     """
 }
 
@@ -376,15 +424,17 @@ process taxonomy {
     publishDir("$params.outdir/$meta.id")
     tag "$meta.id"
 
+    memory '32 GB'
     input:
     tuple val(meta), path(insert_matches)
+    path taxonomy
 
     output:
     tuple val(meta), path('insert_taxonomy.csv')
 
     script:
     """
-     sourmash tax metagenome -g $insert_matches -t $params.taxonomy -F csv_summary > insert_taxonomy.csv
+     sourmash tax metagenome -g $insert_matches -t $taxonomy -F csv_summary > insert_taxonomy.csv
     """
 
 }
