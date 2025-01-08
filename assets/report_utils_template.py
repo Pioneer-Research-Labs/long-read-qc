@@ -27,10 +27,7 @@ class PipelineData(dict):
 
 
 def load_report_data(samps):
-    try:
-        out = PipelineData({x['name']: load_sample_data(samps, x['load_fun'], x['path']) for x in to_load})
-    except:
-        out = None
+    out = PipelineData({x['name']: load_sample_data(samps, x['load_fun'], x['path']) for x in to_load})
     return out
 
 def list_files(samps, basename):
@@ -38,7 +35,10 @@ def list_files(samps, basename):
     return {key:val for key,val in files.items() if os.path.exists(val)}
 
 def load_sample_data(samps, load_fun, path):
-    out = pd.concat([load_fun(val, key) for key, val in list_files(samps, path).items()])
+    try:
+        out = pd.concat([load_fun(val, key) for key, val in list_files(samps, path).items()])
+    except:
+        out = None
     return(out)
 
 
