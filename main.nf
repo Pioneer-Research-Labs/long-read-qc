@@ -95,7 +95,7 @@ Long Read Processing and QC Pipeline
     insert_coverage(mapped)
     
     // metagenomic samples
-    sketched = sketch(splits.multi) 
+    sketched = sketch(splits.multi)
     classified = classify(sketched, params.sourmash_db)
     taxonomy(classified, params.taxonomy)
 
@@ -123,7 +123,7 @@ process get_flanks {
     tuple val(meta), path(construct)
 
     output:
-    tuple val(meta), path("flanking.fasta")
+    tuple val(meta), path("flanking.gb")
 
     script:
     """
