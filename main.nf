@@ -303,6 +303,7 @@ process map_inserts {
     script:
     """
     export ref_fa="/genomes/${meta.genome}/${meta.genome}_contigs.fna"
+    echo $ref_fa
     
     minimap2 -ax map-ont -t $task.cpus \$ref_fa $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
     samtools index mapped_inserts.bam
