@@ -53,28 +53,29 @@ Long Read Processing and QC Pipeline
         .splitCsv(header:true)
         .map { row -> 
             meta = [id:row.id, genome:row.genome]
-            [meta, file(row.construct)]
+            reads = file(row.file)
+            construct = file(row.construct)
+            [meta, reads, construct]
         }
         | set {constructs}
-
 
     // reorient the reads
     //reads = rotate_reads(input_ch)
 
-    map_vector(input_ch)
+    map_vector(constructs)
 
-   
+
     // get the flanking sequences from the .dna file
     flanking = get_flanks(constructs)
 
     // extract barcodes and inserts
     (barcodes, bc_report, bc_tab) = extract_barcodes(input_ch.join(flanking))
-    (inserts, ins_report, in_tab) = extract_inserts(input_ch.join(flanking)) 
-    
+    (inserts, ins_report, in_tab) = extract_inserts(input_ch.join(flanking))
+
     // combine for read stats
     input_ch
         .join(inserts)
-        .join(barcodes) 
+        .join(barcodes)
      | seq_stats
 
 
@@ -93,9 +94,9 @@ Long Read Processing and QC Pipeline
 
     mapped = map_inserts(splits.single)
     insert_coverage(mapped)
-    
+
     // metagenomic samples
-    sketched = sketch(splits.multi) 
+    sketched = sketch(splits.multi)
     classified = classify(sketched, params.sourmash_db)
     taxonomy(classified, params.taxonomy)
 
@@ -120,13 +121,14 @@ process get_flanks {
     tag ("$meta.id")
 
     input:
-    tuple val(meta), path(construct)
+    tuple val(meta), path(reads), path(construct)
 
     output:
-    tuple val(meta), path("flanking.fasta")
+    tuple val(meta), path("flanking.gb")
 
     script:
     """
+    echo $projectDir
     get_flanking.py $construct
     """
 }
@@ -153,14 +155,15 @@ process map_vector {
     tag "$meta.id"
 
     input:
-    tuple val(meta), path(reads)
+    tuple val(meta), path(reads), path(construct)
 
     output:
     tuple val(meta), path('mapped_vector.bam'), path("mapped_vector.bam.bai"), path("mapped_vector_stats.tsv")
 
     script:
     """
-    convert_dna.py $meta.construct | \
+    echo $construct
+    convert_dna.py $construct | \
         minimap2 -ax map-ont --secondary=no - $reads | samtools view -b - | samtools sort - -o 'mapped_vector.bam'
     samtools index mapped_vector.bam
     samtools flagstat -O tsv mapped_vector.bam > mapped_vector_stats.tsv
@@ -301,7 +304,7 @@ process map_inserts {
     script:
     """
     export ref_fa="/genomes/${meta.genome}/${meta.genome}_contigs.fna"
-    
+
     minimap2 -ax map-ont -t $task.cpus \$ref_fa $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
     samtools index mapped_inserts.bam
     samtools flagstats -O tsv mapped_inserts.bam > mapped_insert_stats.tsv

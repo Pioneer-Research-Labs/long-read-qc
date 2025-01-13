@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from snapgene_reader import snapgene_file_to_dict, snapgene_file_to_seqrecord
+from snapgene_reader import snapgene_file_to_dict
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
+from Bio.SeqFeature import SeqFeature, FeatureLocation
 import sys
 import re
 
@@ -18,7 +19,11 @@ def extract_flanks(path):
     flanking_seqs = []
     for x,y in part_list.items():
         seq = con['seq'][y[0]:y[1]]
-        flanking_seqs.append(SeqRecord(Seq(seq), id = x, description = ""))
+        # We need location information later on to correctly use annotations in cutadapt
+        f = FeatureLocation(y[0], y[1])
+        feature = SeqFeature(f, type = "misc_feature")
+        record = SeqRecord(Seq(seq), id = x, description = "", features=[feature], annotations={"molecule_type": "DNA"})
+        flanking_seqs.append(record)
 
     return flanking_seqs
 
@@ -26,4 +31,5 @@ def extract_flanks(path):
 
 construct_file = sys.argv[1]
 flanks = extract_flanks(construct_file)
-SeqIO.write(flanks, "flanking.fasta", "fasta-2line")
+# Write Genbank format to preserve location information
+SeqIO.write(flanks, "flanking.gb", "genbank")
