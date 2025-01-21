@@ -61,7 +61,8 @@ Long Read Processing and QC Pipeline
 
     // reorient the reads
     //reads = rotate_reads(input_ch)
-
+    // Generate quality report using fastplong
+    quality_report(constructs)
     map_vector(constructs)
 
 
@@ -440,4 +441,21 @@ process taxonomy {
      sourmash tax metagenome -g $insert_matches -t $taxonomy -F csv_summary > insert_taxonomy.csv
     """
 
+}
+
+process quality_report {
+
+    publishDir("$params.outdir/$meta.id")
+    tag "$meta.id"
+
+    input:
+    tuple val(meta), path(reads), path(construct)
+
+    output:
+    tuple val(meta), path('fastplong.html'), path('fastplong.fq')
+
+    script:
+    """
+    fastplong -i $reads -o fastplong.fq  -A -Q -L
+    """
 }

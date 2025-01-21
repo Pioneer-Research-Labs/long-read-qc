@@ -15,7 +15,8 @@ RUN conda install -y -c bioconda -c conda-forge \
     minimap2=2.28 \
     bedtools=2.31.1 \
     sourmash=4.8.11 \
-    sourmash_plugin_branchwater=0.9.8
+    sourmash_plugin_branchwater=0.9.8 \
+    fastplong=0.2.2
 
 
 
