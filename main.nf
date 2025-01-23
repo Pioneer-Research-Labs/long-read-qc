@@ -104,7 +104,7 @@ Long Read Processing and QC Pipeline
 
     // report
     report = channel.fromPath("${projectDir}/assets/report_template.ipynb")
-    report_utils = channel.fromPath("${projectDir}/assets/report_utils_template.py")
+    report_utils = channel.fromPath("${projectDir}/bin/report_utils_template.py")
 
     prepare_report(report, report_utils)
 
@@ -304,7 +304,7 @@ process map_inserts {
 
     script:
     """
-    export ref_fa="/genomes/${meta.genome}/${meta.genome}_contigs.fna"
+    export ref_fa="$projectDir/genomes/${meta.genome}/${meta.genome}_contigs.fna"
 
     minimap2 -ax map-ont -t $task.cpus \$ref_fa $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
     samtools index mapped_inserts.bam
@@ -331,8 +331,8 @@ process insert_coverage {
 
     script:
     """
-    export gff="/genomes/${meta.genome}/${meta.genome}_genes.gff"
-    export bed="/genomes/${meta.genome}/${meta.genome}_genes.bed"
+    export gff="$projectDir/genomes/${meta.genome}/${meta.genome}_genes.gff"
+    export bed="$projectDir/genomes/${meta.genome}/${meta.genome}_genes.bed"
 
     bedtools coverage -a \$gff -b $bam > gene_coverage.bed
     bedtools coverage -b \$gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
