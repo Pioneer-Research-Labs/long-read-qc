@@ -94,7 +94,8 @@ Long Read Processing and QC Pipeline
     }
 
     mapped = map_inserts(splits.single)
-    insert_coverage(mapped)
+    insert_outputs = insert_coverage(mapped)
+    generate_plots(insert_outputs)
 
     // metagenomic samples
     sketched = sketch(splits.multi)
@@ -111,7 +112,8 @@ Long Read Processing and QC Pipeline
     channel.fromPath(params.samplesheet) | samples
 
 
-    
+
+
 }
 
 
@@ -304,7 +306,7 @@ process map_inserts {
 
     script:
     """
-    export ref_fa="/genomes/${meta.genome}/${meta.genome}_contigs.fna"
+    export ref_fa="$projectDir/genomes/${meta.genome}/${meta.genome}_contigs.fna"
 
     minimap2 -ax map-ont -t $task.cpus \$ref_fa $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
     samtools index mapped_inserts.bam
@@ -331,8 +333,8 @@ process insert_coverage {
 
     script:
     """
-    export gff="/genomes/${meta.genome}/${meta.genome}_genes.gff"
-    export bed="/genomes/${meta.genome}/${meta.genome}_genes.bed"
+    export gff="$projectDir/genomes/${meta.genome}/${meta.genome}_genes.gff"
+    export bed="$projectDir/genomes/${meta.genome}/${meta.genome}_genes.bed"
 
     bedtools coverage -a \$gff -b $bam > gene_coverage.bed
     bedtools coverage -b \$gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
@@ -457,5 +459,30 @@ process quality_report {
     script:
     """
     fastplong -i $reads -o fastplong.fq  -A -Q -L
+    """
+}
+
+process generate_plots {
+    publishDir("$params.outdir/$meta.id")
+    tag "$meta.id"
+
+    input:
+    tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'),
+        path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed"),
+        path('insert_intersect.out')
+
+    output:
+    tuple val(meta)
+    path('raw_seq_stats.csv')
+    path("seq_summary.csv")
+    path("barcode_length_distribution.png")
+    path("barcode_proportions.png")
+    path("barcode_copy_number.png")
+    path("insert_length_distribution.png")
+    path("full_genes_per_fragment.png")
+    path("partial_genes_per_fragment.png")
+    script:
+    """
+    visualize_results.py $projectDir/results/samples.csv $projectDir/$params.outdir
     """
 }
