@@ -463,7 +463,7 @@ process quality_report {
 }
 
 process generate_plots {
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir")
     tag "$meta.id"
 
     input:
@@ -472,7 +472,6 @@ process generate_plots {
         path('insert_intersect.out')
 
     output:
-    tuple val(meta)
     path('raw_seq_stats.csv')
     path("seq_summary.csv")
     path("barcode_length_distribution.png")
