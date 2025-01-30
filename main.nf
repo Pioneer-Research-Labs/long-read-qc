@@ -502,6 +502,6 @@ process plot_depth{
 
     script:
     """
-    plot_coverage.py depth_report.tsv coverage_plot.png
+    plot_coverage.py depth_report.tsv coverage_plot.png $meta.id
     """
 }
