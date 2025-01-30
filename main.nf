@@ -96,6 +96,7 @@ Long Read Processing and QC Pipeline
     mapped = map_inserts(splits.single)
     insert_outputs = insert_coverage(mapped)
     generate_plots(insert_outputs)
+    plot_depth(insert_outputs)
 
     // metagenomic samples
     sketched = sketch(splits.multi)
@@ -329,7 +330,7 @@ process insert_coverage {
     output:
     tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'), 
         path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed"),
-        path('insert_intersect.out')
+        path('insert_intersect.out'), path('depth_report.tsv')
 
     script:
     """
@@ -342,6 +343,7 @@ process insert_coverage {
     bedtools intersect -a <(bedtools bamtobed -i $bam) -b \$bed  -wao > insert_intersect.out 
     bedtools genomecov -ibam $bam -dz > genome_coverage.tsv
     samtools coverage $bam > genome_cov_stats.tsv
+    samtools depth -a $bam > depth_report.tsv
     """
 
 }
@@ -469,7 +471,7 @@ process generate_plots {
     input:
     tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'),
         path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed"),
-        path('insert_intersect.out')
+        path('insert_intersect.out'), path('depth_report.tsv')
 
     output:
     path('raw_seq_stats.csv')
@@ -483,5 +485,23 @@ process generate_plots {
     script:
     """
     visualize_results.py $projectDir/results/samples.csv $projectDir/$params.outdir
+    """
+}
+
+process plot_depth{
+    publishDir("$params.outdir/$meta.id")
+    tag "$meta.id"
+
+    input:
+    tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'),
+        path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed"),
+        path('insert_intersect.out'), path('depth_report.tsv')
+
+    output:
+    tuple val(meta), path('coverage_plot.png')
+
+    script:
+    """
+    plot_coverage.py depth_report.tsv coverage_plot.png
     """
 }
