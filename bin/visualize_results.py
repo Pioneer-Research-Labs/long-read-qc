@@ -152,10 +152,8 @@ def plot_partial_genes_per_fragment(data):
 
 
 def visualize_results(samples_path, result_dir):
-    # Deal with symlink
-    true_path = os.readlink(samples_path)
 
-    data = load_data(true_path, result_dir)
+    data = load_data(samples_path, result_dir)
 
     # Export read statistics for raw reads/barcodes/inserts
     if data.seq_stat is None:

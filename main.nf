@@ -121,7 +121,7 @@ Long Read Processing and QC Pipeline
 // Processes
 
 process get_flanks {
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag ("$meta.id")
 
     input:
@@ -138,7 +138,7 @@ process get_flanks {
 }
 
 process rotate_reads {
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
     input:
@@ -155,7 +155,7 @@ process rotate_reads {
 }
 
 process map_vector {
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
     input:
@@ -177,7 +177,7 @@ process map_vector {
 
 process seq_stats {
        
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
 
     tag "$meta.id"
 
@@ -196,7 +196,7 @@ process seq_stats {
 }
 
 process extract_barcodes {
-    publishDir "$params.outdir/$meta.id"
+    publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 
     input:
@@ -225,7 +225,7 @@ process extract_barcodes {
 }
 
 process filter_barcodes {
-    publishDir "$params.outdir/$meta.id"
+    publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 
     input:
@@ -243,7 +243,7 @@ process filter_barcodes {
 
 process barcode_counts {
 
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag("$meta.id")
 
     input:
@@ -260,7 +260,7 @@ process barcode_counts {
 }
 
 process extract_inserts {
-    publishDir "$params.outdir/$meta.id"
+    publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 
     input:
@@ -292,7 +292,7 @@ process extract_inserts {
 
 process map_inserts {
 
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
     cpus params.cores
@@ -319,7 +319,7 @@ process map_inserts {
 
 process insert_coverage {
 
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
     containerOptions '--volume $HOME/shared/genomes:/genomes'
@@ -350,7 +350,7 @@ process insert_coverage {
 
 process prepare_report {
 
-    publishDir("$params.outdir")
+    publishDir("$params.outdir"),  mode: 'copy'
     tag 'Preparing report'
 
     input:
@@ -370,7 +370,7 @@ process prepare_report {
 
 process samples {
 
-    publishDir("$params.outdir")
+    publishDir("$params.outdir"),  mode: 'copy'
     tag 'Moving sample sheet'
 
     input:
@@ -392,7 +392,7 @@ process samples {
 
 process sketch {
     
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
     
     input:
@@ -409,7 +409,7 @@ process sketch {
 
 process classify {
     
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
     cpus params.cores
@@ -429,7 +429,7 @@ process classify {
 }
 
 process taxonomy {
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
     memory '32 GB'
@@ -449,7 +449,7 @@ process taxonomy {
 
 process quality_report {
 
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
     input:
@@ -465,7 +465,7 @@ process quality_report {
 }
 
 process generate_plots {
-    publishDir("$params.outdir")
+    publishDir("$params.outdir"),  mode: 'copy'
     tag "$meta.id"
 
     input:
@@ -496,7 +496,7 @@ process generate_plots {
 }
 
 process plot_depth{
-    publishDir("$params.outdir/$meta.id")
+    publishDir("$params.outdir/$meta.id") ,  mode: 'copy'
     tag "$meta.id"
 
     input:
