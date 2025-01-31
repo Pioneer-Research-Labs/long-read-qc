@@ -10,6 +10,7 @@ from report_utils_template import load_report_data, seq_summary
 
 
 sns.set_theme()
+sns.set(font_scale=.8)
 sns.set_style('darkgrid')
 pioneer_colors = ['#FF8633', '#423759', '#314942', '#FFA632', '#F7F3ED']
 sns.set_palette(sns.color_palette(pioneer_colors))
@@ -29,18 +30,25 @@ def load_data(samples_path, result_dir):
 
     return data
 
+def write_empty_file(filename):
+    with open(filename, "w") as my_empty_csv:
+            pass
 
 def plot_barcode_length_histogram(data):
     df_plot = data.barcodes
-    fig, ax = plt.subplots(figsize=(4, 4))
+    fig, ax = plt.subplots(figsize=(10, 6))
     if df_plot is None:
         plt.savefig('barcode_length_distribution.png') # empty plot
+        write_empty_file('barcode_lengths.csv')
+        return
+    df_plot.to_csv('barcode_lengths.csv', index=False)
+    
     sns.violinplot(df_plot,
                    x='barcode_len',
                    y='sample',
                    ax=ax)
     ax.set_title('Distribution of barcode lengths')
-    plt.savefig('barcode_length_distribution.png')
+    plt.savefig('barcode_length_distribution.png', bbox_inches='tight')
 
 
 def plot_proportions_of_barcodes(data):
@@ -54,7 +62,8 @@ def plot_proportions_of_barcodes(data):
     data.barcodes.loc[data.barcodes.barcode_len <= empty_cutoff, 'barcode_exists'] = 'false'
 
     df_plot = data.barcodes.groupby('sample')['barcode_exists'].value_counts(normalize=True).to_frame()
-    fig, ax = plt.subplots(figsize=(6, 4))
+    data.barcodes.to_csv('barcode_proportions.csv', index=False)
+    fig, ax = plt.subplots(figsize=(10, 6))
 
     sns.barplot(df_plot,
                 y='sample',
@@ -62,65 +71,79 @@ def plot_proportions_of_barcodes(data):
                 hue='barcode_exists',
                 ax=ax)
     ax.set_title('Proportion of true/empty/other detected barcodes')
-    plt.savefig( 'barcode_proportions.png')
+    plt.savefig( 'barcode_proportions.png', bbox_inches='tight')
 
 
 def plot_copy_number(data):
     df_plot = data.barcodes.groupby('sample')['barcode_seq'].value_counts().to_frame().rename(
         columns={'count': 'counts_per_barcode'})
-    fig, ax = plt.subplots(figsize=(6, 4))
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
     if df_plot is None:
         plt.savefig('barcode_copy_number.png') # empty plot
+        write_empty_file('barcode_copy_number.csv')
+        return
+    df_plot.to_csv('barcode_copy_number.csv', index=False)
     sns.histplot(df_plot,
                  x='counts_per_barcode',
                  hue='sample',
                  ax=ax)
     ax.set_title('Copy number of each unique barcode')
-    plt.savefig( 'barcode_copy_number.png')
+    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+    plt.savefig( 'barcode_copy_number.png', bbox_inches='tight')
 
 
 def plot_insert_length_histogram(data):
     df_plot = data.inserts
     if df_plot is None:
         plt.savefig('insert_length_distribution.png') # empty plot
-    fig, ax = plt.subplots(figsize=(6, 4))
+        write_empty_file('insert_length_distribution.csv')
+        return
+    df_plot.to_csv('insert_length_distribution.csv', index=False)
+    fig, ax = plt.subplots(figsize=(10, 6))
 
     sns.violinplot(df_plot,
                    x='insert_len',
                    y='sample',
                    ax=ax)
     ax.set_title('Distribution of insert lengths')
-    plt.savefig('insert_length_distribution.png')
+    plt.savefig('insert_length_distribution.png', bbox_inches='tight')
 
 
 def plot_full_genes_per_fragment(data):
     if data.insert_cov_full is None:
         plt.savefig('full_genes_per_fragment.png') # empty plot
+        write_empty_file('full_genes_per_fragment.csv')
         return
-    fig, ax = plt.subplots(figsize=(6, 4))
+    data.insert_cov_full.to_csv('full_genes_per_fragment.csv', index=False)
+    fig, ax = plt.subplots(figsize=(10, 6))
     sns.histplot(data.insert_cov_full,
                  x='count',
                  hue='sample',
                  stat='frequency',
                  common_norm=True,
                  ax=ax)
+    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     ax.set_title('Number of full genes per insert')
-    plt.savefig('full_genes_per_fragment.png')
+    plt.savefig('full_genes_per_fragment.png', bbox_inches='tight')
 
 
 def plot_partial_genes_per_fragment(data):
     if data.insert_cov is None:
         plt.savefig('partial_genes_per_fragment.png') # empty plot
+        write_empty_file('partial_genes_per_frament.csv')
         return
-    fig, ax = plt.subplots(figsize=(6, 4))
+    data.insert_cov.to_csv('partial_genes_per_frament.csv', index=False)
+    fig, ax = plt.subplots(figsize=(10, 6))
     sns.histplot(data.insert_cov,
                  x='count',
                  hue='sample',
                  stat='frequency',
                  common_norm=True,
                  ax=ax)
+    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     ax.set_title('Number of partial or full genes per insert')
-    plt.savefig('partial_genes_per_fragment.png')
+    plt.savefig('partial_genes_per_fragment.png', bbox_inches='tight')
 
 
 def visualize_results(samples_path, result_dir):
