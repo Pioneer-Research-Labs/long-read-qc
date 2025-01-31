@@ -490,7 +490,7 @@ process generate_plots {
     path("partial_genes_per_frament.csv")
     script:
     """
-    visualize_results.py $projectDir/results/samples.csv $projectDir/$params.outdir
+    visualize_results.py $params.outdir/samples.csv $params.outdir
     """
 }
 
