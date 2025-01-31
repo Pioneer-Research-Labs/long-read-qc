@@ -58,5 +58,4 @@ if __name__ == '__main__':
     process = subprocess.Popen(command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     output, errors = process.communicate()
     count = int(output.split()[0])
-    plot_depth(sys.argv[1], sys.argv[2], sys.argv[3], count))
-    plt.close()
+    plot_depth(sys.argv[1], sys.argv[2], sys.argv[3], count)
