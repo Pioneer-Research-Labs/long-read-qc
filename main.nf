@@ -307,7 +307,7 @@ process map_inserts {
 
     script:
     """
-    export ref_fa="/genomes/${meta.genome}/${meta.genome}_contigs.fna"
+    export ref_fa="${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna"
 
     minimap2 -ax map-ont -t $task.cpus \$ref_fa $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
     samtools index mapped_inserts.bam
@@ -334,8 +334,8 @@ process insert_coverage {
 
     script:
     """
-    export gff="/genomes/${meta.genome}/${meta.genome}_genes.gff"
-    export bed="/genomes/${meta.genome}/${meta.genome}_genes.bed"
+    export gff="${params.genomes}/${meta.genome}/${meta.genome}_genes.gff"
+    export bed="${params.genomes}/${meta.genome}/${meta.genome}_genes.bed"
 
     bedtools coverage -a \$gff -b $bam > gene_coverage.bed
     bedtools coverage -b \$gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
@@ -490,7 +490,8 @@ process generate_plots {
     path("partial_genes_per_frament.csv")
     script:
     """
-    visualize_results.py $params.outdir/samples.csv $params.outdir
+    echo $PWD
+    visualize_results.py $PWD/$params.outdir/samples.csv  $PWD/$params.outdir
     """
 }
 

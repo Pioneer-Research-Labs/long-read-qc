@@ -52,6 +52,10 @@ def plot_barcode_length_histogram(data):
 
 
 def plot_proportions_of_barcodes(data):
+    if data.barcodes is None:
+        plt.savefig('barcode_proportions.png')
+        write_empty_file('barcode_proportions.csv')
+        return
     # Categorize barcodes by length and plot fraction composition for each library
     # Use 1bp tolerance on either end
     barcode_length = 44  # expected bp length of barcodes
@@ -75,14 +79,15 @@ def plot_proportions_of_barcodes(data):
 
 
 def plot_copy_number(data):
+    if data.barcodes is None:
+        plt.savefig('barcode_copy_number.png') # empty plot
+        write_empty_file('barcode_copy_number.csv')
+        return
     df_plot = data.barcodes.groupby('sample')['barcode_seq'].value_counts().to_frame().rename(
         columns={'count': 'counts_per_barcode'})
     
     fig, ax = plt.subplots(figsize=(10, 6))
-    if df_plot is None:
-        plt.savefig('barcode_copy_number.png') # empty plot
-        write_empty_file('barcode_copy_number.csv')
-        return
+
     df_plot.to_csv('barcode_copy_number.csv', index=False)
     sns.histplot(df_plot,
                  x='counts_per_barcode',
@@ -153,12 +158,19 @@ def visualize_results(samples_path, result_dir):
     data = load_data(true_path, result_dir)
 
     # Export read statistics for raw reads/barcodes/inserts
-    data.seq_stat.to_csv('raw_seq_stats.csv', index=False)
+    if data.seq_stat is None:
+        write_empty_file('raw_seq_stats.csv')
+    else:
+        data.seq_stat.to_csv('raw_seq_stats.csv', index=False)
 
 
     # sequence summary
-    num_seqs = seq_summary(data.barcodes, data.inserts, data.seq_stat, data.vec_map_stats)
-    num_seqs.to_csv('seq_summary.csv', index=False)
+    if data.barcodes is None or data.inserts is None or data.seq_stat is None or data.vec_map_stats is None:
+        write_empty_file('seq_summary.csv')
+
+    else:
+        num_seqs = seq_summary(data.barcodes, data.inserts, data.seq_stat, data.vec_map_stats)
+        num_seqs.to_csv('seq_summary.csv', index=False)
 
     # plot barcode length histogram
     plot_barcode_length_histogram(data)
