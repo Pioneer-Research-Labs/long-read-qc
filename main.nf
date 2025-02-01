@@ -491,6 +491,7 @@ process generate_plots {
     script:
     """
     echo $PWD
+    ls -lt $PWD/results
     visualize_results.py $PWD/$params.outdir/samples.csv  $PWD/$params.outdir
     """
 }
