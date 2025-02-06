@@ -64,6 +64,10 @@ Options:
 --sourmash_db <file>      Path to the sourmash database (default: /srv/shared/databases/sourmash/gtdb-rs220-k21.zip)
 --taxonomy <file>         Path to the taxonomy database (default: /srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb)
 --cores <int>             Number of cores to use (default: 4)
+
+Profiles:
+-profile standard              Run pipeline locally with Docker
+-profile awsbatch              Run pipeline on AWS Batch
 ```
 
 ## About
