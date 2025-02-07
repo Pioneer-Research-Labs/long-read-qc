@@ -109,6 +109,7 @@ Long Read Processing and QC Pipeline
 
     channel.fromPath(params.samplesheet) | samples
 
+    // remove work folder
 
     
 }
@@ -166,7 +167,7 @@ process map_vector {
     """
     echo $construct
     convert_dna.py $construct | \
-        minimap2 -ax map-ont -t $task.cpus --secondary=no - $reads | samtools view -b - | samtools sort - -o 'mapped_vector.bam'
+        minimap2 -ax map-ont -t $task.cpus --secondary=no - $reads | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o 'mapped_vector.bam'
     samtools index -@ $task.cpus mapped_vector.bam
     samtools flagstat -@ $task.cpus -O tsv mapped_vector.bam > mapped_vector_stats.tsv
     """
@@ -319,7 +320,7 @@ process map_inserts {
     """
     export ref_fa="/genomes/${meta.genome}/${meta.genome}_contigs.fna"
 
-    minimap2 -ax map-ont -t $task.cpus \$ref_fa $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
+    minimap2 -ax map-ont -t $task.cpus \$ref_fa $ins_seqs | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o mapped_inserts.bam
     samtools index -@ $task.cpus mapped_inserts.bam
     samtools flagstats -@ $task.cpus -O tsv mapped_inserts.bam > mapped_insert_stats.tsv
     """
