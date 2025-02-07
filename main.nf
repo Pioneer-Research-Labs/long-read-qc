@@ -154,6 +154,8 @@ process map_vector {
     publishDir("$params.outdir/$meta.id")
     tag "$meta.id"
 
+    cpus params.cores
+
     input:
     tuple val(meta), path(reads), path(construct)
 
@@ -164,9 +166,9 @@ process map_vector {
     """
     echo $construct
     convert_dna.py $construct | \
-        minimap2 -ax map-ont --secondary=no - $reads | samtools view -b - | samtools sort - -o 'mapped_vector.bam'
-    samtools index mapped_vector.bam
-    samtools flagstat -O tsv mapped_vector.bam > mapped_vector_stats.tsv
+        minimap2 -ax map-ont -t $task.cpus --secondary=no - $reads | samtools view -b - | samtools sort - -o 'mapped_vector.bam'
+    samtools index -@ $task.cpus mapped_vector.bam
+    samtools flagstat -@ $task.cpus -O tsv mapped_vector.bam > mapped_vector_stats.tsv
     """
 
 }
@@ -176,6 +178,8 @@ process seq_stats {
     publishDir("$params.outdir/$meta.id")
 
     tag "$meta.id"
+
+    cpus params.cores
 
     input:
     tuple val(meta), path(raw), path(ins_seqs), path(bc_seqs)
@@ -187,13 +191,15 @@ process seq_stats {
 
     script:
     """
-    seqkit stats -T $raw $ins_seqs $bc_seqs > seq_stats.tsv
+    seqkit stats -j $task.cpus -T $raw $ins_seqs $bc_seqs > seq_stats.tsv
     """
 }
 
 process extract_barcodes {
     publishDir "$params.outdir/$meta.id"
     tag("$meta.id")
+
+    cpus params.cores
 
     input:
     tuple val(meta), path(reads), path(flanking)
@@ -212,17 +218,20 @@ process extract_barcodes {
         -e $params.error_rate \
         -O $params.min_overlap \
         -o barcodes_raw.fasta \
+        -j $task.cpus \
         --json cutadapt_barcode_report.json \
         $reads
-    seqkit seq --min-len $params.min_bc_len --max-len $params.max_bc_len \
+    seqkit seq -j $task.cpus --min-len $params.min_bc_len --max-len $params.max_bc_len \
         barcodes_raw.fasta > barcodes.fasta
-    seqkit fx2tab -li barcodes.fasta > barcodes.tsv
+    seqkit fx2tab -j $task.cpus -li barcodes.fasta > barcodes.tsv
     """
 }
 
 process filter_barcodes {
     publishDir "$params.outdir/$meta.id"
     tag("$meta.id")
+
+    cpus params.cores
 
     input:
     tuple val(meta), path(barcodes)
@@ -232,7 +241,7 @@ process filter_barcodes {
 
     script:
     """
-    seqkit seq --min-len $params.min_bc_len --max-len $params.max_bc_len \
+    seqkit seq -j $task.cpus --min-len $params.min_bc_len --max-len $params.max_bc_len \
         $barcodes > barcodes_filtered.fasta
     """
 }
@@ -242,6 +251,8 @@ process barcode_counts {
     publishDir("$params.outdir/$meta.id")
     tag("$meta.id")
 
+    cpus params.cores
+
     input:
     tuple val(meta), path(barcodes)
 
@@ -250,7 +261,7 @@ process barcode_counts {
 
     script:
     """
-     seqkit fx2tab -i $barcodes | cut -f2 | sort | uniq -c | \
+     seqkit fx2tab -j $task.cpus -i $barcodes | cut -f2 | sort | uniq -c | \
         awk '{print \$2"\t"\$1}' > barcode_counts.tsv
     """
 }
@@ -258,6 +269,8 @@ process barcode_counts {
 process extract_inserts {
     publishDir "$params.outdir/$meta.id"
     tag("$meta.id")
+
+    cpus params.cores
 
     input:
     tuple val(meta), path(reads), path(flanking)
@@ -276,10 +289,11 @@ process extract_inserts {
         -e $params.error_rate \
         -O $params.min_overlap \
         -o inserts_cutadapt.fasta \
+        -j $task.cpus \
         --json cutadapt_inserts_report.json \
         $reads
-    seqkit seq --min-len 1 inserts_cutadapt.fasta > inserts.fasta
-    seqkit fx2tab -li inserts.fasta > inserts.tsv
+    seqkit seq -j $task.cpus --min-len 1 inserts_cutadapt.fasta > inserts.fasta
+    seqkit fx2tab -j $task.cpus -li inserts.fasta > inserts.tsv
     """
 }
 
@@ -306,8 +320,8 @@ process map_inserts {
     export ref_fa="/genomes/${meta.genome}/${meta.genome}_contigs.fna"
 
     minimap2 -ax map-ont -t $task.cpus \$ref_fa $ins_seqs | samtools view -b - | samtools sort - -o mapped_inserts.bam
-    samtools index mapped_inserts.bam
-    samtools flagstats -O tsv mapped_inserts.bam > mapped_insert_stats.tsv
+    samtools index -@ $task.cpus mapped_inserts.bam
+    samtools flagstats -@ $task.cpus -O tsv mapped_inserts.bam > mapped_insert_stats.tsv
     """
 
 }
