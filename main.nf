@@ -472,7 +472,7 @@ process generate_plots {
     tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'),
         path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed"),
         path('insert_intersect.out'), path('depth_report.tsv')
-    path('samples.csv')
+    path(samplefile)
 
     output:
     path('raw_seq_stats.csv')
@@ -492,7 +492,7 @@ process generate_plots {
 
     script:
     """
-    visualize_results.py samples.csv  $PWD/$params.outdir
+    visualize_results.py $samplefile  $PWD/$params.outdir
     """
 }
 
