@@ -43,10 +43,7 @@ def plot_barcode_length_histogram(data):
         return
     df_plot.to_csv('barcode_lengths.csv', index=False)
     
-    sns.violinplot(df_plot,
-                   x='barcode_len',
-                   y='sample',
-                   ax=ax)
+    sns.boxplot(data=df_plot, x="sample", y="barcode_len", ax=ax)
     ax.set_title('Distribution of barcode lengths')
     plt.savefig('barcode_length_distribution.png', bbox_inches='tight')
 
@@ -136,9 +133,9 @@ def plot_full_genes_per_fragment(data):
 def plot_partial_genes_per_fragment(data):
     if data.insert_cov is None:
         plt.savefig('partial_genes_per_fragment.png') # empty plot
-        write_empty_file('partial_genes_per_frament.csv')
+        write_empty_file('partial_genes_per_fragment.csv')
         return
-    data.insert_cov.to_csv('partial_genes_per_frament.csv', index=False)
+    data.insert_cov.to_csv('partial_genes_per_fragment.csv', index=False)
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.histplot(data.insert_cov,
                  x='count',

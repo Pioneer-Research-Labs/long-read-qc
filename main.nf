@@ -95,7 +95,8 @@ Long Read Processing and QC Pipeline
 
     mapped = map_inserts(splits.single)
     insert_outputs = insert_coverage(mapped)
-    generate_plots(insert_outputs)
+
+
     plot_depth(insert_outputs)
 
     // metagenomic samples
@@ -110,10 +111,9 @@ Long Read Processing and QC Pipeline
 
     prepare_report(report, report_utils)
 
-    channel.fromPath(params.samplesheet) | samples
+    p = channel.fromPath(params.samplesheet) | samples
 
-
-
+    generate_plots(insert_outputs, p)
 
 }
 
@@ -472,6 +472,7 @@ process generate_plots {
     tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'),
         path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed"),
         path('insert_intersect.out'), path('depth_report.tsv')
+    path('samples.csv')
 
     output:
     path('raw_seq_stats.csv')
@@ -487,12 +488,11 @@ process generate_plots {
     path("barcode_copy_number.csv")
     path("insert_length_distribution.csv")
     path("full_genes_per_fragment.csv")
-    path("partial_genes_per_frament.csv")
+    path("partial_genes_per_fragment.csv")
+
     script:
     """
-    echo $PWD
-    ls -lt $PWD/$params.outdir
-    visualize_results.py $PWD/$params.outdir/samples.csv  $PWD/$params.outdir
+    visualize_results.py samples.csv  $PWD/$params.outdir
     """
 }
 
