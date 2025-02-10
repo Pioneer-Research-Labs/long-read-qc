@@ -112,8 +112,11 @@ Long Read Processing and QC Pipeline
     prepare_report(report, report_utils)
 
     p = channel.fromPath(params.samplesheet) | samples
-
-    generate_plots(insert_outputs, p)
+    //p.view()
+    t = "results/samples.csv"
+    z = channel.fromPath(t)
+    z.view()
+    generate_plots(insert_outputs, z)
 
 }
 
@@ -492,7 +495,7 @@ process generate_plots {
 
     script:
     """
-    visualize_results.py $workflow.outputDir/$samplefile  $PWD/$params.outdir
+    visualize_results.py $samplefile  $PWD/$params.outdir
     """
 }
 
