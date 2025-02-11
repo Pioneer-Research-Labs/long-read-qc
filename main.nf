@@ -115,7 +115,7 @@ Long Read Processing and QC Pipeline
     //p.view()
     t = "results/samples.csv"
     z = channel.fromPath(t)
-    z.view()
+    //z.view()
     generate_plots(insert_outputs, z)
 
 }
