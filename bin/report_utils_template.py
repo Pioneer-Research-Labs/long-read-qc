@@ -28,6 +28,7 @@ class PipelineData(dict):
 
 def load_report_data(samps):
     out = PipelineData({x['name']: load_sample_data(samps, x['load_fun'], x['path']) for x in to_load})
+    print(f"loaded report data {out}")
     return out
 
 def list_files(samps, basename):
