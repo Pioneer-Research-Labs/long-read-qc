@@ -157,7 +157,6 @@ process map_vector {
     tag "$meta.id"
 
     cpus params.cores
-    tech params.tech
 
     input:
     tuple val(meta), path(reads), path(construct)
@@ -169,7 +168,7 @@ process map_vector {
     """
     echo $construct
     convert_dna.py $construct | \
-        minimap2 -ax $task.tech -t $task.cpus --secondary=no - $reads | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o 'mapped_vector.bam'
+        minimap2 -ax $params.tech -t $task.cpus --secondary=no - $reads | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o 'mapped_vector.bam'
     samtools index -@ $task.cpus mapped_vector.bam
     samtools flagstat -@ $task.cpus -O tsv mapped_vector.bam > mapped_vector_stats.tsv
     """
@@ -309,7 +308,6 @@ process map_inserts {
     tag "$meta.id"
 
     cpus params.cores
-    tech params.tech
 
     containerOptions '--volume $HOME/shared/genomes:/genomes'
 
@@ -323,7 +321,7 @@ process map_inserts {
     """
     export ref_fa="/genomes/${meta.genome}/${meta.genome}_contigs.fna"
 
-    minimap2 -ax $task.tech -t $task.cpus \$ref_fa $ins_seqs | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o mapped_inserts.bam
+    minimap2 -ax $params.tech -t $task.cpus \$ref_fa $ins_seqs | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o mapped_inserts.bam
     samtools index -@ $task.cpus mapped_inserts.bam
     samtools flagstats -@ $task.cpus -O tsv mapped_inserts.bam > mapped_insert_stats.tsv
     """
