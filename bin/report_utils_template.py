@@ -35,7 +35,11 @@ def list_files(samps, basename):
     files = {key:os.path.join(val, basename) for key,val in samps.items()}
     for key,val in files.items():
         print(f'{key}: {val}')
-        print('file exists:', os.path.exists(val))
+        if not os.path.exists(val):
+            currdir = str(Path().resolve())
+            relpath = os.path.relpath(val, currdir)
+            print(f'File {val} does not exist. Using path: {relpath}')
+            val = relpath
     x = {key:val for key,val in files.items() if os.path.exists(val)}
     print(f'Files that exist: {x}')
     return x
