@@ -24,7 +24,7 @@ def load_data(samples_path, result_dir):
     # sample data
     samples = pd.read_csv(samples_path)
     samps = {x: os.path.join(result_dir, x) for x in samples.id.to_list()}
-
+    print(samps)
     # load results
     data = load_report_data(samps)
 
