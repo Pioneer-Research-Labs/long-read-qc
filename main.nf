@@ -112,7 +112,7 @@ Long Read Processing and QC Pipeline
     prepare_report(report, report_utils)
 
     p = channel.fromPath(params.samplesheet) | samples
-    generate_plots(insert_outputs)
+    generate_plots(insert_outputs, p)
 
 }
 
@@ -471,7 +471,7 @@ process generate_plots {
     tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'),
         path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed"),
         path('insert_intersect.out'), path('depth_report.tsv')
-
+    path(samples_sheet)
     output:
     path('raw_seq_stats.csv')
     path("seq_summary.csv")
@@ -490,7 +490,7 @@ process generate_plots {
 
     script:
     """
-    visualize_results.py samples.csv  $PWD/$params.outdir
+    visualize_results.py $samples_sheet  $PWD/$params.outdir
     """
 }
 
