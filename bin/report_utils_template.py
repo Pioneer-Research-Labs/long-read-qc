@@ -32,11 +32,14 @@ def load_report_data(samps):
     return out
 
 def list_files(samps, basename):
+    print(f'Basename: {basename}')
     files = {key:os.path.join(val, basename) for key,val in samps.items()}
+    print(f'Files: {files}')
     return {key:val for key,val in files.items() if os.path.exists(val)}
 
 def load_sample_data(samps, load_fun, path):
     try:
+        print(f'Path {path}')
         out = pd.concat([load_fun(val, key) for key, val in list_files(samps, path).items()])
     except:
         out = None
