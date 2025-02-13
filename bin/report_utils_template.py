@@ -28,19 +28,23 @@ class PipelineData(dict):
 
 def load_report_data(samps):
     out = PipelineData({x['name']: load_sample_data(samps, x['load_fun'], x['path']) for x in to_load})
-    print(f"loaded report data {out}")
+
     return out
 
 def list_files(samps, basename):
-    print(f'Basename: {basename}')
     files = {key:os.path.join(val, basename) for key,val in samps.items()}
-    print(f'Files: {files}')
-    return {key:val for key,val in files.items() if os.path.exists(val)}
+    for key,val in files.items():
+        print(f'{key}: {val}')
+        print('file exists:', os.path.exists(val))
+    x = {key:val for key,val in files.items() if os.path.exists(val)}
+    print(f'Files that exist: {x}')
+    return x
 
 def load_sample_data(samps, load_fun, path):
     try:
-        print(f'Path {path}')
+
         out = pd.concat([load_fun(val, key) for key, val in list_files(samps, path).items()])
+
     except:
         out = None
     return(out)
