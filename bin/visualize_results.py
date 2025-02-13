@@ -188,10 +188,10 @@ def visualize_results(samples_path, result_dir):
 
 
 if __name__ == '__main__':
-    c = os.getcwd().split("work")[0]
-    absolute_path = os.path.join(c,"results",sys.argv[1])
-    print(absolute_path)
-    visualize_results(absolute_path, sys.argv[2])
+    #c = os.getcwd().split("work")[0]
+    #absolute_path = os.path.join(c,"results",sys.argv[1])
+    #print(absolute_path)
+    visualize_results(sys.argv[1], sys.argv[2])
 
 
 
