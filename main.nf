@@ -490,7 +490,7 @@ process generate_plots {
 
     script:
     """
-    visualize_results.py $samples_sheet  $PWD/$params.outdir
+    visualize_results.py $samples_sheet  $params.outdir
     """
 }
 
