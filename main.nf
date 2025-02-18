@@ -63,7 +63,7 @@ Long Read Processing and QC Pipeline
     //reads = rotate_reads(input_ch)
     // Generate quality report using fastplong
     quality_report(constructs)
-    map_vector(constructs)
+    vector_results = map_vector(constructs)
 
 
     // get the flanking sequences from the .dna file
@@ -74,13 +74,13 @@ Long Read Processing and QC Pipeline
     (inserts, ins_report, in_tab) = extract_inserts(input_ch.join(flanking))
 
     // combine for read stats
-    input_ch
+    seq_stats_results = input_ch
         .join(inserts)
         .join(barcodes)
      | seq_stats
 
 
-    barcode_counts(barcodes)
+    barcode_count_results = barcode_counts(barcodes)
 
 
     // mapping inserts
@@ -112,7 +112,7 @@ Long Read Processing and QC Pipeline
     prepare_report(report, report_utils)
 
     p = channel.fromPath(params.samplesheet) | samples
-    generate_plots(insert_outputs, p)
+    generate_plots(insert_outputs, mapped, p, in_tab, vector_results, seq_stats_results, bc_tab, barcode_count_results)
 
 }
 
@@ -468,12 +468,18 @@ process generate_plots {
     tag "$meta.id"
 
     input:
-    tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'),
-        path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed"),
-        path('insert_intersect.out'), path('depth_report.tsv')
+    tuple val(meta), path(gene_coverage_bed), path(insert_coverage_bed),
+        path(genome_coverage_tsv), path(genome_cov_stats_tsv), path(insert_coverage_full_bed),
+        path(insert_intersect_out), path(depth_report_tsv)
+    tuple val(meta2), path(mapped_inserts_bam), path(mapped_inserts_bam_bai), path(mapped_insert_stats_tsv)
     path(samples_sheet)
+    path(inserts_tsv)
+    tuple val(meta3), path(mapped_vector_bam), path(mapped_vector_bam_bai), path(mapped_vector_stats_tsv)
+    path seq_stats_tsv
+    path barcode_tsv
+    tuple val(meta4), path(barcode_counts_tsv)
+
     output:
-    path('raw_seq_stats.csv')
     path("seq_summary.csv")
     path("barcode_length_distribution.png")
     path("barcode_proportions.png")
@@ -490,7 +496,9 @@ process generate_plots {
 
     script:
     """
-    visualize_results.py $samples_sheet  $params.outdir
+    visualize_results.py  $barcode_tsv $barcode_counts_tsv $inserts_tsv $genome_coverage_tsv \
+     $gene_coverage_bed $insert_coverage_bed $insert_coverage_full_bed $insert_intersect_out $seq_stats_tsv \
+      $mapped_vector_stats_tsv $genome_cov_stats_tsv $meta.id
     """
 }
 

@@ -6,7 +6,7 @@ import seaborn as sns
 import plotly.io as pio
 import os
 import sys
-from report_utils_template import load_report_data, seq_summary
+from report_utils_template import load_insert_cov, seq_summary, load_map_stats, load_seq_stats
 
 
 sns.set_theme()
@@ -34,8 +34,8 @@ def write_empty_file(filename):
     with open(filename, "w") as my_empty_csv:
             pass
 
-def plot_barcode_length_histogram(data):
-    df_plot = data.barcodes
+def plot_barcode_length_histogram(barcodes):
+    df_plot = barcodes
     fig, ax = plt.subplots(figsize=(10, 6))
     if df_plot is None:
         plt.savefig('barcode_length_distribution.png') # empty plot
@@ -48,8 +48,8 @@ def plot_barcode_length_histogram(data):
     plt.savefig('barcode_length_distribution.png', bbox_inches='tight')
 
 
-def plot_proportions_of_barcodes(data):
-    if data.barcodes is None:
+def plot_proportions_of_barcodes(barcodes):
+    if barcodes is None:
         plt.savefig('barcode_proportions.png')
         write_empty_file('barcode_proportions.csv')
         return
@@ -57,13 +57,13 @@ def plot_proportions_of_barcodes(data):
     # Use 1bp tolerance on either end
     barcode_length = 44  # expected bp length of barcodes
     empty_cutoff = 5  # cutoff for labeling a vector as empty
-    data.barcodes['barcode_exists'] = 'other'
-    data.barcodes.loc[
-        data.barcodes.barcode_len.between(barcode_length - 1, barcode_length + 1), 'barcode_exists'] = 'true'
-    data.barcodes.loc[data.barcodes.barcode_len <= empty_cutoff, 'barcode_exists'] = 'false'
+    barcodes['barcode_exists'] = 'other'
+    barcodes.loc[
+        barcodes.barcode_len.between(barcode_length - 1, barcode_length + 1), 'barcode_exists'] = 'true'
+    barcodes.loc[barcodes.barcode_len <= empty_cutoff, 'barcode_exists'] = 'false'
 
-    df_plot = data.barcodes.groupby('sample')['barcode_exists'].value_counts(normalize=True).to_frame()
-    data.barcodes.to_csv('barcode_proportions.csv', index=False)
+    df_plot = barcodes.groupby('sample')['barcode_exists'].value_counts(normalize=True).to_frame()
+    barcodes.to_csv('barcode_proportions.csv', index=False)
     fig, ax = plt.subplots(figsize=(10, 6))
 
     sns.barplot(df_plot,
@@ -75,12 +75,12 @@ def plot_proportions_of_barcodes(data):
     plt.savefig( 'barcode_proportions.png', bbox_inches='tight')
 
 
-def plot_copy_number(data):
-    if data.barcodes is None:
+def plot_copy_number(barcodes):
+    if barcodes is None:
         plt.savefig('barcode_copy_number.png') # empty plot
         write_empty_file('barcode_copy_number.csv')
         return
-    df_plot = data.barcodes.groupby('sample')['barcode_seq'].value_counts().to_frame().rename(
+    df_plot = barcodes.groupby('sample')['barcode_seq'].value_counts().to_frame().rename(
         columns={'count': 'counts_per_barcode'})
     
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -95,8 +95,8 @@ def plot_copy_number(data):
     plt.savefig( 'barcode_copy_number.png', bbox_inches='tight')
 
 
-def plot_insert_length_histogram(data):
-    df_plot = data.inserts
+def plot_insert_length_histogram(inserts):
+    df_plot = inserts
     if df_plot is None:
         plt.savefig('insert_length_distribution.png') # empty plot
         write_empty_file('insert_length_distribution.csv')
@@ -112,14 +112,14 @@ def plot_insert_length_histogram(data):
     plt.savefig('insert_length_distribution.png', bbox_inches='tight')
 
 
-def plot_full_genes_per_fragment(data):
-    if data.insert_cov_full is None:
+def plot_full_genes_per_fragment(insert_cov_full):
+    if insert_cov_full is None:
         plt.savefig('full_genes_per_fragment.png') # empty plot
         write_empty_file('full_genes_per_fragment.csv')
         return
-    data.insert_cov_full.to_csv('full_genes_per_fragment.csv', index=False)
+    insert_cov_full.to_csv('full_genes_per_fragment.csv', index=False)
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.histplot(data.insert_cov_full,
+    sns.histplot(insert_cov_full,
                  x='count',
                  hue='sample',
                  stat='frequency',
@@ -130,14 +130,14 @@ def plot_full_genes_per_fragment(data):
     plt.savefig('full_genes_per_fragment.png', bbox_inches='tight')
 
 
-def plot_partial_genes_per_fragment(data):
-    if data.insert_cov is None:
+def plot_partial_genes_per_fragment(insert_cov):
+    if insert_cov is None:
         plt.savefig('partial_genes_per_fragment.png') # empty plot
         write_empty_file('partial_genes_per_fragment.csv')
         return
-    data.insert_cov.to_csv('partial_genes_per_fragment.csv', index=False)
+    insert_cov.to_csv('partial_genes_per_fragment.csv', index=False)
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.histplot(data.insert_cov,
+    sns.histplot(insert_cov,
                  x='count',
                  hue='sample',
                  stat='frequency',
@@ -148,50 +148,64 @@ def plot_partial_genes_per_fragment(data):
     plt.savefig('partial_genes_per_fragment.png', bbox_inches='tight')
 
 
-def visualize_results(samples_path, result_dir):
+def visualize_results(barcodes_path, barcode_counts_path, inserts_path, genome_coverage_path,
+                      gene_cove_bed_path,insert_cov_bed_path, insert_cov_full_bed_path, insert_intersect_path,
+                      seq_stats_path, mapped_vector_stats_path, genome_cov_stats_path, samp):
 
-    data = load_data(samples_path, result_dir)
+    print(samp)
+    barcode_data = pd.read_table(barcodes_path, names = ['barcode_seq', 'barcode_count']) \
+            .assign(sample = samp)
+    print(f'barcode_data: {barcode_data}')
+    #barcode_counts_data = pd.read_csv(barcode_counts_path)
+    inserts = pd.read_table(inserts_path, names=['read', 'insert_seq', 'insert_len'], usecols=[0, 1, 3])
+    inserts['sample'] = samp
+    print(f'inserts: {inserts}')
 
-    # Export read statistics for raw reads/barcodes/inserts
-    if data.seq_stat is None:
-        write_empty_file('raw_seq_stats.csv')
-    else:
-        data.seq_stat.to_csv('raw_seq_stats.csv', index=False)
+    #genome_coverage = pd.read_csv(genome_coverage_path)
+    #gene_cov = pd.read_csv(gene_cove_bed_path)
+    insert_cov = load_insert_cov(insert_cov_bed_path, samp)
+    print(f'insert_cov: {insert_cov}')
 
+    insert_cov_full = load_insert_cov(insert_cov_full_bed_path,samp)
+    print(f'insert_cov_full: {insert_cov_full}')
+
+    mapped_vector_stats = load_map_stats(mapped_vector_stats_path, samp)
+    print(f'mapped_vector_stats: {mapped_vector_stats}')
+    #genome_cov_stats = pd.read_csv(genome_cov_stats_path)
+    seq_stats = load_seq_stats(seq_stats_path, samp)
+    print(f'seq_stats: {seq_stats}')
 
     # sequence summary
-    if data.barcodes is None or data.inserts is None or data.seq_stat is None or data.vec_map_stats is None:
+    if barcode_data is None or inserts is None or seq_stats is None or mapped_vector_stats is None:
         write_empty_file('seq_summary.csv')
 
     else:
-        num_seqs = seq_summary(data.barcodes, data.inserts, data.seq_stat, data.vec_map_stats)
+        num_seqs = seq_summary(barcode_data, inserts, seq_stats, mapped_vector_stats)
         num_seqs.to_csv('seq_summary.csv', index=False)
 
     # plot barcode length histogram
-    plot_barcode_length_histogram(data)
+    plot_barcode_length_histogram(barcode_data)
 
     # plot proportions of barcodes
-    plot_proportions_of_barcodes(data)
+    plot_proportions_of_barcodes(barcode_data)
 
     # plot copy number
-    plot_copy_number(data)
+    plot_copy_number(barcode_data)
 
     # plot insert length histogram
-    plot_insert_length_histogram(data)
+    plot_insert_length_histogram(inserts)
 
     # plot full genes per fragment
-    plot_full_genes_per_fragment(data)
+    plot_full_genes_per_fragment(insert_cov_full)
 
     # plot partial genes per fragment
-    plot_partial_genes_per_fragment(data)
+    plot_partial_genes_per_fragment(insert_cov)
 
 
 
 if __name__ == '__main__':
-    # Hack the path to the results directory
-    c = os.getcwd().split("work")[0]
-    absolute_path = os.path.join(c,"results")
-    visualize_results(sys.argv[1], absolute_path)
+        visualize_results(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7],
+                          sys.argv[8], sys.argv[9], sys.argv[10], sys.argv[11], sys.argv[12])
 
 
 
