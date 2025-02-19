@@ -134,7 +134,7 @@ Long Read Processing and QC Pipeline
 
     // report
     report = channel.fromPath("${projectDir}/assets/report_template.ipynb")
-    report_utils = channel.fromPath("${projectDir}/bin/report_utils_template.py")
+    report_utils = channel.fromPath("${projectDir}/assets/report_utils_template.py")
 
     prepare_report(report, report_utils)
 
