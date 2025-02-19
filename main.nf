@@ -26,7 +26,7 @@ workflow {
 
     log.info """
 ▗▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖▗▄▄▄▖▗▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▄▄▄▖▗▖   ▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖
-▐▌ ▐▌ █  ▐▌ ▐▌▐▛▚▖▐▌▐▌   ▐▌   ▐▌ ▐▌    ▐▌ ▐▌ █  ▐▌ ▐▌▐▌   ▐▌     █  ▐▛▚▖▐▌▐▌   ▐▌   
+▐▌ ▐▌ █  ▐▌ ▐▌▐▛▚▖▐▌▐▌   ▐▌   ▐▌ ▐▌    ▐▌ ▐▌ █  ▐▌ ▐▌▐▌   ▐▌     █  ▐▛▚▖▐▌▐▌   ▐▌
 ▐▛▀▘  █  ▐▌ ▐▌▐▌ ▝▜▌▐▛▀▀▘▐▛▀▀▘▐▛▀▚▖    ▐▛▀▘  █  ▐▛▀▘ ▐▛▀▀▘▐▌     █  ▐▌ ▝▜▌▐▛▀▀▘ ▝▀▚▖
 ▐▌  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖▐▙▄▄▖▐▌ ▐▌    ▐▌  ▗▄█▄▖▐▌   ▐▙▄▄▖▐▙▄▄▖▗▄█▄▖▐▌  ▐▌▐▙▄▄▖▗▄▄▞▘
 
@@ -59,11 +59,13 @@ Long Read Processing and QC Pipeline
         }
         | set {constructs}
 
-    // reorient the reads
-    //reads = rotate_reads(input_ch)
+
     // Generate quality report using fastplong
     quality_report(constructs)
-    vector_results = map_vector(constructs)
+    vector_map = map_vector(constructs).collectFile(){
+        meta, bam, bai, stats ->
+        ["mapped_vector_map.tsv", "${meta.id}\t${stats}\n"]
+    }
 
 
     // get the flanking sequences from the .dna file
@@ -74,14 +76,34 @@ Long Read Processing and QC Pipeline
     (inserts, ins_report, in_tab) = extract_inserts(input_ch.join(flanking))
 
     // combine for read stats
-    seq_stats_results = input_ch
+    combined_data = input_ch
         .join(inserts)
         .join(barcodes)
-     | seq_stats
+
+    seq_stats_results = seq_stats(combined_data).collectFile(){
+        id, tsv ->
+        ["seq_stats_map.tsv", "${id}\t${tsv}\n"]
+        }
+
+    barcode_count_sample_map = barcode_counts(barcodes).collectFile(){ id, tsv ->
+        ["sample_map.tsv", "${id}\t${tsv}\n"]
+    }
+
+    summarize_barcode_counts(barcode_count_sample_map)
+
+    barcode_map =  get_barcodes_as_tsv(barcodes).collectFile(){ meta, fasta ->
+        ["barcode_map.tsv", "${meta.id}\t${fasta}\n"]
+    }
+    summarize_barcodes(barcode_map)
 
 
-    barcode_count_results = barcode_counts(barcodes)
+    insert_map =  get_inserts_as_tsv(inserts).collectFile(){ meta, fasta ->
+        ["insert_map.tsv", "${meta.id}\t${fasta}\n"]
+    }
 
+    summarize_inserts(insert_map)
+
+    generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map)
 
     // mapping inserts
 
@@ -94,10 +116,15 @@ Long Read Processing and QC Pipeline
     }
 
     mapped = map_inserts(splits.single)
-    insert_outputs = insert_coverage(mapped)
+    insert_outputs = insert_coverage(mapped).
+        collectFile(){
+            meta, gene_cov, insert_cov, genome_cov, genome_cov_stats, insert_cov_full, insert_intersect, depth ->
+        ["insert_coverage.tsv", "${meta.id}\t${insert_cov_full}\n"]
+    }
+   summarize_insert_coverage(insert_outputs)
 
 
-    plot_depth(insert_outputs)
+     plot_depth(mapped)
 
     // metagenomic samples
     sketched = sketch(splits.multi)
@@ -111,8 +138,7 @@ Long Read Processing and QC Pipeline
 
     prepare_report(report, report_utils)
 
-    p = channel.fromPath(params.samplesheet) | samples
-    generate_plots(insert_outputs, mapped, p, in_tab, vector_results, seq_stats_results, bc_tab, barcode_count_results)
+    channel.fromPath(params.samplesheet) | samples
 
 }
 
@@ -186,7 +212,7 @@ process seq_stats {
     //path(rotated), 
     
     output:
-    path 'seq_stats.tsv'
+    tuple val("$meta.id"), path ('seq_stats.tsv')
 
     script:
     """
@@ -204,7 +230,6 @@ process extract_barcodes {
     output:
     tuple val(meta), path("barcodes.fasta")
     path "cutadapt_barcode_report.json"
-    path "barcodes.tsv"
 
     script:
     """
@@ -219,8 +244,25 @@ process extract_barcodes {
         $reads
     seqkit seq --min-len $params.min_bc_len --max-len $params.max_bc_len \
         barcodes_raw.fasta > barcodes.fasta
-    seqkit fx2tab -li barcodes.fasta > barcodes.tsv
+
     """
+}
+
+process get_barcodes_as_tsv{
+    publishDir "$params.outdir/$meta.id",  mode: 'copy'
+    tag("$meta.id")
+
+    input:
+    tuple val(meta), path(barcodes)
+
+    output:
+    tuple val(meta), path ("barcodes.tsv")
+
+    script:
+    """
+    seqkit fx2tab -li $barcodes > barcodes.tsv
+    """
+
 }
 
 process filter_barcodes {
@@ -249,7 +291,7 @@ process barcode_counts {
     tuple val(meta), path(barcodes)
 
     output:
-    tuple val(meta), path('barcode_counts.tsv')
+    tuple val("$meta.id"), path('barcode_counts.tsv')
 
     script:
     """
@@ -268,7 +310,7 @@ process extract_inserts {
     output:
     tuple val(meta), path("inserts.fasta")
     path "cutadapt_inserts_report.json"
-    path "inserts.tsv"
+
 
     script:
     """
@@ -282,11 +324,24 @@ process extract_inserts {
         --json cutadapt_inserts_report.json \
         $reads
     seqkit seq --min-len 1 inserts_cutadapt.fasta > inserts.fasta
-    seqkit fx2tab -li inserts.fasta > inserts.tsv
     """
 }
 
+process get_inserts_as_tsv {
+    publishDir "$params.outdir/$meta.id",  mode: 'copy'
+    tag("$meta.id")
 
+    input:
+    tuple val(meta), path(insert_fasta)
+
+    output:
+    tuple val(meta), path("inserts.tsv")
+
+    script:
+    """
+    seqkit fx2tab -li $insert_fasta > inserts.tsv
+    """
+}
 // Insert mapping
 
 process map_inserts {
@@ -463,59 +518,115 @@ process quality_report {
     """
 }
 
-process generate_plots {
-    publishDir("$params.outdir"),  mode: 'copy'
-    tag "$meta.id"
-
-    input:
-    tuple val(meta), path(gene_coverage_bed), path(insert_coverage_bed),
-        path(genome_coverage_tsv), path(genome_cov_stats_tsv), path(insert_coverage_full_bed),
-        path(insert_intersect_out), path(depth_report_tsv)
-    tuple val(meta2), path(mapped_inserts_bam), path(mapped_inserts_bam_bai), path(mapped_insert_stats_tsv)
-    path(samples_sheet)
-    path(inserts_tsv)
-    tuple val(meta3), path(mapped_vector_bam), path(mapped_vector_bam_bai), path(mapped_vector_stats_tsv)
-    path seq_stats_tsv
-    path barcode_tsv
-    tuple val(meta4), path(barcode_counts_tsv)
-
-    output:
-    path("seq_summary.csv")
-    path("barcode_length_distribution.png")
-    path("barcode_proportions.png")
-    path("barcode_copy_number.png")
-    path("insert_length_distribution.png")
-    path("full_genes_per_fragment.png")
-    path("partial_genes_per_fragment.png")
-    path("barcode_lengths.csv")
-    path("barcode_proportions.csv")
-    path("barcode_copy_number.csv")
-    path("insert_length_distribution.csv")
-    path("full_genes_per_fragment.csv")
-    path("partial_genes_per_fragment.csv")
-
-    script:
-    """
-    visualize_results.py  $barcode_tsv $barcode_counts_tsv $inserts_tsv $genome_coverage_tsv \
-     $gene_coverage_bed $insert_coverage_bed $insert_coverage_full_bed $insert_intersect_out $seq_stats_tsv \
-      $mapped_vector_stats_tsv $genome_cov_stats_tsv $meta.id
-    """
-}
 
 process plot_depth{
     publishDir("$params.outdir/$meta.id") ,  mode: 'copy'
     tag "$meta.id"
 
     input:
-    tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'),
-        path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed"),
-        path('insert_intersect.out'), path('depth_report.tsv')
+    tuple val(meta), path(bam), path(bam_index),  path(insert_stats)
 
     output:
     tuple val(meta), path('coverage_plot.png')
 
     script:
     """
+    samtools depth -a $bam > depth_report.tsv
     plot_coverage.py depth_report.tsv coverage_plot.png $meta.id
+    """
+}
+
+process summarize_barcodes {
+    publishDir("$params.outdir"),  mode: 'copy'
+    tag 'Summarizing barcodes'
+
+    input:
+    path sample_map
+
+
+    output:
+        path ('*.csv', arity: '4')
+        path('*.png', arity: '3')
+
+
+    script:
+    """
+    combine_barcodes.py $sample_map
+    """
+}
+
+process summarize_barcode_counts{
+
+    publishDir("$params.outdir"),  mode: 'copy'
+    tag 'Summarizing barcode counts'
+
+    input:
+    path sample_map
+
+
+    output:
+    path 'concatenated_barcode_counts.csv'
+
+    script:
+    """
+    combine_barcode_counts.py $sample_map
+    """
+}
+
+process summarize_insert_coverage{
+    publishDir("$params.outdir"),  mode: 'copy'
+    tag 'Summarizing insert coverage'
+
+    input:
+    path insert_coverage_map
+
+
+    output:
+        path ('*.csv', arity: '3')
+        path('*.png', arity: '2')
+
+
+    script:
+    """
+    combine_insert_coverage.py $insert_coverage_map
+    """
+}
+
+process summarize_inserts{
+    publishDir("$params.outdir"),  mode: 'copy'
+    tag 'Summarizing inserts'
+
+    input:
+    path insert_map
+
+    output:
+        path 'concatenated_inserts.csv'
+        path 'insert_length_distribution.csv'
+        path 'insert_length_distribution.png'
+
+    script:
+    """
+    combine_inserts.py $insert_map
+    """
+}
+
+process generate_seq_summary{
+    publishDir("$params.outdir"),  mode: 'copy'
+    tag 'Summarizing sequence stats'
+
+    input:
+    path seq_stats_map
+    path barcode_map
+    path vector_map
+    path insert_map
+
+    output:
+        path 'seq_summary.csv'
+        path 'concatenated_seq_stats.csv'
+        path 'concatenated_vector_map_stats.csv'
+
+    script:
+    """
+    combine_seq_stats.py $seq_stats_map $barcode_map $vector_map $insert_map
     """
 }
