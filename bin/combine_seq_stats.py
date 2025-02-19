@@ -99,7 +99,7 @@ if __name__ == '__main__':
     inserts = concatenate_insert_files(sys.argv[4])
 
     # Combine all if possible
-    if barcodes and inserts and seq_stats and vec_map_stats:
+    if barcodes is None or inserts is None or seq_stats is None or vec_map_stats is None:
         num_seqs_df = seq_summary(barcodes, inserts, seq_stats, vec_map_stats)
         num_seqs_df.to_csv('seq_summary.csv', index=False)
     else:
