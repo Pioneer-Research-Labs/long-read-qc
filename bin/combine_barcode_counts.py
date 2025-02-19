@@ -3,8 +3,10 @@
 import pandas as pd
 import sys
 
-from bin.combine_insert_coverage import write_empty_file
 
+def write_empty_file(filename):
+    with open(filename, "w") as my_empty_csv:
+        pass
 
 def concatenate_barcode_count_files(file_map):
     with open(file_map, 'r') as f:
