@@ -77,10 +77,17 @@ def concatenate_barcode_files(file_map):
         sample_file_dict = {line.split()[0]: line.split()[1] for line in f}
     df_to_concatenate = []
     for key,val in sample_file_dict.items():
-        barcode_df = pd.read_table(val, names=['read', 'barcode_seq', 'barcode_len'], usecols=[0, 1, 3])
-        barcode_df['sample'] = key
-        df_to_concatenate.append(barcode_df)
+        try:
+            barcode_df = pd.read_table(val, names=['read', 'barcode_seq', 'barcode_len'], usecols=[0, 1, 3])
+            barcode_df['sample'] = key
+            df_to_concatenate.append(barcode_df)
+        except pd.errors.EmptyDataError:
+            print(f'No barcode data for {key} found in {val}')
+            continue
 
+    if not df_to_concatenate:
+        write_empty_file('concatenated_barcodes.csv')
+        return None
     barcodes_df = pd.concat(df_to_concatenate)
     barcodes_df.to_csv('concatenated_barcodes.csv', index=False)
     return barcodes_df

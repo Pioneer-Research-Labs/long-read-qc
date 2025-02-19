@@ -33,9 +33,15 @@ def concatenate_insert_files(file_map):
         sample_file_dict = {line.split()[0]: line.split()[1] for line in f}
     df_to_concatenate = []
     for key,val in sample_file_dict.items():
-        inserts = pd.read_table(val, names=['read', 'insert_seq', 'insert_len'], usecols=[0, 1, 3])
-        inserts['sample'] = key
-        df_to_concatenate.append(inserts)
+        try:
+            inserts = pd.read_table(val, names=['read', 'insert_seq', 'insert_len'], usecols=[0, 1, 3])
+            inserts['sample'] = key
+            df_to_concatenate.append(inserts)
+        except pd.errors.EmptyDataError:
+            print(f'No insert data for {key} found in {val}')
+            continue
+    if not df_to_concatenate:
+        return None
 
     insert_df = pd.concat(df_to_concatenate)
     insert_df.to_csv('concatenated_inserts.csv', index=False)

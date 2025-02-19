@@ -51,12 +51,19 @@ def concatenate_insert_coverage_files(file_map):
         sample_file_dict = {line.split()[0]: line.split()[1] for line in f}
     df_to_concatenate = []
     for key,val in sample_file_dict.items():
-        insert_coverage_df = pd.read_table(val, header=None)
-        read_cov = insert_coverage_df.loc[:, [3, 6, 7, 8, 9]].rename(
-            columns={3: 'read', 6: 'count', 7: 'bases', 8: 'read_length', 9: 'percent_cov'})
-        read_cov['sample'] = key
-        df_to_concatenate.append(read_cov)
+        try:
+            insert_coverage_df = pd.read_table(val, header=None)
+            read_cov = insert_coverage_df.loc[:, [3, 6, 7, 8, 9]].rename(
+                columns={3: 'read', 6: 'count', 7: 'bases', 8: 'read_length', 9: 'percent_cov'})
+            read_cov['sample'] = key
+            df_to_concatenate.append(read_cov)
+        except pd.errors.EmptyDataError:
+            print(f'No insert coverage data for {key} found in {val}')
+            continue
 
+    if not df_to_concatenate: # No insert coverage found for any samples
+        write_empty_file('concatenated_insert_coverage.csv')
+        return None
     all_insert_coverage_df = pd.concat(df_to_concatenate)
     all_insert_coverage_df.to_csv('concatenated_insert_coverage.csv', index=False)
     return all_insert_coverage_df

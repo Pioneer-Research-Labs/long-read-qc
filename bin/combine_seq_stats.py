@@ -17,10 +17,17 @@ def concatenate_seq_stat_files(file_map):
         sample_file_dict = {line.split()[0]: line.split()[1] for line in f}
     df_to_concatenate = []
     for key,val in sample_file_dict.items():
-        df = pd.read_table(val)
-        df['sample'] = key
-        df_to_concatenate.append(df)
+        try:
+            df = pd.read_table(val)
+            df['sample'] = key
+            df_to_concatenate.append(df)
+        except pd.errors.EmptyDataError:
+            print(f'No seq stat data for {key} found in {val}')
+            continue
 
+    if not df_to_concatenate:
+        write_empty_file('concatenated_seq_stats.csv')
+        return None
     seq_stats_df = pd.concat(df_to_concatenate)
     seq_stats_df.to_csv('concatenated_seq_stats.csv', index=False)
     return seq_stats_df
@@ -66,10 +73,17 @@ def concatenate_vec_map_stats_files(file_map):
         sample_file_dict = {line.split()[0]: line.split()[1] for line in f}
     df_to_concatenate = []
     for key, val in sample_file_dict.items():
-        vec_stats = pd.read_table(val, names = ['value', 'key'], usecols=[0,2])
-        vec_stats['sample'] = key
-        df_to_concatenate.append(vec_stats)
+        try:
+            vec_stats = pd.read_table(val, names = ['value', 'key'], usecols=[0,2])
+            vec_stats['sample'] = key
+            df_to_concatenate.append(vec_stats)
+        except pd.errors.EmptyDataError:
+            print(f'No vector mapping stats for {key} found in {val}')
+            continue
 
+    if not df_to_concatenate:
+        write_empty_file('concatenated_vector_map_stats.csv')
+        return None
     vec_map_stats_df = pd.concat(df_to_concatenate)
     vec_map_stats_df.to_csv('concatenated_vector_map_stats.csv', index=False)
     return vec_map_stats_df
@@ -84,6 +98,10 @@ if __name__ == '__main__':
     # Load inserts from all samples
     inserts = concatenate_insert_files(sys.argv[4])
 
-    # Combine all stats
-    num_seqs_df = seq_summary(barcodes, inserts, seq_stats, vec_map_stats)
-    num_seqs_df.to_csv('seq_summary.csv', index=False)
+    # Combine all if possible
+    if barcodes and inserts and seq_stats and vec_map_stats:
+        num_seqs_df = seq_summary(barcodes, inserts, seq_stats, vec_map_stats)
+        num_seqs_df.to_csv('seq_summary.csv', index=False)
+    else:
+        write_empty_file('seq_summary.csv')
+        print('No seq data to summarize')
