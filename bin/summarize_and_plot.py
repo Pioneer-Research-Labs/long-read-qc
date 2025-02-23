@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
+import csv
 import plotly.io as pio
 from pathlib import Path
 
@@ -185,14 +186,15 @@ def concatenate_files(file_map, summary_type, output_file, save_file=True):
         try:
             # Read in the data and, depending on the summary type, manipulate as needed
             if summary_type == 'barcode':
-                df = pd.read_table(val, names=['read', 'barcode_seq', 'barcode_len'], usecols=[0, 1, 3])
+                print(f'File {val} sample {key}')
+                df = pd.read_table(val, names=['read', 'barcode_seq', 'barcode_len'], usecols=[0, 1, 3], quoting=csv.QUOTE_NONE, engine='c')
 
             if summary_type == 'insert':
                 print(f'Processing {val} for sample {key}')
-                df = pd.read_table(val, names=['read', 'insert_seq', 'insert_len'], usecols=[0, 1, 3])
+                df = pd.read_table(val, names=['read', 'insert_seq', 'insert_len'], usecols=[0, 1, 3], engine='c', quoting=csv.QUOTE_NONE)
 
             if summary_type == 'insert_coverage':
-                cov = pd.read_table(val, header=None)
+                cov = pd.read_table(val, header=None, engine='c')
                 df = cov.loc[:, [3, 6, 7, 8, 9]].rename(
                     columns={3: 'read', 6: 'count', 7: 'bases', 8: 'read_length', 9: 'percent_cov'})
 
@@ -200,10 +202,10 @@ def concatenate_files(file_map, summary_type, output_file, save_file=True):
                 df = pd.read_table(val)
 
             if summary_type == 'vec_map':
-                df = pd.read_table(val, names = ['value', 'key'], usecols=[0,2])
+                df = pd.read_table(val, names = ['value', 'key'], usecols=[0,2], engine='c')
 
             if summary_type == 'barcode_counts':
-                df = pd.read_table(val, names=['barcode_seq', 'barcode_count'])
+                df = pd.read_table(val, names=['barcode_seq', 'barcode_count'], engine='c')
 
             df['sample'] = key
             df_to_concatenate.append(df)
