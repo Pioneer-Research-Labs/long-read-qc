@@ -185,6 +185,7 @@ def concatenate_files(file_map, summary_type, output_file, save_file=True):
         try:
             # Read in the data and, depending on the summary type, manipulate as needed
             if summary_type == 'barcode':
+                print(f'Sample {key} and file is {val}')
                 df = pd.read_table(val, names=['read', 'barcode_seq', 'barcode_len'], usecols=[0, 1, 3])
 
             if summary_type == 'insert':
