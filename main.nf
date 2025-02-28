@@ -408,8 +408,6 @@ process insert_coverage {
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
-    containerOptions '--volume $HOME/shared/genomes:/genomes'
-
     input:
     tuple val(meta), path(bam), path(index), path(stats), path(gff), path(bed)
 
