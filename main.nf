@@ -23,7 +23,7 @@ Options:
 
 // Run the workflow
 
-workflow {
+workflow main {
 
     log.info """
 ▗▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖▗▄▄▄▖▗▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▄▄▄▖▗▖   ▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖
@@ -160,7 +160,14 @@ Long Read Processing and QC Pipeline
     prepare_report(report, report_utils)
 
     channel.fromPath(params.samplesheet) | samples
-
+}
+workflow {
+    // The bulk of the work happens in the main workflow
+    main()
+    // If this is an AWS batch run, then download the results to the local file system
+    if (params.aws_batch) {
+        download_aws_batch_results()
+    }
 }
 
 
@@ -655,5 +662,20 @@ process generate_seq_summary{
     script:
     """
     summarize_and_plot.py $seq_stats_map seq_stat $barcode_map $vector_map $insert_map
+    """
+}
+
+process download_aws_batch_results{
+    tag 'Downloading AWS Batch results'
+
+    input:
+    path 's3://pioneer-scratch/results/*'
+
+    output:
+    path 'results/'
+
+    script:
+    """
+    aws s3 cp --recursive s3://pioneer-scratch/results/ results/
     """
 }
