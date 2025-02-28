@@ -19,7 +19,9 @@ RUN conda install -y -c bioconda -c conda-forge \
     matplotlib=3.9.2 \
     sourmash=4.8.11 \
     sourmash_plugin_branchwater=0.9.8 \
-    fastplong=0.2.2
+    fastplong=0.2.2 \
+    fsspec=2025.2.0 \
+    s3fs=2025.2.0 \
 
 
 
