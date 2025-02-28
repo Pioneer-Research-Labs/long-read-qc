@@ -23,7 +23,7 @@ Options:
 
 // Run the workflow
 
-workflow main {
+workflow main_pipeline {
 
     log.info """
 ▗▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖▗▄▄▄▖▗▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▄▄▄▖▗▖   ▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖
@@ -163,7 +163,7 @@ Long Read Processing and QC Pipeline
 }
 workflow {
     // The bulk of the work happens in the main workflow
-    main()
+    main_pipeline()
     // If this is an AWS batch run, then download the results to the local file system
     if (params.aws_batch) {
         download_aws_batch_results()
@@ -667,9 +667,6 @@ process generate_seq_summary{
 
 process download_aws_batch_results{
     tag 'Downloading AWS Batch results'
-
-    input:
-    path 's3://pioneer-scratch/results/*'
 
     output:
     path 'results/'
