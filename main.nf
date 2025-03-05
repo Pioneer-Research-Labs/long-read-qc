@@ -23,7 +23,7 @@ Options:
 
 // Run the workflow
 
-workflow main_pipeline {
+workflow {
 
     log.info """
 ▗▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖▗▄▄▄▖▗▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▄▄▄▖▗▖   ▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖
@@ -161,19 +161,11 @@ Long Read Processing and QC Pipeline
 
     channel.fromPath(params.samplesheet) | samples
 }
-workflow {
-    // The bulk of the work happens in the main workflow
-    main_pipeline()
-    // If this is an AWS batch run, then download the results to the local file system
-    if (params.aws_batch) {
-        download_aws_batch_results()
-    }
-}
-
 
 // Processes
 
 process get_flanks {
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag ("$meta.id")
 
@@ -191,6 +183,7 @@ process get_flanks {
 }
 
 process rotate_reads {
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
@@ -208,6 +201,7 @@ process rotate_reads {
 }
 
 process map_vector {
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
@@ -232,7 +226,9 @@ process map_vector {
 
 process seq_stats {
        
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
+
 
     tag "$meta.id"
 
@@ -253,6 +249,7 @@ process seq_stats {
 }
 
 process extract_barcodes {
+    publishDir "$params.localdir/$meta.id",  mode: 'copy'
     publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 
@@ -284,6 +281,7 @@ process extract_barcodes {
 }
 
 process get_barcodes_as_tsv{
+    publishDir "$params.localdir/$meta.id",  mode: 'copy'
     publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 
@@ -301,6 +299,7 @@ process get_barcodes_as_tsv{
 }
 
 process filter_barcodes {
+    publishDir "$params.localdir/$meta.id",  mode: 'copy'
     publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 
@@ -321,6 +320,7 @@ process filter_barcodes {
 
 process barcode_counts {
 
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag("$meta.id")
 
@@ -340,6 +340,7 @@ process barcode_counts {
 }
 
 process extract_inserts {
+    publishDir "$params.localdir/$meta.id",  mode: 'copy'
     publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 
@@ -370,6 +371,7 @@ process extract_inserts {
 }
 
 process get_inserts_as_tsv {
+    publishDir "$params.localdir/$meta.id",  mode: 'copy'
     publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 
@@ -388,6 +390,7 @@ process get_inserts_as_tsv {
 
 process map_inserts {
 
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
@@ -412,6 +415,7 @@ process map_inserts {
 
 process insert_coverage {
 
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
@@ -438,6 +442,7 @@ process insert_coverage {
 
 process prepare_report {
 
+    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Preparing report'
 
@@ -458,6 +463,7 @@ process prepare_report {
 
 process samples {
 
+    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Moving sample sheet'
 
@@ -480,6 +486,7 @@ process samples {
 
 process sketch {
     
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
     
@@ -497,6 +504,7 @@ process sketch {
 
 process classify {
     
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
@@ -517,6 +525,7 @@ process classify {
 }
 
 process taxonomy {
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
@@ -537,6 +546,7 @@ process taxonomy {
 
 process quality_report {
 
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
     publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
@@ -554,6 +564,7 @@ process quality_report {
 
 
 process plot_depth{
+    publishDir("$params.localdir/$meta.id") ,  mode: 'copy'
     publishDir("$params.outdir/$meta.id") ,  mode: 'copy'
     tag "$meta.id"
 
@@ -571,6 +582,7 @@ process plot_depth{
 }
 
 process summarize_barcodes {
+    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Summarizing barcodes'
 
@@ -591,6 +603,7 @@ process summarize_barcodes {
 
 process summarize_barcode_counts{
 
+    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Summarizing barcode counts'
 
@@ -608,6 +621,7 @@ process summarize_barcode_counts{
 }
 
 process summarize_insert_coverage{
+    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Summarizing insert coverage'
 
@@ -627,6 +641,7 @@ process summarize_insert_coverage{
 }
 
 process summarize_inserts{
+    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Summarizing inserts'
 
@@ -645,6 +660,7 @@ process summarize_inserts{
 }
 
 process generate_seq_summary{
+    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Summarizing sequence stats'
 
@@ -665,14 +681,3 @@ process generate_seq_summary{
     """
 }
 
-process download_aws_batch_results{
-    tag 'Downloading AWS Batch results'
-
-    output:
-    path 'results/'
-
-    script:
-    """
-    aws s3 cp --recursive s3://pioneer-scratch/results/ results/
-    """
-}
