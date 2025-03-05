@@ -6,13 +6,15 @@ import timeit
 import boto3
 import pandas as pd
 from urllib.parse import urlparse
-S3_BUCKET = "pioneer-scratch"
 CHUNK_SIZE = 1000000000 # bytes
 # When running locally on your desktop machine, set up boto3 to use the AWS SSO credentials
 #boto3.setup_default_session(profile_name='general-116981805068')
 
 
 class S3Url(object):
+    """
+    Parse an S3 URL into its bucket and key components.
+    """
     # From: https://stackoverflow.com/questions/42641315/s3-urls-get-bucket-name-and-path
     def __init__(self, url):
         self._parsed = urlparse(url, allow_fragments=False)
@@ -38,13 +40,17 @@ class S3Url(object):
 
 
 def process_sample_sheet(sample_sheet_path):
+    """
+    Given a sample sheet, download the fastq files and chunk them into smaller files, uploading the chunked files to S3
+    and creating an updated sample sheet with the paths to the chunked files.
+    :param sample_sheet_path: str representing the path to the sample sheet
+    :return: str representing the path to the new sample sheet with the chunked fastq files
+    """
 
     # Read the sample sheet
     sample_sheet = pd.read_csv(sample_sheet_path)
     # Create a new sample sheet with the same columns
     new_sample_sheet = pd.DataFrame(columns=sample_sheet.columns)
-    # Create a new directory to store the downloaded fastq files
-    downloaded_s3_files_dir = tempfile.mkdtemp()
     # Download the fastq files from S3
     for index, row in sample_sheet.iterrows():
         # Download the fastq file
@@ -87,20 +93,25 @@ def process_sample_sheet(sample_sheet_path):
     new_sample_sheet.to_csv(new_sample_sheet_path, index=False)
     return new_sample_sheet_path
 
-def list_files_in_s3_bucket(bucket_name=S3_BUCKET):
-    s3 = boto3.client('s3')
-    response = s3.list_objects_v2(Bucket=bucket_name)
-    print("Files in S3 bucket:")
-    for obj in response['Contents']:
-        print(obj['Key'])
-
-
-def upload_file_to_s3(file_name, bucket_file_name, bucket_name=S3_BUCKET):
+def upload_file_to_s3(file_name, bucket_file_name, bucket_name):
+    """
+    Upload a file to S3
+    :param file_name: str representing the local path to the file to upload
+    :param bucket_file_name: str representing the file name in the bucket
+    :param bucket_name: str representing the name of the bucket
+    """
     s3 = boto3.client('s3')
     s3.upload_file(file_name, bucket_name, bucket_file_name)
 
 
 def download_s3_file_to_temp(bucket_name, bucket_file_name, temp_file_prefix):
+    """
+    Download a file from S3 to a temporary file
+    :param bucket_name: str representing the name of the bucket
+    :param bucket_file_name: str representing the name of the file in the bucket
+    :param temp_file_prefix: str representing the prefix of the temporary file
+    :return: str representing the path to the temporary file
+    """
     s3 = boto3.client('s3')
 
     # Create a temporary file
@@ -119,19 +130,11 @@ def download_s3_file_to_temp(bucket_name, bucket_file_name, temp_file_prefix):
     return temp_file
 
 
-def download_file_from_s3(file_name, local_file_name, bucket_name=S3_BUCKET):
-    s3 = boto3.client('s3')
-    try:
-        s3.download_file(bucket_name, file_name, local_file_name)
-    except s3.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == '404':
-            print(f"File '{file_name}' does not exist")
-        return False
-    return True
-
 def chunk_fastq(fastq_file, chunked_dir):
     """
     Chunk a fastq file into smaller files of size chunk_size.
+    :param fastq_file: str representing the path to the fastq file
+    :param chunked_dir: str representing the local directory to store the chunked files
     """
     # Count the number of reads in the fastq file
     num_reads = count_reads_using_seqkit(fastq_file)
@@ -155,6 +158,11 @@ def chunk_fastq(fastq_file, chunked_dir):
     print(f"Time taken to chunk file: {(end-start)/60} minutes to chunk fastq file")
 
 def count_reads_using_seqkit(fastq_file):
+    """
+    Count the number of reads in a fastq file using seqkit
+    :param fastq_file:
+    :return: int representing the number of reads in the fastq file
+    """
     start = timeit.default_timer()
     count_sample_args = ['seqkit','stats', '-T', fastq_file]
     count_process = subprocess.Popen(count_sample_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -177,8 +185,5 @@ def count_reads_using_seqkit(fastq_file):
 if __name__ == "__main__":
     # Given a sample sheet, download the fastq files and chunk them into smaller files.
     # Create a new sample sheet using the new chunked fastq file.
-    #fastq_file = sys.argv[1]
-    #chunked_dir = sys.argv[2]
-    #chunk_fastq(fastq_file, chunked_dir)
     process_sample_sheet(sys.argv[1])
 
