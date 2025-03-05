@@ -7,7 +7,7 @@ import boto3
 import pandas as pd
 from urllib.parse import urlparse
 S3_BUCKET = "pioneer-scratch"
-CHUNK_SIZE = 1000000 #000 # bytes
+CHUNK_SIZE = 1000000000 # bytes
 # When running locally on your desktop machine, set up boto3 to use the AWS SSO credentials
 #boto3.setup_default_session(profile_name='general-116981805068')
 
