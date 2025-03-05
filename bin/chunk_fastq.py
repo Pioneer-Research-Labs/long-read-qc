@@ -63,8 +63,8 @@ def process_sample_sheet(sample_sheet_path):
         bucket = s.bucket
         key = s.key # path to the file in the bucket
         folder = s.dirname
-        s3_dir, fastq_name = key.split('/')[-2:]
-        print(f'S3 directory: {s3_dir}, fastq name: {fastq_name}')
+        fastq_name = key.split('/')[-1:]
+        print(f'S3 directory: {folder}, fastq name: {fastq_name}')
         print(f"Downloading fastq file: {key} from S3")
         local_file_name = download_s3_file_to_temp(bucket,key, fastq_name).name
         print(f"Successfully downloaded fastq file: {key} from S3 to {local_file_name}")
@@ -84,12 +84,12 @@ def process_sample_sheet(sample_sheet_path):
                               bucket_name = bucket)
             # Update the new sample sheet with the chunked fastq files
             new_row = row.copy()
-            new_row['file'] = os.path.join( 's3://', bucket, s3_dir, s3_chunked_folder_path, chunked_file)
+            new_row['file'] = os.path.join( 's3://', bucket, folder, s3_chunked_folder_path, chunked_file)
             new_sample_sheet.loc[len(new_sample_sheet)]=new_row
 
 
     # Save the new sample sheet
-    new_sample_sheet_path =  'new_sample_sheet.csv'
+    new_sample_sheet_path =  sample_sheet_path.replace('.csv', '_chunked.csv')
     new_sample_sheet.to_csv(new_sample_sheet_path, index=False)
     return new_sample_sheet_path
 
