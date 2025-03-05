@@ -63,7 +63,7 @@ def process_sample_sheet(sample_sheet_path):
         bucket = s.bucket
         key = s.key # path to the file in the bucket
         folder = s.dirname
-        fastq_name = key.split('/')[-1:]
+        fastq_name = key.split('/')[-1:][0]
         print(f'S3 directory: {folder}, fastq name: {fastq_name}')
         print(f"Downloading fastq file: {key} from S3")
         local_file_name = download_s3_file_to_temp(bucket,key, fastq_name).name
@@ -108,7 +108,7 @@ def download_s3_file_to_temp(bucket_name, bucket_file_name, temp_file_prefix):
     """
     Download a file from S3 to a temporary file
     :param bucket_name: str representing the name of the bucket
-    :param bucket_file_name: str representing the name of the file in the bucket
+    :param bucket_file_name: str representing the namSn4dpPn2Bc5ne of the file in the bucket
     :param temp_file_prefix: str representing the prefix of the temporary file
     :return: str representing the path to the temporary file
     """
