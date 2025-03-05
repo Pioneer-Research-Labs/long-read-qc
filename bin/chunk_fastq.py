@@ -32,6 +32,10 @@ class S3Url(object):
     def url(self):
         return self._parsed.geturl()
 
+    @property
+    def dirname (self):
+        return os.path.dirname(self.key)
+
 
 def process_sample_sheet(sample_sheet_path):
 
@@ -52,7 +56,7 @@ def process_sample_sheet(sample_sheet_path):
         s = S3Url(path)
         bucket = s.bucket
         key = s.key # path to the file in the bucket
-
+        folder = s.dirname
         s3_dir, fastq_name = key.split('/')[-2:]
         print(f'S3 directory: {s3_dir}, fastq name: {fastq_name}')
         print(f"Downloading fastq file: {key} from S3")
@@ -65,12 +69,12 @@ def process_sample_sheet(sample_sheet_path):
         # Load the chunked files to s3, by creating a new S3 folder with the fastq name
         # suffixed with 'chunked'
         s3_chunked_folder_path = fastq_name + '_chunked'
-        print(f"Uploading chunked files to S3 in folder: {s3_chunked_folder_path}")
+        print(f"Uploading chunked files to S3 in folder: s3://{bucket}/{folder}/{s3_chunked_folder_path}")
         for chunked_file in chunked_files:
             # Get the path to the chunked file
             path_to_chunked_file = os.path.join(f"chunked_files_{index}", chunked_file)
             upload_file_to_s3(path_to_chunked_file,
-                              os.path.join(s3_dir, s3_chunked_folder_path, chunked_file),
+                              os.path.join(folder, s3_chunked_folder_path, chunked_file),
                               bucket_name = bucket)
             # Update the new sample sheet with the chunked fastq files
             new_row = row.copy()
