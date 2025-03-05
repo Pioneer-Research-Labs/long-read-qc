@@ -55,7 +55,7 @@ Long Read Processing and QC Pipeline
         .map { row -> 
             meta = [id:row.id, genome:row.genome]
             reads = file(row.file)
-            construct = file(row.construct)
+            construct = file(params.constructs + row.construct)
             [meta, reads, construct]
         }
         | set {constructs}
