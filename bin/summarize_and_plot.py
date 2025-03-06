@@ -179,7 +179,7 @@ def concatenate_files(file_map, summary_type, output_file, save_file=True):
     """
     with open(file_map, 'r') as f:
         # Create a dictionary of sample names and file paths
-        sample_file_dict = {line.split()[0]: line.split()[1] for line in f}
+        sample_file_dict = {line.split('\t')[0]: line.split('\t')[1].rstrip('\n') for line in f}
     df_to_concatenate = []
     df = None
     for key,val in sample_file_dict.items():
@@ -187,14 +187,14 @@ def concatenate_files(file_map, summary_type, output_file, save_file=True):
             # Read in the data and, depending on the summary type, manipulate as needed
             if summary_type == 'barcode':
                 print(f'File {val} sample {key}')
-                df = pd.read_table(val, names=['read', 'barcode_seq', 'barcode_len'], usecols=[0, 1, 3], quoting=csv.QUOTE_NONE, engine='c')
+                df = pd.read_table(val, names=['read', 'barcode_seq', 'barcode_len'], usecols=[0, 1, 3], quoting=csv.QUOTE_NONE, engine='c', sep="\t")
 
             if summary_type == 'insert':
                 print(f'Processing {val} for sample {key}')
-                df = pd.read_table(val, names=['read', 'insert_seq', 'insert_len'], usecols=[0, 1, 3], engine='c', quoting=csv.QUOTE_NONE)
+                df = pd.read_table(val, names=['read', 'insert_seq', 'insert_len'], usecols=[0, 1, 3], engine='c', quoting=csv.QUOTE_NONE, sep="\t")
 
             if summary_type == 'insert_coverage':
-                cov = pd.read_table(val, header=None, engine='c')
+                cov = pd.read_table(val, header=None, engine='c', sep="\t")
                 df = cov.loc[:, [3, 6, 7, 8, 9]].rename(
                     columns={3: 'read', 6: 'count', 7: 'bases', 8: 'read_length', 9: 'percent_cov'})
 
@@ -202,10 +202,10 @@ def concatenate_files(file_map, summary_type, output_file, save_file=True):
                 df = pd.read_table(val)
 
             if summary_type == 'vec_map':
-                df = pd.read_table(val, names = ['value', 'key'], usecols=[0,2], engine='c')
+                df = pd.read_table(val, names = ['value', 'key'], usecols=[0,2], engine='c', sep="\t")
 
             if summary_type == 'barcode_counts':
-                df = pd.read_table(val, names=['barcode_seq', 'barcode_count'], engine='c')
+                df = pd.read_table(val, names=['barcode_seq', 'barcode_count'], engine='c', sep="\t")
 
             df['sample'] = key
             df_to_concatenate.append(df)
