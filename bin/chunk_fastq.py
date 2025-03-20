@@ -6,7 +6,7 @@ import timeit
 import boto3
 import pandas as pd
 from urllib.parse import urlparse
-CHUNK_SIZE = 1000000000 # bytes
+CHUNK_SIZE = 100000000 # bytes
 # When running locally on your desktop machine, set up boto3 to use the AWS SSO credentials
 #boto3.setup_default_session(profile_name='general-116981805068')
 
@@ -76,7 +76,7 @@ def process_sample_sheet(sample_sheet_path):
         # suffixed with 'chunked'
         s3_chunked_folder_path = fastq_name + '_chunked'
         print(f"Uploading chunked files to S3 in folder: s3://{bucket}/{folder}/{s3_chunked_folder_path}")
-        for chunked_file in chunked_files:
+        for list_index, chunked_file in enumerate(chunked_files):
             # Get the path to the chunked file
             path_to_chunked_file = os.path.join(f"chunked_files_{index}", chunked_file)
             upload_file_to_s3(path_to_chunked_file,
@@ -84,6 +84,7 @@ def process_sample_sheet(sample_sheet_path):
                               bucket_name = bucket)
             # Update the new sample sheet with the chunked fastq files
             new_row = row.copy()
+            new_row['id'] = row['id'] + '_' +  str(list_index)
             new_row['file'] = os.path.join( 's3://', bucket, folder, s3_chunked_folder_path, chunked_file)
             new_sample_sheet.loc[len(new_sample_sheet)]=new_row
 
