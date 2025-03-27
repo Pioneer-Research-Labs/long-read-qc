@@ -47,7 +47,7 @@ Long Read Processing and QC Pipeline
             meta = [id:row.id, genome:row.genome]
             [meta, file(row.file), file(params.constructs + row.construct)]
     
-        }.view()
+        }
         | set {input_ch}
 
     channel.fromPath(params.samplesheet)
@@ -56,7 +56,7 @@ Long Read Processing and QC Pipeline
             meta = [id:row.id, genome:row.genome]
             [meta, file(params.constructs + row.construct)]
 
-        }.view()
+        }
         | set {constructs}
 
 
