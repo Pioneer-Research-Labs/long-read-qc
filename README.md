@@ -54,17 +54,22 @@ chunked files loaded to S3 and the `id` column updated with sample and chunk nam
 
 ### Run the pipeline
 
+Before running the pipeline make sure you have the latest version of the pipeline.  You can do this by running the following command:
+
+```
+nextflow pull Pioneer-Research-Labs/long-read-qc
+````
 
 Start the run locally:
 
 ```
-nextflow run Pioneer-Research-Labs/long-read-qc -latest --samplesheet mysample.csv 
+nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet mysample.csv 
 ```
 
 Start the run on AWS Batch:
 
 ```
-nextflow run Pioneer-Research-Labs/long-read-qc -latest --samplesheet mysample.csv -profile awsbatch
+nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet mysample.csv -profile awsbatch
 ```
 
 For low-depth QC samples this should run in less than a minute. For high-depth PacBio samples this will take an hour or more.
