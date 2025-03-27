@@ -75,8 +75,11 @@ Long Read Processing and QC Pipeline
     }
 
     // If we want to, map all reads to the donor genome
+    // Add the genome .fna file to the input ch
     if (params.map_genome) {
-        genome_map = map_genome(input_ch).collectFile(){
+        genome_map = map_genome(input_ch | map {
+            meta, reads, construct -> [meta, reads, construct, "${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()]
+        }).collectFile(){
             meta, bam, bai, stats ->
             ["mapped_genome_map.tsv", "${meta.id}\t${params.path_prefix}${stats}\n"]
         }
@@ -245,16 +248,14 @@ process map_genome {
     cpus params.cores
 
     input:
-    tuple val(meta), path(reads), path(construct)
+    tuple val(meta), path(reads), path(construct), path(fna)
 
     output:
     tuple val(meta), path('mapped_genome.bam'), path("mapped_genome.bam.bai"), path("mapped_genome_stats.tsv")
 
     script:
     """
-    export ref_fa="${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()
-
-    minimap2 -ax $params.tech -t $task.cpus \$ref_fa $reads | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o 'mapped_genome.bam'
+    minimap2 -ax $params.tech -t $task.cpus $fna $reads | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o 'mapped_genome.bam'
     samtools index -@ $task.cpus mapped_genome.bam
     samtools flagstat -@ $task.cpus -O tsv mapped_genome.bam > mapped_genome_stats.tsv
     """
