@@ -1,5 +1,35 @@
 #!/usr/bin/env nextflow
 
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    MODULES  / WORKFLOWS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+include { quality_report } from './modules/quality_report'
+include { map_vector } from './modules/map_vector'
+include { seq_stats } from './modules/seq_stats'
+include { extract_barcodes } from './modules/extract_barcodes'
+include { extract_inserts } from './modules/extract_inserts'
+include { map_inserts } from './modules/map_inserts'
+include { insert_coverage } from './modules/insert_coverage'
+include { sketch } from './modules/sketch'
+include { classify } from './modules/classify'
+include { taxonomy } from './modules/taxonomy'
+include { summarize_barcode_counts } from './modules/summarize_barcode_counts'
+include { summarize_inserts } from './modules/summarize_inserts'
+include { summarize_barcodes } from './modules/summarize_barcodes'
+include { summarize_insert_coverage } from './modules/summarize_insert_coverage'
+include { generate_seq_summary } from './modules/generate_seq_summary'
+include { plot_depth } from './modules/plot_depth'
+include { get_flanks } from './modules/get_flanks'
+include { get_barcodes_as_tsv } from './modules/get_barcodes_as_tsv'
+include { get_inserts_as_tsv } from './modules/get_inserts_as_tsv'
+include { barcode_counts } from './modules/barcode_counts'
+include { prepare_report } from './modules/prepare_report'
+include { samples } from './modules/samples'
+
 def helpMessage() {
     log.info """
 Usage: nextflow run Pioneer-Research-Labs/long-read-qc -latest
@@ -117,22 +147,22 @@ Long Read Processing and QC Pipeline
         multi: meta2.genome == 'meta'
             [meta2, path]
     }
-    
+
     // mapping inserts and add the dynamically generated path to the contigs.fna file, adding it to the channel
-    mapped = map_inserts(splits.single | map { 
-	meta, seq_path -> [meta, seq_path, "${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()] 
+    mapped = map_inserts(splits.single | map {
+	meta, seq_path -> [meta, seq_path, "${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()]
 	})
 
     // Add the files needed for insert coverage by dynamically creating paths based on genome.
     mapped_with_references = mapped | map {
-	meta, bam, bai, stats -> [ 
+	meta, bam, bai, stats -> [
 		meta, bam,  bai, stats , "${params.genomes}/${meta.genome}/${meta.genome}_genes.gff".toString(),
 		"${params.genomes}/${meta.genome}/${meta.genome}_genes.bed".toString()]
 	}
 
     // get insert coverage and collect the results into a file that maps the sample to the location of
     // the insert coverage output.
-    insert_outputs = insert_coverage(mapped_with_references 
+    insert_outputs = insert_coverage(mapped_with_references
 			).collectFile(){
             meta, gene_cov, insert_cov, genome_cov, genome_cov_stats, insert_cov_full, insert_intersect, depth ->
         ["insert_coverage.tsv", "${meta.id}\t${params.path_prefix}${insert_cov_full}\n"]
@@ -164,524 +194,3 @@ Long Read Processing and QC Pipeline
     channel.fromPath(params.samplesheet) | samples
 
 }
-
-
-// Processes
-
-process get_flanks {
-    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
-    tag ("$meta.id")
-
-    input:
-    tuple val(meta), path(construct)
-
-    output:
-    tuple val(meta), path("flanking.gb")
-
-    script:
-    """
-    echo $meta.id
-    get_flanking.py $construct
-    """
-}
-
-process rotate_reads {
-    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
-    tag "$meta.id"
-
-    input:
-    tuple val(meta), path(reads)
-    
-    output:
-    tuple val(meta), path("reads_rotated.fasta")
-
-    script:
-    """
-    seqkit fq2fa $reads | rotate -s $params.rotate_anchor -m 4 - | \
-         seqkit replace -p .+ -r "read_{nr}" > reads_rotated.fasta
-    """
-}
-
-process map_vector {
-    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
-    tag "$meta.id"
-
-    cpus params.cores
-
-    input:
-    tuple val(meta), path(reads), path(construct)
-
-    output:
-    tuple val(meta), path('mapped_vector.bam'), path("mapped_vector.bam.bai"), path("mapped_vector_stats.tsv")
-
-    script:
-    """
-    echo $construct
-    convert_dna.py $construct | \
-        minimap2 -ax $params.tech -t $task.cpus --secondary=no - $reads | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o 'mapped_vector.bam'
-    samtools index -@ $task.cpus mapped_vector.bam
-    samtools flagstat -@ $task.cpus -O tsv mapped_vector.bam > mapped_vector_stats.tsv
-    """
-
-}
-
-process seq_stats {
-       
-    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
-
-
-    tag "$meta.id"
-
-    cpus params.cores
-
-    input:
-    tuple val(meta), path(raw), path(construct), path(ins_seqs), path(bc_seqs)
-    
-    //path(rotated), 
-    
-    output:
-    tuple val("$meta.id"), path ('seq_stats.tsv')
-
-    script:
-    """
-    seqkit stats -j $task.cpus -T $raw $ins_seqs $bc_seqs > seq_stats.tsv
-    """
-}
-
-process extract_barcodes {
-    publishDir "$params.localdir/$meta.id",  mode: 'copy'
-    publishDir "$params.outdir/$meta.id",  mode: 'copy'
-    tag("$meta.id")
-
-    cpus params.cores
-
-    input:
-    tuple val(meta), path(reads), path(construct), path(flanking)
-
-    output:
-    tuple val(meta), path("barcodes.fasta")
-    path "cutadapt_barcode_report.json"
-
-    script:
-    """
-    cutadapt \
-        -g \$(bc_template.py $flanking cutadapt_barcode) \
-        --discard-untrimmed \
-        --revcomp \
-        -e $params.error_rate \
-        -O $params.min_overlap \
-        -o barcodes_raw.fasta \
-        -j $task.cpus \
-        --json cutadapt_barcode_report.json \
-        $reads
-    seqkit seq -j $task.cpus --min-len $params.min_bc_len --max-len $params.max_bc_len \
-        barcodes_raw.fasta > barcodes.fasta
-        
-    """
-}
-
-process get_barcodes_as_tsv{
-    publishDir "$params.localdir/$meta.id",  mode: 'copy'
-    publishDir "$params.outdir/$meta.id",  mode: 'copy'
-    tag("$meta.id")
-
-    input:
-    tuple val(meta), path(barcodes)
-
-    output:
-    tuple val(meta), path ("barcodes.tsv")
-
-    script:
-    """
-    seqkit fx2tab -li $barcodes > barcodes.tsv
-    """
-
-}
-
-process filter_barcodes {
-    publishDir "$params.localdir/$meta.id",  mode: 'copy'
-    publishDir "$params.outdir/$meta.id",  mode: 'copy'
-    tag("$meta.id")
-
-    cpus params.cores
-
-    input:
-    tuple val(meta), path(barcodes)
-
-    output:
-    tuple val(meta), path("barcodes_filtered.fasta")
-
-    script:
-    """
-    seqkit seq -j $task.cpus --min-len $params.min_bc_len --max-len $params.max_bc_len \
-        $barcodes > barcodes_filtered.fasta
-    """
-}
-
-process barcode_counts {
-
-    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
-    tag("$meta.id")
-
-    cpus params.cores
-
-    input:
-    tuple val(meta), path(barcodes)
-
-    output:
-    tuple val("$meta.id"), path('barcode_counts.tsv')
-
-    script:
-    """
-     seqkit fx2tab -j $task.cpus -i $barcodes | cut -f2 | sort | uniq -c | \
-        awk '{print \$2"\t"\$1}' > barcode_counts.tsv
-    """
-}
-
-process extract_inserts {
-    publishDir "$params.localdir/$meta.id",  mode: 'copy'
-    publishDir "$params.outdir/$meta.id",  mode: 'copy'
-    tag("$meta.id")
-
-    cpus params.cores
-
-    input:
-    tuple val(meta), path(reads), path(construct), path(flanking)
-
-    output:
-    tuple val(meta), path("inserts.fasta")
-    path "cutadapt_inserts_report.json"
-
-
-    script:
-    """
-    cutadapt \
-        -g \$(bc_template.py $flanking cutadapt_insert) \
-        --discard-untrimmed \
-        --revcomp \
-        -e $params.error_rate \
-        -O $params.min_overlap \
-        -o inserts_cutadapt.fasta \
-        -j $task.cpus \
-        --json cutadapt_inserts_report.json \
-        $reads
-    seqkit seq --min-len 1 inserts_cutadapt.fasta > inserts.fasta
-    """
-}
-
-process get_inserts_as_tsv {
-    publishDir "$params.localdir/$meta.id",  mode: 'copy'
-    publishDir "$params.outdir/$meta.id",  mode: 'copy'
-    tag("$meta.id")
-
-    input:
-    tuple val(meta), path(insert_fasta)
-
-    output:
-    tuple val(meta), path("inserts.tsv")
-
-    script:
-    """
-    seqkit fx2tab -li $insert_fasta > inserts.tsv
-    """
-}
-// Insert mapping
-
-process map_inserts {
-
-    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
-    tag "$meta.id"
-
-    cpus params.cores
-
-    input:
-    tuple val(meta), path(ins_seqs), path(fna)
-
-    output:
-    tuple val(meta), path('mapped_inserts.bam'), path("mapped_inserts.bam.bai"), path('mapped_insert_stats.tsv')
-
-    script:
-    """
-
-    minimap2 -ax $params.tech -t $task.cpus $fna $ins_seqs | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o mapped_inserts.bam
-    samtools index -@ $task.cpus mapped_inserts.bam
-    samtools flagstats -@ $task.cpus -O tsv mapped_inserts.bam > mapped_insert_stats.tsv
-    """
-
-}
-
-
-process insert_coverage {
-
-    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
-    tag "$meta.id"
-
-    input:
-    tuple val(meta), path(bam), path(index), path(stats), path(gff), path(bed)
-
-    output:
-    tuple val(meta), path('gene_coverage.bed'), path('insert_coverage.bed'), 
-        path('genome_coverage.tsv'), path('genome_cov_stats.tsv'), path("insert_coverage_full.bed"),
-        path('insert_intersect.out'), path('depth_report.tsv')
-    script:
-    """
-
-    bedtools coverage -a $gff -b $bam > gene_coverage.bed
-    bedtools coverage -b $gff -a <(bedtools bamtobed -i $bam) > insert_coverage.bed
-    bedtools coverage -b $gff -a <(bedtools bamtobed -i $bam) -F 1 > insert_coverage_full.bed
-    bedtools intersect -a <(bedtools bamtobed -i $bam) -b $bed  -wao > insert_intersect.out 
-    bedtools genomecov -ibam $bam -dz > genome_coverage.tsv
-    samtools coverage $bam > genome_cov_stats.tsv
-    samtools depth -a $bam > depth_report.tsv
-    """
-
-}
-
-process prepare_report {
-
-    publishDir("$params.localdir"),  mode: 'copy'
-    publishDir("$params.outdir"),  mode: 'copy'
-    tag 'Preparing report'
-
-    input:
-    path report
-    path report_utils
-
-    output:
-    path 'report.ipynb'
-    path 'report_utils.py'
-
-    script:
-    """
-    cp $report 'report.ipynb'
-    cp $report_utils 'report_utils.py'
-    """
-}
-
-process samples {
-
-    publishDir("$params.localdir"),  mode: 'copy'
-    publishDir("$params.outdir"),  mode: 'copy'
-    tag 'Moving sample sheet'
-
-    input:
-    path samplesheet
-
-    output:
-    path 'samples.csv'
-
-    script:
-    """
-    cp $samplesheet 'samples.csv'
-    """
-}
-
-
-
-
-// --- Metagenomics
-
-process sketch {
-    
-    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
-    tag "$meta.id"
-    
-    input:
-    tuple val(meta), path(ins_seqs)
-
-    output:
-    tuple val(meta), path('inserts.sig.gz')
-
-    script:
-    """
-    sourmash sketch dna -p k=21,abund $ins_seqs -o inserts.sig.gz --name inserts
-    """
-}
-
-process classify {
-    
-    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
-    tag "$meta.id"
-
-    cpus params.cores
-
-    input:
-    tuple val(meta), path(insert_sig)
-    path sourmash_db
-  
-    output:
-    tuple val(meta), path('insert_matches.csv')
-  
-    script:
-    """
-    sourmash scripts fastgather -o insert_matches.csv -c $task.cpus -t $params.meta_ovlp -k 21 \
-        inserts.sig.gz $sourmash_db
-    """
-}
-
-process taxonomy {
-    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
-    tag "$meta.id"
-
-    memory '32 GB'
-    input:
-    tuple val(meta), path(insert_matches)
-    path taxonomy
-
-    output:
-    tuple val(meta), path('insert_taxonomy.csv')
-
-    script:
-    """
-     sourmash tax metagenome -g $insert_matches -t $taxonomy -F csv_summary > insert_taxonomy.csv
-    """
-
-}
-
-process quality_report {
-
-    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
-    tag "$meta.id"
-
-    input:
-    tuple val(meta), path(reads), path(construct)
-
-    output:
-    tuple val(meta), path('fastplong.html'), path('fastplong.fq')
-
-    script:
-    """
-    fastplong -i $reads -o fastplong.fq  -A -Q -L
-    """
-}
-
-
-process plot_depth{
-    publishDir("$params.localdir/$meta.id") ,  mode: 'copy'
-    publishDir("$params.outdir/$meta.id") ,  mode: 'copy'
-    tag "$meta.id"
-
-    input:
-    tuple val(meta), path(bam), path(bam_index),  path(insert_stats)
-
-    output:
-    tuple val(meta), path('coverage_plot.png')
-
-    script:
-    """
-    samtools depth -a $bam > depth_report.tsv
-    plot_coverage.py depth_report.tsv coverage_plot.png $meta.id
-    """
-}
-
-process summarize_barcodes {
-    publishDir("$params.localdir"),  mode: 'copy'
-    publishDir("$params.outdir"),  mode: 'copy'
-    tag 'Summarizing barcodes'
-
-    input:
-    path sample_map
-
-
-    output:
-        path ('*.csv', arity: '4')
-        path('*.png', arity: '3')
-
-
-    script:
-    """
-    summarize_and_plot.py $sample_map barcode
-    """
-}
-
-process summarize_barcode_counts{
-
-    publishDir("$params.localdir"),  mode: 'copy'
-    publishDir("$params.outdir"),  mode: 'copy'
-    tag 'Summarizing barcode counts'
-
-    input:
-    path sample_map
-
-
-    output:
-    path 'concatenated_barcode_counts.csv'
-
-    script:
-    """
-    summarize_and_plot.py $sample_map barcode_counts
-    """
-}
-
-process summarize_insert_coverage{
-    publishDir("$params.localdir"),  mode: 'copy'
-    publishDir("$params.outdir"),  mode: 'copy'
-    tag 'Summarizing insert coverage'
-
-    input:
-    path insert_coverage_map
-
-
-    output:
-        path ('*.csv', arity: '3')
-        path('*.png', arity: '2')
-
-
-    script:
-    """
-    summarize_and_plot.py $insert_coverage_map insert_coverage
-    """
-}
-
-process summarize_inserts{
-    publishDir("$params.localdir"),  mode: 'copy'
-    publishDir("$params.outdir"),  mode: 'copy'
-    tag 'Summarizing inserts'
-
-    input:
-    path insert_map
-
-    output:
-        path 'concatenated_inserts.csv'
-        path 'insert_length_distribution.csv'
-        path 'insert_length_distribution.png'
-
-    script:
-    """
-    summarize_and_plot.py $insert_map insert
-    """
-}
-
-process generate_seq_summary{
-    publishDir("$params.localdir"),  mode: 'copy'
-    publishDir("$params.outdir"),  mode: 'copy'
-    tag 'Summarizing sequence stats'
-
-    input:
-    path seq_stats_map
-    path barcode_map
-    path vector_map
-    path insert_map
-
-    output:
-        path 'seq_summary.csv'
-        path 'concatenated_seq_stats.csv'
-        path 'concatenated_vector_map_stats.csv'
-
-    script:
-    """
-    summarize_and_plot.py $seq_stats_map seq_stat $barcode_map $vector_map $insert_map
-    """
-}
-
