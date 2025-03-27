@@ -245,14 +245,14 @@ process map_genome {
     cpus params.cores
 
     input:
-    tuple val(meta), path(reads), path(fna)
+    tuple val(meta), path(reads), path(construct)
 
     output:
     tuple val(meta), path('mapped_genome.bam'), path("mapped_genome.bam.bai"), path("mapped_genome_stats.tsv")
 
     script:
     """
-    export ref_fa="${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna"
+    export ref_fa="${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()
 
     minimap2 -ax $params.tech -t $task.cpus \$ref_fa $reads | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o 'mapped_genome.bam'
     samtools index -@ $task.cpus mapped_genome.bam
