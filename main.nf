@@ -45,18 +45,18 @@ Long Read Processing and QC Pipeline
         .splitCsv(header:true)
         .map { row -> 
             meta = [id:row.id, genome:row.genome]
-            [meta, file(row.file), file(row.construct)]
+            [meta, file(row.file), file(params.constructs + row.construct)]
     
-        }
+        }.view()
         | set {input_ch}
 
     channel.fromPath(params.samplesheet)
         .splitCsv(header:true)
         .map { row -> 
             meta = [id:row.id, genome:row.genome]
-            [meta, file(row.construct)]
+            [meta, file(params.constructs + row.construct)]
 
-        }
+        }.view()
         | set {constructs}
 
 
