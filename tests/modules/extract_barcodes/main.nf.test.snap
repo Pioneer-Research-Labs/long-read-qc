@@ -1,0 +1,12 @@
+{
+    "Should extract barcodes": {
+        "content": [
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/5bd742095678ab608393c0833c02e35b/results/Gateway_EmptyBarcodedLib1_20241217/barcodes.fasta"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.3"
+        },
+        "timestamp": "2025-03-31T15:29:07.029881"
+    }
+}

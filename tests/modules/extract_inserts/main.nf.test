@@ -1,0 +1,29 @@
+nextflow_process {
+
+    name "Test Process extract_inserts"
+    script "modules/extract_inserts/main.nf"
+    process "extract_inserts"
+
+    test("Should extract inserts") {
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple( [id:'Gateway_EmptyBarcodedLib1_20241217',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/5HKJT6_1_sample_1.fastq.gz'),
+                file('${projectDir}test_data/Gateway_EmptyBarcodedLib1_20241217/c.00323.dna'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/flanking.gb'))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").match()
+        }
+   }
+
+}
