@@ -17,7 +17,6 @@ nextflow_process {
                 genome:'H_elongata'],
                 file("${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/5HKJT6_1_sample_1.fastq.gz"),
                 file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/c.00323.dna'))])
-
                 """
             }
         }

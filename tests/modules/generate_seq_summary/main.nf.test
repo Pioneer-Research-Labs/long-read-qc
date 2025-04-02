@@ -1,0 +1,34 @@
+nextflow_process {
+
+    name "Test Process generate_seq_summary"
+    script "modules/generate_seq_summary/main.nf"
+    process "generate_seq_summary"
+
+    test("Should generate a sequencing summary for two libraries") {
+
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = file('${projectDir}/test_data/seq_stats_map.tsv')
+                input[1] = file('${projectDir}/test_data/barcode_map.tsv')
+                input[2] = file('${projectDir}/test_data/mapped_vector_map.tsv')
+                input[3] = file('${projectDir}/test_data/insert_map.tsv')
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot(
+            "$launchDir/results/seq_summary.tsv",
+            "$launchDir/results/concatenated_seq_stats.tsv",
+            "$launchDir/results/concatenated_vector_map_stats.tsv",
+            ).match()
+        }
+
+    }
+
+}

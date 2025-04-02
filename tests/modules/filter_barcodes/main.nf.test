@@ -1,0 +1,29 @@
+nextflow_process {
+
+    name "Test Process filter_barcodes"
+    script "modules/filter_barcodes/main.nf"
+    process "filter_barcodes"
+
+    test("Should filter barcodes based on min/max lengths specified in config") {
+
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple([ id:'Gateway_EmptyBarcodedLib1_20241217',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/barcodes.fasta'))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/barcodes_filtered.fasta").match()
+        }
+
+    }
+
+}

@@ -1,0 +1,56 @@
+LOCUS       INSERTUP                  75 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   INSERTUP
+VERSION     INSERTUP
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    1109..1183
+ORIGIN
+        1 cagagggcac aatcctattc cgcgctatct tcgctacctt aggaccgtta tagttaagat
+       61 gtgtataaga gacag
+//
+LOCUS       INSERTDN                  75 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   INSERTDN
+VERSION     INSERTDN
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    1192..1266
+ORIGIN
+        1 ctgtctctta tacacatctt aactataacg gtcctaaggt agcgaaccga caatctccaa
+       61 gacattaggt ggagt
+//
+LOCUS       BARCODEUP                 75 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   BARCODEUP
+VERSION     BARCODEUP
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    1226..1300
+ORIGIN
+        1 taaggtagcg aaccgacaat ctccaagaca ttaggtggag ttcagttcgg cgagcggaaa
+       61 tggcttacga acggg
+//
+LOCUS       BARCODEDN                 75 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   BARCODEDN
+VERSION     BARCODEDN
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    1345..1419
+ORIGIN
+        1 gcggagattt cctggaagat gccaggaaga tacttaacag ggaagtgaga gggccgcggc
+       61 aaagccgttt ttcca
+//

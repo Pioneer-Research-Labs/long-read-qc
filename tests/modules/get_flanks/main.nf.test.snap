@@ -1,0 +1,12 @@
+{
+    "Should get insert and barcode flanking sequences": {
+        "content": [
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/6ac05898421d6a7e04f53a3a6a3899f3/results/Gateway_EmptyBarcodedLib1_20241217/flanking.gb"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-03-31T17:24:39.586467"
+    }
+}

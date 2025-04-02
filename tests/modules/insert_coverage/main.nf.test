@@ -1,0 +1,42 @@
+nextflow_process {
+
+    name "Test Process insert_coverage"
+    script "modules/insert_coverage/main.nf"
+    process "insert_coverage"
+
+    test("Should map insert coverage") {
+
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple( [id:'Gateway_EmptyBarcodedLib1_20241217',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/mapped_inserts.bam'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/mapped_inserts.bam.bai'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/mapped_inserts_stats.tsv'),
+                file("s3://pioneer-data/genomes/H_elongata/H_elongata_genes.gff".toString()),
+                file("s3://pioneer-data/genomes/H_elongata/H_elongata_genes.bed".toString())
+                )])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot(
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/insert_coverage.bed"),
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/genome_cov_stats.tsv"),
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/genome_coverage.tsv"),
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/insert_intersect.out"),
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/insert_coverage_full.bed"),
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/depth_report.tsv"),
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/gene_coverage.bed")
+            ).match()
+        }
+
+    }
+
+}

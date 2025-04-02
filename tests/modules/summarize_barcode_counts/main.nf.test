@@ -1,0 +1,27 @@
+nextflow_process {
+
+    name "Test Process summarize_barcode_counts"
+    script "modules/summarize_barcode_counts/main.nf"
+    process "summarize_barcode_counts"
+
+    test("Should summarize barcode counts") {
+
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = file('${projectDir}/test_data/sample_map.tsv')
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot("$launchDir/results/concatenated_barcode_counts.csv").match()
+        }
+
+    }
+
+}
