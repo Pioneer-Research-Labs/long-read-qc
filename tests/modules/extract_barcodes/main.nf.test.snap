@@ -8,5 +8,25 @@
             "nextflow": "24.10.3"
         },
         "timestamp": "2025-03-31T15:29:07.029881"
+    },
+    "Should extract 0 barcodes": {
+        "content": [
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/fcf2849eeeb2df1daef7c9b523092dce/results/Gib_Lib1_240801/barcodes.fasta"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-04-03T13:59:56.415429"
+    },
+    "Should extract barcodes from a sample with no inserts": {
+        "content": [
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/2ef1d4bc6cd917a0e05f55beb38081c0/results/b.33TransposonBarcodedLibraryLinear/barcodes.fasta"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-04-03T14:19:32.683705"
     }
 }

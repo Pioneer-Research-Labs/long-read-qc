@@ -1,0 +1,3 @@
+id,genome,construct,file
+Gateway_EmptyBarcodedLib1_20241217,H_elongata,c.00323.dna,s3://pioneer-scratch/dummy/dummy_seqs/5HKJT6_1_sample_1.fastq.gz
+HE_USER-gapfill_Lib1_20241220,H_elongata,c.00215.dna,s3://pioneer-scratch/dummy/dummy_seqs/CJ39YZ_1_sample_1.fastq.gz

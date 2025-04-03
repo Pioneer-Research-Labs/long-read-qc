@@ -4,7 +4,7 @@ nextflow_process {
     script "modules/get_flanks/main.nf"
     process "get_flanks"
 
-    test("Should get insert and barcode flanking sequences") {
+    test("Should get insert and barcode flanking sequences from a plasmid with annotations reversed") {
 
         when {
             params {
@@ -25,5 +25,25 @@ nextflow_process {
         }
 
     }
+    test("Should get insert and barcode flanking sequences from a plasmid with annotation in the correct order") {
 
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple([ id:'Phal',
+                genome:'P_halocryophilus'],
+                file('${projectDir}/test_data/c.00215.dna'))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot("$launchDir/results/Phal/flanking.gb").match()
+        }
+
+    }
 }
