@@ -8,6 +8,7 @@ Options:
 --samplesheet <file>      Path to the sample sheet (default: samplesheet.csv)
 --outdir <dir>            Output directory (default: results)
 --tech <str>              Sequencing technology, map-ont/map-pb/map-hifi (default: map-ont)
+--map_genome <bool>      Map all reads to genome (default: false)
 --error_rate <float>      Error rate for barcode searching (default: 0.1)
 --min_overlap <int>       Minimum overlap for barcode searching (default: 3)
 --min_bc_len <int>        Minimum barcode length (default: 20)
@@ -71,6 +72,17 @@ Long Read Processing and QC Pipeline
     vector_map = map_vector(input_ch).collectFile(){
         meta, bam, bai, stats ->
         ["mapped_vector_map.tsv", "${meta.id}\t${params.path_prefix}${stats}\n"]
+    }
+
+    // If we want to, map all reads to the donor genome
+    // Add the genome .fna file to the input ch
+    if (params.map_genome) {
+        genome_map = map_genome(input_ch | map {
+            meta, reads, construct -> [meta, reads, construct, "${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()]
+        }).collectFile(){
+            meta, bam, bai, stats ->
+            ["mapped_genome_map.tsv", "${meta.id}\t${params.path_prefix}${stats}\n"]
+        }
     }
 
     // get the flanking sequences from the .dna file
@@ -224,6 +236,28 @@ process map_vector {
         minimap2 -ax $params.tech -t $task.cpus --secondary=no - $reads | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o 'mapped_vector.bam'
     samtools index -@ $task.cpus mapped_vector.bam
     samtools flagstat -@ $task.cpus -O tsv mapped_vector.bam > mapped_vector_stats.tsv
+    """
+
+}
+
+process map_genome {
+    publishDir("$params.localdir/$meta.id"),  mode: 'copy'
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
+    tag "$meta.id"
+
+    cpus params.cores
+
+    input:
+    tuple val(meta), path(reads), path(construct), path(fna)
+
+    output:
+    tuple val(meta), path('mapped_genome.bam'), path("mapped_genome.bam.bai"), path("mapped_genome_stats.tsv")
+
+    script:
+    """
+    minimap2 -ax $params.tech -t $task.cpus $fna $reads | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o 'mapped_genome.bam'
+    samtools index -@ $task.cpus mapped_genome.bam
+    samtools flagstat -@ $task.cpus -O tsv mapped_genome.bam > mapped_genome_stats.tsv
     """
 
 }
