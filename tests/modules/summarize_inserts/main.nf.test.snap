@@ -1,0 +1,14 @@
+{
+    "Should generate insert summaries and plots": {
+        "content": [
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/61d435726bc33d7a68e95771c15428a5/results/concatenated_inserts.csv",
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/61d435726bc33d7a68e95771c15428a5/results/insert_length_distribution.csv",
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/61d435726bc33d7a68e95771c15428a5/results/insert_length_distribution.png"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-04-02T15:19:13.626911"
+    }
+}

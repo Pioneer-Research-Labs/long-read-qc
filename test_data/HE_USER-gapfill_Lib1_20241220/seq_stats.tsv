@@ -1,0 +1,4 @@
+file	format	type	num_seqs	sum_len	min_len	avg_len	max_len
+CJ39YZ_1_sample_1.fastq.gz	FASTQ	DNA	22521	20793247	200	923.3	15645
+inserts.fasta	FASTQ	DNA	328	1300859	198	3966.0	9251
+barcodes.fasta	FASTQ	DNA	1001	43944	25	43.9	52

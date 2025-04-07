@@ -1,0 +1,12 @@
+{
+    "Should summarize barcode counts": {
+        "content": [
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/b9947510f683093dd2a001a8d767eb3c/results/concatenated_barcode_counts.csv"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-04-02T14:51:02.379524"
+    }
+}

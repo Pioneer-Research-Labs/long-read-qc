@@ -1,0 +1,4 @@
+file	format	type	num_seqs	sum_len	min_len	avg_len	max_len
+5HKJT6_1_sample_1.fastq.gz	FASTQ	DNA	29891	32049078	1	1072.2	17526
+inserts.fasta	FASTQ	DNA	18	22248	103	1236.0	5363
+barcodes.fasta	FASTQ	DNA	3140	137862	20	43.9	59

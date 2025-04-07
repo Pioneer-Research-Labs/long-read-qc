@@ -1,0 +1,37 @@
+nextflow_process {
+
+    name "Test Process summarize_barcodes"
+    script "modules/summarize_barcodes/main.nf"
+    process "summarize_barcodes"
+
+    test("Should generate barcode summaries and plots") {
+
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = file('${projectDir}/test_data/barcode_map.tsv')
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.size() == 2
+            assert process.out[0][0].size() == 4
+            assert process.out[1][0].size() == 3
+            assert snapshot("$launchDir/results/barcode_copy_number.csv",
+            "$launchDir/results/barcode_lengths.csv",
+            "$launchDir/results/barcode_proportions.csv",
+            "$launchDir/results/concatenated_barcodes.csv",
+            "$launchDir/results/barcode_copy_number.png",
+            "$launchDir/results/barcode_length_distribution.png",
+            "$launchDir/results/barcode_proportion.png",
+            ).match()
+        }
+
+    }
+
+}

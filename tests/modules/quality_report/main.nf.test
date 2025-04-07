@@ -1,0 +1,32 @@
+nextflow_process {
+
+    name "Test Process quality_report"
+    script "modules/quality_report/main.nf"
+    process "quality_report"
+
+    test("Should generate fastplong html") {
+
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                // define inputs of the process here. Example:
+                input[0] = Channel.fromList([ tuple([ id:'Gateway_EmptyBarcodedLib1_20241217',
+                genome:'H_elongata'],
+                file("${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/5HKJT6_1_sample_1.fastq.gz"),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/c.00323.dna'))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out[0][0].size() == 3
+            assert snapshot("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/fastplong.html").match()
+        }
+
+    }
+
+}

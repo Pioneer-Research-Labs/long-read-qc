@@ -1,0 +1,32 @@
+{
+    "Should get insert and barcode flanking sequences from a plasmid with annotation in the correct order": {
+        "content": [
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/2bbef26f5ccc4304e8ebf147508d3bd6/results/Phal/flanking.gb"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-04-03T13:46:08.826583"
+    },
+    "Should get insert and barcode flanking sequences from a plasmid with annotations reversed": {
+        "content": [
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/306d856de8d2b3cf619baeb30deecd71/results/Gateway_EmptyBarcodedLib1_20241217/flanking.gb"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-04-03T13:46:03.006353"
+    },
+    "Should get insert and barcode flanking sequences": {
+        "content": [
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/6ac05898421d6a7e04f53a3a6a3899f3/results/Gateway_EmptyBarcodedLib1_20241217/flanking.gb"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-03-31T17:24:39.586467"
+    }
+}

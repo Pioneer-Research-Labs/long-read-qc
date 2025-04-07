@@ -1,0 +1,29 @@
+nextflow_process {
+
+    name "Test Process summarize_insert_coverage"
+    script "modules/summarize_insert_coverage/main.nf"
+    process "summarize_insert_coverage"
+
+    test("Should generate insert coverage summaries and plots") {
+
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = file('${projectDir}/test_data/insert_coverage.tsv')
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.size() == 2
+            assert process.out[0][0].size() == 3
+            assert process.out[1][0].size() == 2
+        }
+
+    }
+
+}

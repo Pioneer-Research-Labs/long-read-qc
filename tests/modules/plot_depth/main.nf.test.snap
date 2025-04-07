@@ -1,0 +1,12 @@
+{
+    "Should plot sequencing depth": {
+        "content": [
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/5933bba8e129aec98ea2c6fce7e50c7f/results/Gateway_EmptyBarcodedLib1_20241217/coverage_plot.png"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-04-01T13:31:22.285347"
+    }
+}

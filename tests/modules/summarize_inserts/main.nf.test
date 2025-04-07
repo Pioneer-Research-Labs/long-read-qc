@@ -1,0 +1,34 @@
+nextflow_process {
+
+    name "Test Process summarize_inserts"
+    script "modules/summarize_inserts/main.nf"
+    process "summarize_inserts"
+
+    test("Should generate insert summaries and plots") {
+
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = file('${projectDir}/test_data/insert_map.tsv')
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.size() == 3
+            assert process.out[0].size() == 1
+            assert process.out[1].size() == 1
+            assert process.out[2].size() == 1
+            assert snapshot(
+                "$launchDir/results/concatenated_inserts.csv",
+                "$launchDir/results/insert_length_distribution.csv",
+                "$launchDir/results/insert_length_distribution.png").match()
+        }
+
+    }
+
+}

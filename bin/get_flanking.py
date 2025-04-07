@@ -9,6 +9,11 @@ import sys
 import re
 
 def extract_flanks(path):
+    """
+    Parse the SnapGene file and extract the flanking sequences based on the provided regex
+    :param path: Path to the SnapGene file
+    :return: Written Genbank file with the flanking sequences
+    """
     con = snapgene_file_to_dict(path)
     part_labels = [r'INSERT(UP|DN)', r'BARCODE[0-9]{0,2}(UP|DN)']
     part_list = {}

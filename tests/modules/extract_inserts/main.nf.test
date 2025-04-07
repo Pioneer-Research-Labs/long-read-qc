@@ -1,0 +1,76 @@
+nextflow_process {
+
+    name "Test Process extract_inserts"
+    script "modules/extract_inserts/main.nf"
+    process "extract_inserts"
+
+    test("Should extract inserts") {
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple( [id:'Gateway_EmptyBarcodedLib1_20241217',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/5HKJT6_1_sample_1.fastq.gz'),
+                file('${projectDir}test_data/Gateway_EmptyBarcodedLib1_20241217/c.00323.dna'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/flanking.gb'))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out[0][0].get(1)).readLines().size() == 72
+            assert snapshot("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").match()
+        }
+   }
+       test("Should extract 0 inserts") {
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple( [id:'Gateway_EmptyBarcodedLib1_20241217',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/b.33TransposonBarcodedLibraryLinear/43QQ8C_3_PCR_440.fastq'),
+                file('${projectDir}test_data/b.33TransposonBarcodedLibraryLinear/c.00410.dna'),
+                file('${projectDir}/test_data/b.33TransposonBarcodedLibraryLinear/flanking.gb'))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out[0][0].get(1)).readLines().size() == 0
+            assert snapshot("$launchDir/results/b.33TransposonBarcodedLibraryLinear/inserts.fasta").match()
+        }
+   }
+     test("Should extract inserts from a sample with no barcodes") {
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple( [id:'Gib_Lib1_240801',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/Gib_Lib1_240801/M49T52_1_m.C.00160.fastq'),
+                file('${projectDir}test_data/Gib_Lib1_240801/c.00203.dna'),
+                file('${projectDir}/test_data/Gib_Lib1_240801/flanking.gb'))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.size() == 2
+            assert process.out[0][0].size() == 2
+            assert process.out[1].size() == 1
+            assert path(process.out[0][0].get(1)).readLines().size() == 216
+            assert snapshot("$launchDir/results/Gib_Lib1_240801/barcodes.fasta").match()
+        }
+   }
+}
