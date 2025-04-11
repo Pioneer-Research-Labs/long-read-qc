@@ -161,10 +161,11 @@ def plot_insert_length_histogram(inserts):
     df_plot.to_csv('insert_length_distribution.csv', index=False)
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    sns.violinplot(df_plot,
-                   x='insert_len',
-                   y='sample',
-                   ax=ax)
+    sns.barplot(df_plot,
+                y='insert_len',
+                x='sample',
+                ax=ax)
+
     ax.set_title('Distribution of insert lengths')
     plt.savefig('insert_length_distribution.png', bbox_inches='tight')
 
