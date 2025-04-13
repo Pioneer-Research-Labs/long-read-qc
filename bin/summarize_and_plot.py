@@ -169,6 +169,25 @@ def plot_insert_length_histogram(inserts):
     ax.set_title('Distribution of insert lengths')
     plt.savefig('insert_length_distribution.png', bbox_inches='tight')
 
+
+def plot_genome_coverage(coverage_df):
+    """
+    Plot the genome coverage
+    :param coverage_df: DataFrame containing genome coverage information
+    """
+    fig, ax = plt.subplots(figsize=(10, 6))
+    if coverage_df.empty:
+        plt.savefig('genome_coverage.png') # empty plot
+        write_empty_file('genome_coverage.csv')
+        return
+    coverage_df.to_csv('genome_coverage.csv', index=False)
+    sns.barplot(coverage_df,
+                 x='sample',
+                 y='coverage',
+                 ax=ax)
+    ax.set_title('Genome Coverage')
+    plt.savefig('genome_coverage.png', bbox_inches='tight')
+
 def concatenate_files(file_map, summary_type, output_file, save_file=True):
     """
     Given a file map, concatenate the files and return the concatenated DataFrame
@@ -207,6 +226,9 @@ def concatenate_files(file_map, summary_type, output_file, save_file=True):
 
             if summary_type == 'barcode_counts':
                 df = pd.read_table(val, names=['barcode_seq', 'barcode_count'], engine='c', sep="\t")
+
+            if summary_type == 'genome_coverage':
+                df = pd.read_table(val, engine='c', sep="\t")
 
             df['sample'] = key
             df_to_concatenate.append(df)
@@ -286,6 +308,10 @@ def process(sample_file_map, summary_type, **kwargs):
             output_file_name = 'concatenated_inserts.csv'
             concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
             plot_insert_length_histogram(concatenated_df)
+        case 'genome_coverage':
+            output_file_name = 'concatenated_genome_coverage.csv'
+            concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
+            plot_genome_coverage(concatenated_df)
         case 'insert_coverage':
             output_file_name = 'concatenated_insert_coverage.csv'
             concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)

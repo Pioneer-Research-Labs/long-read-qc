@@ -22,8 +22,8 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path(process.out[0][0].get(1)).readLines().size() == 72
-            assert snapshot("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").match()
+            assert path("$launchDir/tests/results/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").readLines().size() == 72
+            assert snapshot("$launchDir/tests/results/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").match()
         }
    }
        test("Should extract 0 inserts") {
@@ -33,7 +33,7 @@ nextflow_process {
             }
             process {
                 """
-                input[0] = Channel.fromList([ tuple( [id:'Gateway_EmptyBarcodedLib1_20241217',
+                input[0] = Channel.fromList([ tuple( [id:'b.33TransposonBarcodedLibraryLinear',
                 genome:'H_elongata'],
                 file('${projectDir}/test_data/b.33TransposonBarcodedLibraryLinear/43QQ8C_3_PCR_440.fastq'),
                 file('${projectDir}test_data/b.33TransposonBarcodedLibraryLinear/c.00410.dna'),
@@ -44,11 +44,11 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path(process.out[0][0].get(1)).readLines().size() == 0
-            assert snapshot("$launchDir/results/b.33TransposonBarcodedLibraryLinear/inserts.fasta").match()
+            assert path("$launchDir/tests/results/b.33TransposonBarcodedLibraryLinear/inserts.fasta").readLines().size() == 0
+            assert snapshot("$launchDir/tests/results/b.33TransposonBarcodedLibraryLinear/inserts.fasta").match()
         }
    }
-     test("Should extract inserts from a sample with no barcodes") {
+        test("Should extract inserts from a sample with no barcodes") {
         when {
             params {
                 outdir = "tests/results"
@@ -69,8 +69,9 @@ nextflow_process {
             assert process.out.size() == 2
             assert process.out[0][0].size() == 2
             assert process.out[1].size() == 1
-            assert path(process.out[0][0].get(1)).readLines().size() == 216
-            assert snapshot("$launchDir/results/Gib_Lib1_240801/barcodes.fasta").match()
+            assert path("$launchDir/tests/results/Gib_Lib1_240801/inserts.fasta").readLines().size() == 216
+            assert snapshot("$launchDir/tests/results/Gib_Lib1_240801/inserts.fasta").match()
         }
    }
+
 }

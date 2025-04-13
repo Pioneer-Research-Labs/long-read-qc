@@ -1,0 +1,34 @@
+nextflow_process {
+
+    name "Test Process genome_coverage"
+    script "modules/genome_coverage/main.nf"
+    process "genome_coverage"
+
+    test("Should generate genome coverage stats") {
+
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple( [id:'Gateway_EmptyBarcodedLib1_20241217',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/mapped_inserts.bam'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/mapped_inserts.bam.bai')
+                )])
+                 """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot(
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/genome_coverage.tsv"),
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/genome_cov_stats.tsv")
+            ).match()
+        }
+
+    }
+
+}

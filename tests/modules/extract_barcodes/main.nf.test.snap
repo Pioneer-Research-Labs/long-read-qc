@@ -5,9 +5,9 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.3"
+            "nextflow": "24.10.5"
         },
-        "timestamp": "2025-03-31T15:29:07.029881"
+        "timestamp": "2025-04-12T16:23:05.280063"
     },
     "Should extract 0 barcodes": {
         "content": [
@@ -17,7 +17,7 @@
             "nf-test": "0.9.2",
             "nextflow": "24.10.5"
         },
-        "timestamp": "2025-04-03T13:59:56.415429"
+        "timestamp": "2025-04-12T16:23:11.64297"
     },
     "Should extract barcodes from a sample with no inserts": {
         "content": [
@@ -27,6 +27,6 @@
             "nf-test": "0.9.2",
             "nextflow": "24.10.5"
         },
-        "timestamp": "2025-04-03T14:19:32.683705"
+        "timestamp": "2025-04-12T16:24:49.63903"
     }
 }

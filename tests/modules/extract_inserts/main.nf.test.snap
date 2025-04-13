@@ -1,32 +1,32 @@
 {
     "Should extract 0 inserts": {
         "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/b9392e8153de65c5115872a415010c4e/results/b.33TransposonBarcodedLibraryLinear/inserts.fasta"
+            "inserts.fasta:md5,d41d8cd98f00b204e9800998ecf8427e"
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "24.10.5"
         },
-        "timestamp": "2025-04-03T14:15:35.210741"
+        "timestamp": "2025-04-12T16:17:34.020766"
     },
     "Should extract inserts": {
         "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/84abb3a589e608ec49192d39f17b723b/results/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta"
-        ],
-        "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "24.10.3"
-        },
-        "timestamp": "2025-03-31T15:35:29.598016"
-    },
-    "Should extract inserts from a sample with no barcodes": {
-        "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/da4a42aaeb1250b99677676bf2931a6f/results/Gib_Lib1_240801/barcodes.fasta"
+            "inserts.fasta:md5,7c0b0140289d271a6a5af323a69958e1"
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "24.10.5"
         },
-        "timestamp": "2025-04-03T14:23:49.978502"
+        "timestamp": "2025-04-12T16:17:27.553312"
+    },
+    "Should extract inserts from a sample with no barcodes": {
+        "content": [
+            "inserts.fasta:md5,9ee3de61c7f497a93c60ca476f74381c"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-04-12T16:17:40.886162"
     }
 }
