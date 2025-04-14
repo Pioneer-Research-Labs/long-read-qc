@@ -1,0 +1,14 @@
+{
+    "Should map sequences to genome": {
+        "content": [
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/bd159eeae1b92e5cf4d515a1ade82cf2/results/Gateway_EmptyBarcodedLib1_20241217/mapped_genome_stats.tsv",
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/bd159eeae1b92e5cf4d515a1ade82cf2/results/Gateway_EmptyBarcodedLib1_20241217/mapped_genome.bam",
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/bd159eeae1b92e5cf4d515a1ade82cf2/results/Gateway_EmptyBarcodedLib1_20241217/mapped_genome.bam.bai"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-04-13T17:33:10.784744"
+    }
+}

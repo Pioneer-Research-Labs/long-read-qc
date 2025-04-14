@@ -1,0 +1,34 @@
+nextflow_process {
+
+    name "Test Process map_genome"
+    script "modules/map_genome/main.nf"
+    process "map_genome"
+
+    test("Should map sequences to genome") {
+
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple( [id:'Gateway_EmptyBarcodedLib1_20241217',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/5HKJT6_1_sample_1.fastq.gz'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/c.00323.dna'),
+                file("s3://pioneer-data/genomes/H_elongata/H_elongata_contigs.fna".toString()))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot(
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/mapped_genome_stats.tsv"),
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/mapped_genome.bam"),
+            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/mapped_genome.bam.bai")).match()
+        }
+
+    }
+
+}
