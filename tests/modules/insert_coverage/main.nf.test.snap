@@ -2,8 +2,6 @@
     "Should map insert coverage": {
         "content": [
             "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dbc645f00bbaf82af8d7e370276ed4be/results/Gateway_EmptyBarcodedLib1_20241217/insert_coverage.bed",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dbc645f00bbaf82af8d7e370276ed4be/results/Gateway_EmptyBarcodedLib1_20241217/genome_cov_stats.tsv",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dbc645f00bbaf82af8d7e370276ed4be/results/Gateway_EmptyBarcodedLib1_20241217/genome_coverage.tsv",
             "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dbc645f00bbaf82af8d7e370276ed4be/results/Gateway_EmptyBarcodedLib1_20241217/insert_intersect.out",
             "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dbc645f00bbaf82af8d7e370276ed4be/results/Gateway_EmptyBarcodedLib1_20241217/insert_coverage_full.bed",
             "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dbc645f00bbaf82af8d7e370276ed4be/results/Gateway_EmptyBarcodedLib1_20241217/depth_report.tsv",
@@ -13,6 +11,6 @@
             "nf-test": "0.9.2",
             "nextflow": "24.10.5"
         },
-        "timestamp": "2025-04-01T12:34:38.295403"
+        "timestamp": "2025-04-12T15:42:47.16474"
     }
 }

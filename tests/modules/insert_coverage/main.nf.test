@@ -28,8 +28,6 @@ nextflow_process {
             assert process.success
             assert snapshot(
             ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/insert_coverage.bed"),
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/genome_cov_stats.tsv"),
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/genome_coverage.tsv"),
             ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/insert_intersect.out"),
             ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/insert_coverage_full.bed"),
             ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/depth_report.tsv"),

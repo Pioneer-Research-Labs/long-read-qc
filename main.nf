@@ -13,7 +13,9 @@ include { seq_stats } from './modules/seq_stats'
 include { extract_barcodes } from './modules/extract_barcodes'
 include { extract_inserts } from './modules/extract_inserts'
 include { map_inserts } from './modules/map_inserts'
+include { genome_coverage } from './modules/genome_coverage'
 include { insert_coverage } from './modules/insert_coverage'
+include { map_genome } from './modules/map_genome'
 include { sketch } from './modules/sketch'
 include { classify } from './modules/classify'
 include { taxonomy } from './modules/taxonomy'
@@ -21,6 +23,8 @@ include { summarize_barcode_counts } from './modules/summarize_barcode_counts'
 include { summarize_inserts } from './modules/summarize_inserts'
 include { summarize_barcodes } from './modules/summarize_barcodes'
 include { summarize_insert_coverage } from './modules/summarize_insert_coverage'
+include { summarize_genome_coverage } from './modules/summarize_genome_coverage'
+include { summarize_genome_mapping } from './modules/summarize_genome_mapping'
 include { generate_seq_summary } from './modules/generate_seq_summary'
 include { plot_depth } from './modules/plot_depth'
 include { get_flanks } from './modules/get_flanks'
@@ -38,6 +42,7 @@ Options:
 --samplesheet <file>      Path to the sample sheet (default: samplesheet.csv)
 --outdir <dir>            Output directory (default: results)
 --tech <str>              Sequencing technology, map-ont/map-pb/map-hifi (default: map-ont)
+--map_genome <bool>       Map all reads to genome (default: false)
 --error_rate <float>      Error rate for barcode searching (default: 0.1)
 --min_overlap <int>       Minimum overlap for barcode searching (default: 3)
 --min_bc_len <int>        Minimum barcode length (default: 20)
@@ -103,6 +108,7 @@ Long Read Processing and QC Pipeline
         ["mapped_vector_map.tsv", "${meta.id}\t${params.path_prefix}${stats}\n"]
     }
 
+
     // get the flanking sequences from the .dna file
     flanking = get_flanks(constructs)
 
@@ -148,11 +154,16 @@ Long Read Processing and QC Pipeline
             [meta2, path]
     }
 
-    // mapping inserts and add the dynamically generated path to the contigs.fna file, adding it to the channel
+    // map inserts and add the dynamically generated path to the contigs.fna file, adding it to the channel
     mapped = map_inserts(splits.single | map {
 	meta, seq_path -> [meta, seq_path, "${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()]
 	})
 
+    // Map genome coverage
+    genome_cov_map = genome_coverage(mapped).collectFile(){
+        meta, cov, stats ->
+        ["genome_coverage.tsv", "${meta.id}\t${params.path_prefix}${stats}\n"]
+    }
     // Add the files needed for insert coverage by dynamically creating paths based on genome.
     mapped_with_references = mapped | map {
 	meta, bam, bai, stats -> [
@@ -164,18 +175,31 @@ Long Read Processing and QC Pipeline
     // the insert coverage output.
     insert_outputs = insert_coverage(mapped_with_references
 			).collectFile(){
-            meta, gene_cov, insert_cov, genome_cov, genome_cov_stats, insert_cov_full, insert_intersect, depth ->
+            meta, gene_cov, insert_cov  , insert_cov_full, insert_intersect, depth ->
         ["insert_coverage.tsv", "${meta.id}\t${params.path_prefix}${insert_cov_full}\n"]
     }
 
 
+
    // Here we generate various summary files and plots for all the sequences processed
    summarize_barcode_counts(barcode_count_sample_map)
+   summarize_genome_coverage(genome_cov_map)
    summarize_inserts(insert_map)
    summarize_barcodes(barcode_map)
-   generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map)
+   seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map)
    summarize_insert_coverage(insert_outputs)
 
+    // If we want to, map all reads to the donor genome
+    // Add the genome .fna file to the input ch
+    if (params.map_genome) {
+        genome_map = map_genome(input_ch | map {
+            meta, reads, construct -> [meta, reads, construct, "${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()]
+        }).collectFile(){
+            meta, bam, bai, stats ->
+            ["mapped_genome_map.tsv", "${meta.id}\t${params.path_prefix}${stats}\n"]
+        }
+        summarize_genome_mapping(genome_map, seq_summary_results[1])
+    }
    // Plot coverage depth
    plot_depth(mapped)
 

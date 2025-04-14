@@ -1,0 +1,8 @@
+sample,raw_reads,mapped to genome,barcodes,inserts
+Gateway_EmptyBarcodedLib1_20241217,29891,295,3140,18
+Gateway_EmptyBarcodedLib2_20241217,17015,128,3254,22
+HE_Gateway_Lib1_20241217,13196,113,3802,32
+HE_Gateway_Lib2_20241217,2729,140,630,89
+HE_Gateway_Lib2_20241217_RERUN,13668,505,2665,256
+HE_USER-NOgapfill_Lib1_20241220,8787,965,384,153
+HE_USER-gapfill_Lib1_20241220,22521,2159,1001,328

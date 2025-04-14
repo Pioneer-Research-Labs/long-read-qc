@@ -1,0 +1,32 @@
+nextflow_process {
+
+    name "Test Process summarize_genome_mapping"
+    script "modules/summarize_genome_mapping/main.nf"
+    process "summarize_genome_mapping"
+
+    test("Should generate two files summarizing genome mapping statistics") {
+
+        when {
+            params {
+                outdir = "tests/results"
+            }
+            process {
+                """
+                // Two input summaries, seq_stats and genome_mapping.
+                input[0] = file('${projectDir}/test_data/mapped_genome_map.tsv')
+                input[1] = file('${projectDir}/test_data/for_genome_mapping_concatenated_seq_stats.csv')
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot(
+            "$launchDir/results/mapped_genome_stats.tsv",
+            "$launchDir/results/concatenated_genome_mapping.csv"
+            ).match()
+        }
+
+    }
+
+}

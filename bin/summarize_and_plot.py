@@ -161,12 +161,32 @@ def plot_insert_length_histogram(inserts):
     df_plot.to_csv('insert_length_distribution.csv', index=False)
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    sns.violinplot(df_plot,
-                   x='insert_len',
-                   y='sample',
-                   ax=ax)
+    sns.barplot(df_plot,
+                y='insert_len',
+                x='sample',
+                ax=ax)
+
     ax.set_title('Distribution of insert lengths')
     plt.savefig('insert_length_distribution.png', bbox_inches='tight')
+
+
+def plot_genome_coverage(coverage_df):
+    """
+    Plot the genome coverage
+    :param coverage_df: DataFrame containing genome coverage information
+    """
+    fig, ax = plt.subplots(figsize=(10, 6))
+    if coverage_df.empty:
+        plt.savefig('genome_coverage.png') # empty plot
+        write_empty_file('genome_coverage.csv')
+        return
+    coverage_df.to_csv('genome_coverage.csv', index=False)
+    sns.barplot(coverage_df,
+                 x='sample',
+                 y='coverage',
+                 ax=ax)
+    ax.set_title('Genome Coverage')
+    plt.savefig('genome_coverage.png', bbox_inches='tight')
 
 def concatenate_files(file_map, summary_type, output_file, save_file=True):
     """
@@ -201,11 +221,14 @@ def concatenate_files(file_map, summary_type, output_file, save_file=True):
             if summary_type == 'seq_stat':
                 df = pd.read_table(val)
 
-            if summary_type == 'vec_map':
+            if summary_type == 'vec_map' or summary_type == 'genome_mapping':
                 df = pd.read_table(val, names = ['value', 'key'], usecols=[0,2], engine='c', sep="\t")
 
             if summary_type == 'barcode_counts':
                 df = pd.read_table(val, names=['barcode_seq', 'barcode_count'], engine='c', sep="\t")
+
+            if summary_type == 'genome_coverage':
+                df = pd.read_table(val, engine='c', sep="\t")
 
             df['sample'] = key
             df_to_concatenate.append(df)
@@ -265,6 +288,21 @@ def seq_summary(barcode_data, insert_data, seq_stat, vec_map_stats, samp_info=No
 
     return num_seqs
 
+def genome_mapping_summary(seq_stat, genome_mapping):
+    """
+    Generate a genome mapping summary table
+    :param seq_stat: DataFrame containing sequence statistics
+    :param genome_mapping: DataFrame containing genome mapping statistics merged with sequencing statistics
+    """
+    genome_stats = genome_mapping.pivot(columns='key', values='value', index='sample').reset_index()[['sample', 'primary mapped']]
+    seq_stat["name"] = seq_stat["file"].apply(lambda x: str(Path(x).with_suffix('')))
+    seq_stat["name"] = seq_stat["name"].apply(lambda x: x if x in ['inserts', 'barcodes'] else "raw_reads")
+    seq_stat_pivot = seq_stat[['sample', 'name', 'num_seqs']].pivot(columns="name", values="num_seqs", index="sample")
+    merged= seq_stat_pivot.merge(genome_stats, on='sample', how='left').rename(columns={'primary mapped': 'mapped to genome'})
+    new_order = ['sample', 'raw_reads', 'mapped to genome', 'barcodes', 'inserts']
+    merged = merged[new_order]
+
+    return merged
 
 def process(sample_file_map, summary_type, **kwargs):
     """
@@ -281,15 +319,30 @@ def process(sample_file_map, summary_type, **kwargs):
             plot_barcode_length_boxplot(concatenated_df)
             plot_proportions_of_barcodes(concatenated_df)
             plot_copy_number(concatenated_df)
+
         case 'insert':
             output_file_name = 'concatenated_inserts.csv'
             concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
             plot_insert_length_histogram(concatenated_df)
+
+        case 'genome_coverage':
+            output_file_name = 'concatenated_genome_coverage.csv'
+            concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
+            plot_genome_coverage(concatenated_df)
+
         case 'insert_coverage':
             output_file_name = 'concatenated_insert_coverage.csv'
             concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
             plot_full_genes_per_fragment(concatenated_df)
             plot_partial_genes_per_fragment(concatenated_df)
+
+        case 'genome_mapping':
+            genome_mapping_output_file_name = 'concatenated_genome_mapping.csv'
+            seq_stats_df = pd.read_csv(kwargs.get('seqstat'))
+            concatenated_df = concatenate_files(sample_file_map, summary_type, genome_mapping_output_file_name)
+            merged_df = genome_mapping_summary(seq_stats_df, concatenated_df)
+            merged_df.to_csv('genome_mapping_summary.csv', index=False)
+
         case 'seq_stat':
             barcode_map = kwargs.get('barcode')
             insert_map = kwargs.get('insert')
@@ -315,6 +368,8 @@ def process(sample_file_map, summary_type, **kwargs):
 if __name__ == '__main__':
     if len(sys.argv) == 3:
         process(sys.argv[1], sys.argv[2])
+    elif len(sys.argv) == 4:
+        process(sys.argv[1], sys.argv[2], seqstat=sys.argv[3])
     elif len(sys.argv) == 6:
         process(sys.argv[1], sys.argv[2], barcode=sys.argv[3], vector=sys.argv[4], insert=sys.argv[5])
 

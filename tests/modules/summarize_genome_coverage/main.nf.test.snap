@@ -1,0 +1,16 @@
+{
+    "Should generate a graphic of genome coverage": {
+        "content": [
+            {
+                "0": [
+                    "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/d6bf9103d82a91968d05caec7fc06086/work/02/99a4404f481d7b7cc7f3c2f4c2c007/genome_coverage.png"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2025-04-12T17:37:06.418505"
+    }
+}
