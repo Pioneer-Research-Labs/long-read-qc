@@ -115,6 +115,7 @@ Usage: nextflow run Pioneer-Research-Labs/long-read-qc -latest
 Options:
 --samplesheet <file>      Path to the sample sheet (default: samplesheet.csv)
 --outdir <dir>            Output directory (default: results)
+--tech <str>              Sequencing technology, map-ont/map-pb/map-hifi (default: map-ont)
 --error_rate <float>      Error rate for barcode searching (default: 0.1)
 --min_overlap <int>       Minimum overlap for barcode searching (default: 3)
 --min_bc_len <int>        Minimum barcode length (default: 20)
