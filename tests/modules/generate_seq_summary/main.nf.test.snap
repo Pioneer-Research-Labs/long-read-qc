@@ -1,14 +1,14 @@
 {
     "Should generate a sequencing summary for two libraries": {
         "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/a261710e67faccf8ce53d8c8d171d960/results/seq_summary.tsv",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/a261710e67faccf8ce53d8c8d171d960/results/concatenated_seq_stats.tsv",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/a261710e67faccf8ce53d8c8d171d960/results/concatenated_vector_map_stats.tsv"
+            "seq_summary.csv:md5,b37c915057aa36d19adfc8b1c1949650",
+            "concatenated_seq_stats.csv:md5,d9f3f59a79b043974991ab81a5edaf50",
+            "concatenated_vector_map_stats.csv:md5,0649358705d8af6e9a61dc8edeeb5b58"
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
+            "nextflow": "25.04.2"
         },
-        "timestamp": "2025-04-02T14:43:57.529434"
+        "timestamp": "2025-05-15T12:25:52.360597"
     }
 }

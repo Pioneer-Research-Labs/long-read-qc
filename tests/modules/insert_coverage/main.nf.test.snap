@@ -1,16 +1,16 @@
 {
     "Should map insert coverage": {
         "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dbc645f00bbaf82af8d7e370276ed4be/results/Gateway_EmptyBarcodedLib1_20241217/insert_coverage.bed",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dbc645f00bbaf82af8d7e370276ed4be/results/Gateway_EmptyBarcodedLib1_20241217/insert_intersect.out",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dbc645f00bbaf82af8d7e370276ed4be/results/Gateway_EmptyBarcodedLib1_20241217/insert_coverage_full.bed",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dbc645f00bbaf82af8d7e370276ed4be/results/Gateway_EmptyBarcodedLib1_20241217/depth_report.tsv",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dbc645f00bbaf82af8d7e370276ed4be/results/Gateway_EmptyBarcodedLib1_20241217/gene_coverage.bed"
+            "insert_coverage.bed:md5,d41d8cd98f00b204e9800998ecf8427e",
+            "insert_intersect.out:md5,d41d8cd98f00b204e9800998ecf8427e",
+            "insert_coverage_full.bed:md5,d41d8cd98f00b204e9800998ecf8427e",
+            "depth_report.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
+            "gene_coverage.bed:md5,f151d2a1cf2ed3abf882a583bd2540a1"
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
+            "nextflow": "25.04.2"
         },
-        "timestamp": "2025-04-12T15:42:47.16474"
+        "timestamp": "2025-05-15T12:32:00.505133"
     }
 }

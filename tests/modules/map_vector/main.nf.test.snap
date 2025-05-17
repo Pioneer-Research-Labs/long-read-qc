@@ -1,12 +1,12 @@
 {
     "Should map reads to vector": {
         "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/d630d0db9d636f9d2a38fb47e2469345/results/Gateway_EmptyBarcodedLib1_20241217/mapped_vector_stats.tsv"
+            "mapped_vector_stats.tsv:md5,cfecbeb9f8a363ab03f44ebcb0e1219d"
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.3"
+            "nextflow": "25.04.2"
         },
-        "timestamp": "2025-03-31T15:32:14.749898"
+        "timestamp": "2025-05-15T13:26:43.420295"
     }
 }

@@ -11,14 +11,17 @@ process extract_inserts {
     output:
     tuple val(meta), path("inserts.fasta")
     path "cutadapt_inserts_report.json"
+    path "cutadapt_info.tsv"
+    path "untrimmed.fastq"
 
 
     script:
     """
     cutadapt \
         -g \$(bc_template.py $flanking cutadapt_insert) \
-        --discard-untrimmed \
         --revcomp \
+        --untrimmed-output untrimmed.fastq \
+        --info-file cutadapt_info.tsv \
         -e $params.error_rate \
         -O $params.min_overlap \
         -o inserts_cutadapt.fasta \

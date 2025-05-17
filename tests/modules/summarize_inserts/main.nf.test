@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -24,9 +24,8 @@ nextflow_process {
             assert process.out[1].size() == 1
             assert process.out[2].size() == 1
             assert snapshot(
-                "$launchDir/results/concatenated_inserts.csv",
-                "$launchDir/results/insert_length_distribution.csv",
-                "$launchDir/results/insert_length_distribution.png").match()
+                "$outputDir/concatenated_inserts.csv",
+                "$outputDir/insert_length_distribution.csv").match()
         }
 
     }
