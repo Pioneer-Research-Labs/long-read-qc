@@ -28,6 +28,7 @@ include { summarize_genome_mapping } from './modules/summarize_genome_mapping'
 include { generate_seq_summary } from './modules/generate_seq_summary'
 include { plot_depth } from './modules/plot_depth'
 include { get_flanks } from './modules/get_flanks'
+include { extract_inserts_with_truncated_flanks} from './modules/extract_inserts_with_truncated_flanks'
 include { get_barcodes_as_tsv } from './modules/get_barcodes_as_tsv'
 include { get_inserts_as_tsv } from './modules/get_inserts_as_tsv'
 include { barcode_counts } from './modules/barcode_counts'
@@ -66,8 +67,8 @@ workflow {
 ▐▛▀▘  █  ▐▌ ▐▌▐▌ ▝▜▌▐▛▀▀▘▐▛▀▀▘▐▛▀▚▖    ▐▛▀▘  █  ▐▛▀▘ ▐▛▀▀▘▐▌     █  ▐▌ ▝▜▌▐▛▀▀▘ ▝▀▚▖
 ▐▌  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖▐▙▄▄▖▐▌ ▐▌    ▐▌  ▗▄█▄▖▐▌   ▐▙▄▄▖▐▙▄▄▖▗▄█▄▖▐▌  ▐▌▐▙▄▄▖▗▄▄▞▘
 
-Long Read Processing and QC Pipeline          
-"""    
+Long Read Processing and QC Pipeline
+"""
 
  // Show help message
 
@@ -78,16 +79,16 @@ Long Read Processing and QC Pipeline
 
     channel.fromPath(params.samplesheet)
         .splitCsv(header:true)
-        .map { row -> 
+        .map { row ->
             meta = [id:row.id, genome:row.genome]
             [meta, file(row.file), file(params.constructs + row.construct)]
-    
+
         }
         | set {input_ch}
 
     channel.fromPath(params.samplesheet)
         .splitCsv(header:true)
-        .map { row -> 
+        .map { row ->
             meta = [id:row.id, genome:row.genome]
             [meta, file(params.constructs + row.construct)]
 
@@ -95,7 +96,7 @@ Long Read Processing and QC Pipeline
         | set {constructs}
 
 
-    // Generate quality report using fastplong
+    //Generate quality report using fastplong
     quality_report(input_ch)
 
     // This type of pattern collects the results of all the sequences being processed, creates a temp file
@@ -114,10 +115,12 @@ Long Read Processing and QC Pipeline
 
     joinChannel = input_ch.join(flanking)
 
-
     // extract barcodes and inserts
-   (barcodes, bc_report, bc_tab) = extract_barcodes(joinChannel)
-   (inserts, ins_report, in_tab) = extract_inserts(joinChannel)
+    (barcodes, bc_report, bc_tab) = extract_barcodes(joinChannel)
+    (inserts, ins_report, in_tab, untrimmed) = extract_inserts(joinChannel)
+
+    // extract inserts with truncated flanking sequences
+    (inserts_truncated, ins_report_truncated, untrimmed_truncated, untrimmed_cutadapt) = extract_inserts_with_truncated_flanks(joinChannel, untrimmed)
 
     // combine for read stats
     combined_data = input_ch
@@ -179,15 +182,13 @@ Long Read Processing and QC Pipeline
         ["insert_coverage.tsv", "${meta.id}\t${params.path_prefix}${insert_cov_full}\n"]
     }
 
-
-
-   // Here we generate various summary files and plots for all the sequences processed
-   summarize_barcode_counts(barcode_count_sample_map)
-   summarize_genome_coverage(genome_cov_map)
-   summarize_inserts(insert_map)
-   summarize_barcodes(barcode_map)
-   seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map)
-   summarize_insert_coverage(insert_outputs)
+     // Here we generate various summary files and plots for all the sequences processed
+     summarize_barcode_counts(barcode_count_sample_map)
+     summarize_genome_coverage(genome_cov_map)
+     summarize_inserts(insert_map)
+     summarize_barcodes(barcode_map)
+     seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map)
+     summarize_insert_coverage(insert_outputs)
 
     // If we want to, map all reads to the donor genome
     // Add the genome .fna file to the input ch
@@ -200,8 +201,8 @@ Long Read Processing and QC Pipeline
         }
         summarize_genome_mapping(genome_map, seq_summary_results[1])
     }
-   // Plot coverage depth
-   plot_depth(mapped)
+     // Plot coverage depth
+     plot_depth(mapped)
 
     // metagenomic samples
     sketched = sketch(splits.multi)
