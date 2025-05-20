@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -23,8 +23,8 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path("$launchDir/tests/results/Gateway_EmptyBarcodedLib1_20241217/barcodes.fasta").readLines().size() == 12560
-            assert snapshot("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/barcodes.fasta").match()
+            assert path("$outputDir/Gateway_EmptyBarcodedLib1_20241217/barcodes.fasta").readLines().size() == 12560
+            assert snapshot("$outputDir/Gateway_EmptyBarcodedLib1_20241217/barcodes.fasta").match()
         }
 
     }
@@ -32,7 +32,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -50,15 +50,15 @@ nextflow_process {
             assert process.out.size() == 2
             assert process.out[0][0].size() == 2
             assert process.out[1].size() == 1
-            assert path("$launchDir/tests/results/Gib_Lib1_240801/barcodes.fasta").readLines().size() == 0
-            assert snapshot("$launchDir/results/Gib_Lib1_240801/barcodes.fasta").match()
+            assert path("$outputDir/Gib_Lib1_240801/barcodes.fasta").readLines().size() == 0
+            assert snapshot("$outputDir/Gib_Lib1_240801/barcodes.fasta").match()
         }
 
     }
     test("Should extract barcodes from a sample with no inserts") {
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -73,8 +73,8 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path("$launchDir/tests/results/b.33TransposonBarcodedLibraryLinear/barcodes.fasta").readLines().size() == 1464
-            assert snapshot("$launchDir/results/b.33TransposonBarcodedLibraryLinear/barcodes.fasta").match()
+            assert path("$outputDir/b.33TransposonBarcodedLibraryLinear/barcodes.fasta").readLines().size() == 1464
+            assert snapshot("$outputDir/b.33TransposonBarcodedLibraryLinear/barcodes.fasta").match()
         }
    }
 

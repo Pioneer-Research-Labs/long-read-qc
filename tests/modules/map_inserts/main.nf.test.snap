@@ -1,14 +1,14 @@
 {
     "Should map inserts": {
         "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dce2422047bfc8e07cdbe1942a67a23a/results/Gateway_EmptyBarcodedLib1_20241217/mapped_insert_stats.tsv",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dce2422047bfc8e07cdbe1942a67a23a/results/Gateway_EmptyBarcodedLib1_20241217/mapped_inserts.bam",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/dce2422047bfc8e07cdbe1942a67a23a/results/Gateway_EmptyBarcodedLib1_20241217/mapped_inserts.bam.bai"
+            "mapped_insert_stats.tsv:md5,26eba099fe6593619d4f9bb03847cf73",
+            "mapped_inserts.bam:md5,15eb084d8dbe5f8371e8a78168877efb",
+            "mapped_inserts.bam.bai:md5,0be2a6a56d6f271343f73c8ae1346c7a"
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
+            "nextflow": "25.04.2"
         },
-        "timestamp": "2025-03-31T18:20:33.21713"
+        "timestamp": "2025-05-20T11:34:08.154237"
     }
 }

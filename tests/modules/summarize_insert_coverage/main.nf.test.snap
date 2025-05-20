@@ -1,0 +1,16 @@
+{
+    "Should generate insert coverage summaries and plots": {
+        "content": [
+            "concatenated_insert_coverage.csv:md5,b62405adff9309bcadda85a4fa767fe2",
+            "full_genes_per_fragment.csv:md5,b62405adff9309bcadda85a4fa767fe2",
+            "full_genes_per_fragment.png:md5,68817eb7f9235aca56b9c48198c36339",
+            "partial_genes_per_fragment.csv:md5,b62405adff9309bcadda85a4fa767fe2",
+            "partial_genes_per_fragment.png:md5,424ae91166dfb94e0f5deccb241ab76e"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.2"
+        },
+        "timestamp": "2025-05-15T13:43:48.538585"
+    }
+}

@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -24,9 +24,9 @@ nextflow_process {
         then {
             assert process.success
             assert snapshot(
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/mapped_genome_stats.tsv"),
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/mapped_genome.bam"),
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/mapped_genome.bam.bai")).match()
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/mapped_genome_stats.tsv"),
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/mapped_genome.bam"),
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/mapped_genome.bam.bai")).match()
         }
 
     }

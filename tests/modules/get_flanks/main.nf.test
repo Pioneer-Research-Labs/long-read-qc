@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -21,7 +21,7 @@ nextflow_process {
 
         then {
             assert process.success
-            assert snapshot("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/flanking.gb").match()
+            assert snapshot("$outputDir/Gateway_EmptyBarcodedLib1_20241217/flanking.gb").match()
         }
 
     }
@@ -29,7 +29,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -42,7 +42,7 @@ nextflow_process {
 
         then {
             assert process.success
-            assert snapshot("$launchDir/results/Phal/flanking.gb").match()
+            assert snapshot("$outputDir/Phal/flanking.gb").match()
         }
 
     }

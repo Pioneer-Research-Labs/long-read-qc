@@ -1,18 +1,18 @@
 {
     "Should generate barcode summaries and plots": {
         "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/4be242e7c362da352875ece4641d7293/results/barcode_copy_number.csv",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/4be242e7c362da352875ece4641d7293/results/barcode_lengths.csv",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/4be242e7c362da352875ece4641d7293/results/barcode_proportions.csv",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/4be242e7c362da352875ece4641d7293/results/concatenated_barcodes.csv",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/4be242e7c362da352875ece4641d7293/results/barcode_copy_number.png",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/4be242e7c362da352875ece4641d7293/results/barcode_length_distribution.png",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/4be242e7c362da352875ece4641d7293/results/barcode_proportion.png"
+            "barcode_copy_number.csv:md5,3e653353445fddd7ee9082cccfc73de0",
+            "barcode_lengths.csv:md5,994b6ee6428993ed190247f4f02cc346",
+            "barcode_proportions.csv:md5,2cf6316949e0b7137484a047f6cb3d5d",
+            "concatenated_barcodes.csv:md5,994b6ee6428993ed190247f4f02cc346",
+            "barcode_copy_number.png:md5,08eb2433f4239b2d61f365aa962f2a11",
+            "barcode_length_distribution.png:md5,f8c44064170b7112fd9ea6709767ebf7",
+            "barcode_proportions.png:md5,e0fdef2ed85d10a2e125d59b99f0e118"
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
+            "nextflow": "25.04.2"
         },
-        "timestamp": "2025-04-02T15:10:06.69113"
+        "timestamp": "2025-05-15T13:35:18.92151"
     }
 }

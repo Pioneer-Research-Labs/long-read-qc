@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -27,11 +27,11 @@ nextflow_process {
         then {
             assert process.success
             assert snapshot(
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/insert_coverage.bed"),
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/insert_intersect.out"),
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/insert_coverage_full.bed"),
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/depth_report.tsv"),
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/gene_coverage.bed")
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/insert_coverage.bed"),
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/insert_intersect.out"),
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/insert_coverage_full.bed"),
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/depth_report.tsv"),
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/gene_coverage.bed")
             ).match()
         }
 

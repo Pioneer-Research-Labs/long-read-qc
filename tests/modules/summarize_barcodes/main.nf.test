@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -22,13 +22,13 @@ nextflow_process {
             assert process.out.size() == 2
             assert process.out[0][0].size() == 4
             assert process.out[1][0].size() == 3
-            assert snapshot("$launchDir/results/barcode_copy_number.csv",
-            "$launchDir/results/barcode_lengths.csv",
-            "$launchDir/results/barcode_proportions.csv",
-            "$launchDir/results/concatenated_barcodes.csv",
-            "$launchDir/results/barcode_copy_number.png",
-            "$launchDir/results/barcode_length_distribution.png",
-            "$launchDir/results/barcode_proportion.png",
+            assert snapshot("$outputDir/barcode_copy_number.csv",
+            "$outputDir/barcode_lengths.csv",
+            "$outputDir/barcode_proportions.csv",
+            "$outputDir/concatenated_barcodes.csv",
+            "$outputDir/barcode_copy_number.png",
+            "$outputDir/barcode_length_distribution.png",
+            "$outputDir/barcode_proportions.png",
             ).match()
         }
 

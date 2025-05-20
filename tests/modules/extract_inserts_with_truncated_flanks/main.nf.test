@@ -1,0 +1,36 @@
+nextflow_process {
+
+    name "Test Process extract_inserts_with_truncated_flanks"
+    script "modules/extract_inserts_with_truncated_flanks/main.nf"
+    process "extract_inserts_with_truncated_flanks"
+
+    test("Should find inserts from untrimmed fastq file") {
+
+        when {
+            params {
+                outdir = outputDir
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple( [id: 'HE_USER-gapfill_Lib1_20241220',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/HE_USER-gapfill_Lib1_20241220/5HKJT6_1_sample_1.fastq.gz'),
+                file('${projectDir}test_data/HE_USER-gapfill_Lib1_20241220/c.00323.dna'),
+                file('${projectDir}/test_data/HE_USER-gapfill_Lib1_20241220/flanking.gb'))])
+                input[1] = Channel.fromList( [file('${projectDir}/test_data/HE_USER-gapfill_Lib1_20241220/untrimmed.fastq')])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot(
+            ("$outputDir/HE_USER-gapfill_Lib1_20241220/inserts_from_truncated_flanks.fasta"),
+            ("$outputDir/HE_USER-gapfill_Lib1_20241220/cutadapt_inserts_report_from_truncated_flanks.json"),
+            ("$outputDir/HE_USER-gapfill_Lib1_20241220/untrimmed_from_truncated_flanks.fastq"),
+            ("$outputDir/HE_USER-gapfill_Lib1_20241220/cutadapt_info_from_truncated_flanks.tsv")).match()
+        }
+
+    }
+
+}

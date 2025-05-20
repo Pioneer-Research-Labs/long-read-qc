@@ -5,19 +5,22 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
+            "nextflow": "25.04.1"
         },
-        "timestamp": "2025-04-12T16:17:34.020766"
+        "timestamp": "2025-05-14T10:21:54.744428"
     },
-    "Should extract inserts": {
+    "Should extract some inserts": {
         "content": [
-            "inserts.fasta:md5,7c0b0140289d271a6a5af323a69958e1"
+            "inserts.fasta:md5,7c0b0140289d271a6a5af323a69958e1",
+            "cutadapt_inserts_report.json:md5,34a9e15e78e3d1156f91b0aaec57ba85",
+            "untrimmed.fastq:md5,1be8d6feee12e1128cc857cee6d5537e",
+            "cutadapt_info.tsv:md5,e40480ca30b0be410136bc499b0ea732"
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
+            "nextflow": "25.04.2"
         },
-        "timestamp": "2025-04-12T16:17:27.553312"
+        "timestamp": "2025-05-20T11:33:14.971386"
     },
     "Should extract inserts from a sample with no barcodes": {
         "content": [
@@ -25,8 +28,8 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
+            "nextflow": "25.04.1"
         },
-        "timestamp": "2025-04-12T16:17:40.886162"
+        "timestamp": "2025-05-14T10:22:04.232316"
     }
 }

@@ -1,12 +1,12 @@
 {
     "Should filter barcodes based on min/max lengths specified in config": {
         "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/39a2982770966daeed5d1e2105f0bdd6/results/Gateway_EmptyBarcodedLib1_20241217/barcodes_filtered.fasta"
+            "barcodes_filtered.fasta:md5,8c7dbffbb4d82dac42a1122464c59c62"
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.5"
+            "nextflow": "25.04.2"
         },
-        "timestamp": "2025-03-31T17:35:26.113099"
+        "timestamp": "2025-05-15T12:02:13.385508"
     }
 }

@@ -4,10 +4,10 @@ nextflow_process {
     script "modules/extract_inserts/main.nf"
     process "extract_inserts"
 
-    test("Should extract inserts") {
+    test("Should extract some inserts") {
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -22,14 +22,18 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path("$launchDir/tests/results/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").readLines().size() == 72
-            assert snapshot("$launchDir/tests/results/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").match()
+            assert path("$outputDir/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").readLines().size() == 72
+            assert snapshot(
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta"),
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/cutadapt_inserts_report.json"),
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/untrimmed.fastq"),
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/cutadapt_info.tsv")).match()
         }
    }
        test("Should extract 0 inserts") {
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -44,14 +48,14 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path("$launchDir/tests/results/b.33TransposonBarcodedLibraryLinear/inserts.fasta").readLines().size() == 0
-            assert snapshot("$launchDir/tests/results/b.33TransposonBarcodedLibraryLinear/inserts.fasta").match()
+            assert path("$outputDir/b.33TransposonBarcodedLibraryLinear/inserts.fasta").readLines().size() == 0
+            assert snapshot("$outputDir/b.33TransposonBarcodedLibraryLinear/inserts.fasta").match()
         }
    }
         test("Should extract inserts from a sample with no barcodes") {
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -66,11 +70,11 @@ nextflow_process {
 
         then {
             assert process.success
-            assert process.out.size() == 2
+            assert process.out.size() == 4
             assert process.out[0][0].size() == 2
             assert process.out[1].size() == 1
-            assert path("$launchDir/tests/results/Gib_Lib1_240801/inserts.fasta").readLines().size() == 216
-            assert snapshot("$launchDir/tests/results/Gib_Lib1_240801/inserts.fasta").match()
+            assert path("$outputDir/Gib_Lib1_240801/inserts.fasta").readLines().size() == 216
+            assert snapshot("$outputDir/Gib_Lib1_240801/inserts.fasta").match()
         }
    }
 

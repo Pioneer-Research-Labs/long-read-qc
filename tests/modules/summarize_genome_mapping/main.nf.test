@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
@@ -22,8 +22,8 @@ nextflow_process {
         then {
             assert process.success
             assert snapshot(
-            "$launchDir/results/mapped_genome_stats.tsv",
-            "$launchDir/results/concatenated_genome_mapping.csv"
+            "$outputDir/concatenated_genome_mapping.csv",
+            "$outputDir/genome_mapping_summary.csv"
             ).match()
         }
 

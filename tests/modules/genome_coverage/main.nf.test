@@ -8,14 +8,15 @@ nextflow_process {
 
         when {
             params {
-                outdir = "tests/results"
+                outdir = outputDir
             }
             process {
                 """
                 input[0] = Channel.fromList([ tuple( [id:'Gateway_EmptyBarcodedLib1_20241217',
                 genome:'H_elongata'],
                 file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/mapped_inserts.bam'),
-                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/mapped_inserts.bam.bai')
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/mapped_inserts.bam.bai'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/mapped_insert_stats.tsv'),
                 )])
                  """
             }
@@ -24,8 +25,8 @@ nextflow_process {
         then {
             assert process.success
             assert snapshot(
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/genome_coverage.tsv"),
-            ("$launchDir/results/Gateway_EmptyBarcodedLib1_20241217/genome_cov_stats.tsv")
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/genome_coverage.tsv"),
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/genome_cov_stats.tsv")
             ).match()
         }
 

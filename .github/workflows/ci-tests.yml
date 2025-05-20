@@ -4,15 +4,27 @@ on: [push, pull_request]
 
 jobs:
   test:
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     strategy:
       matrix:
         shard: [1, 2, 3, 4]
     steps:
+      # Step 1: Check out code from the repository
       - name: Checkout
         uses: actions/checkout@v4
-
-
+      # Step 2: Configure AWS credentials to authenticate with AWS services
+      - name: Configure AWS credentials from PioneerLabs account
+        uses: aws-actions/configure-aws-credentials@v4.2.1
+        with:
+          role-to-assume: arn:aws:iam::116981805068:role/GitHub_OIDC_Role
+          aws-region: us-west-1
+      # Step 3: Login to Amazon ECR to authenticate Docker client
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Setup Nextflow latest-edge
         uses: nf-core/setup-nextflow@v2

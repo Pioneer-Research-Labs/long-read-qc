@@ -1,0 +1,13 @@
+{
+    "Should generate two files summarizing genome mapping statistics": {
+        "content": [
+            "concatenated_genome_mapping.csv:md5,2edbfb19e2a087f301fcdb841dee7856",
+            "genome_mapping_summary.csv:md5,79a965dd9671179676f220315c06f595"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.2"
+        },
+        "timestamp": "2025-05-15T14:24:00.686337"
+    }
+}
