@@ -17,7 +17,7 @@ jobs:
       - name: Configure AWS credentials from PioneerLabs account
         uses: aws-actions/configure-aws-credentials@v4.2.1
         with:
-          role-to-assume: arn:aws:iam::116981805068:oidc-provider/token.actions.githubusercontent.com
+          role-to-assume: arn:aws:iam::116981805068:role/GitHub_OIDC_Role
           aws-region: us-west-1
 
 
