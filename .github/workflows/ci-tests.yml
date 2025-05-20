@@ -24,11 +24,7 @@ jobs:
       # Step 3: Login to Amazon ECR to authenticate Docker client
       - name: Login to Amazon ECR
         id: login-ecr
-        run: |
-            # Get the ECR login password and use it to log in to the ECR registry
-            result=$(aws ecr get-login-password --region your-region | docker --config ${GITHUB_WORKSPACE}/${GITHUB_RUN_ID} login --username AWS --password-stdin xxxxxxxxx.dkr.ecr.your-region.amazonaws.com)
-            # Print the login result for debugging
-            echo "Login Result: $result"
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Setup Nextflow latest-edge
         uses: nf-core/setup-nextflow@v2
