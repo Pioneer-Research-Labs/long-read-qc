@@ -2,13 +2,13 @@
     "Should map sequences to genome": {
         "content": [
             "mapped_genome_stats.tsv:md5,e40eb11a0412ae9959d94d6c49dadf90",
-            "mapped_genome.bam:md5,92b97f1b99703bd6708565889068cf1c",
+            "mapped_genome.bam:md5,b2101df27a3edf84bdd685e36329e26a",
             "mapped_genome.bam.bai:md5,2e6c20bf80a0099f4e360f6e3f1e5832"
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2025-05-15T12:32:52.515432"
+        "timestamp": "2025-05-20T11:35:07.32355"
     }
 }
