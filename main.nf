@@ -31,6 +31,7 @@ include { get_flanks } from './modules/get_flanks'
 include { extract_inserts_with_truncated_flanks} from './modules/extract_inserts_with_truncated_flanks'
 include { get_barcodes_as_tsv } from './modules/get_barcodes_as_tsv'
 include { get_inserts_as_tsv } from './modules/get_inserts_as_tsv'
+include { get_truncated_inserts_as_tsv } from './modules/get_truncated_inserts_as_tsv'
 include { barcode_counts } from './modules/barcode_counts'
 include { prepare_report } from './modules/prepare_report'
 include { samples } from './modules/samples'
@@ -121,6 +122,9 @@ Long Read Processing and QC Pipeline
 
     // extract inserts with truncated flanking sequences
     (inserts_truncated, ins_report_truncated, untrimmed_truncated, untrimmed_cutadapt) = extract_inserts_with_truncated_flanks(joinChannel, untrimmed)
+
+    // Create a truncated insert tsv file
+    get_truncated_inserts_as_tsv(inserts_truncated)
 
     // combine for read stats
     combined_data = input_ch
