@@ -1,0 +1,32 @@
+nextflow_process {
+
+    name "Test Process plot_comparison_of_full_to_truncated_inserts"
+    script "modules/plot_comparison_of_full_to_truncated_inserts/main.nf"
+    process "plot_comparison_of_full_to_truncated_inserts"
+
+    test("Should generate a file containing 4 plots") {
+
+        when {
+            params {
+                outdir = outputDir
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple([ id:'Gateway_EmptyBarcodedLib1_20241217',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/inserts_from_truncated_flanks.fasta'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/untrimmed_from_truncated_flanks.fastq'),
+                file("${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/5HKJT6_1_sample_1.fastq.gz"))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot("$outputDir/Gateway_EmptyBarcodedLib1_20241217/truncated_vs_intact_flanks_comparison_plot.png").match()
+        }
+
+    }
+
+}

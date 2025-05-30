@@ -1,0 +1,15 @@
+{
+    "Should find inserts from untrimmed fastq file": {
+        "content": [
+            "inserts_from_truncated_flanks.fasta:md5,65bd0e2fc22cfa8a915a8d5219d6d2e5",
+            "cutadapt_inserts_report_from_truncated_flanks.json:md5,5c87b04b5964a652ff8e307315e47e56",
+            "untrimmed_from_truncated_flanks.fastq:md5,40b4067bc8883a4cf1f664c1ab2e0be1",
+            "cutadapt_info_from_truncated_flanks.tsv:md5,45a4c622ce3d6459bc6e9c2bb5fcbd27"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.2"
+        },
+        "timestamp": "2025-05-30T16:15:47.598925"
+    }
+}
