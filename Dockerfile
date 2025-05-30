@@ -1,7 +1,9 @@
 FROM continuumio/miniconda3
 
 RUN conda install -y -c bioconda -c conda-forge \
+    python=3.12 \
     seqkit=2.8.2 \
+    seqtk=1.4 \
     biopython=1.84 \
     fastp=0.23.4 \
     cutadapt=4.9 \
