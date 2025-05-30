@@ -6,14 +6,11 @@ process extract_inserts_with_truncated_flanks {
     cpus params.cores
 
     input:
-    tuple val(meta), path(reads), path(construct), path(flanking)
-    path(untrimmed_fastq)
+    tuple val(meta), path(flanking), path(untrimmed_fastq)
 
     output:
-    tuple val(meta), path("inserts_from_truncated_flanks.fasta")
-    path "cutadapt_inserts_report_from_truncated_flanks.json"
-    path "untrimmed_from_truncated_flanks.fastq"
-    path "cutadapt_info_from_truncated_flanks.tsv"
+    tuple val(meta), path("inserts_from_truncated_flanks.fasta"),path ("cutadapt_inserts_report_from_truncated_flanks.json"),
+    path ("untrimmed_from_truncated_flanks.fastq"), path ("cutadapt_info_from_truncated_flanks.tsv")
 
     script:
     """
