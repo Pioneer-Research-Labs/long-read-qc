@@ -10,9 +10,9 @@ process extract_inserts {
 
     output:
     tuple val(meta), path("inserts.fasta")
-    path "cutadapt_inserts_report.json"
-    path "cutadapt_info.tsv"
-    path "untrimmed.fastq"
+    path ("cutadapt_inserts_report.json")
+    path ("cutadapt_info.tsv")
+    tuple val(meta), path ("untrimmed.fastq")
 
 
     script:

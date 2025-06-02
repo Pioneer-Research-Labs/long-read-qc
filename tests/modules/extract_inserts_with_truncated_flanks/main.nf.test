@@ -14,10 +14,8 @@ nextflow_process {
                 """
                 input[0] = Channel.fromList([ tuple( [id: 'HE_USER-gapfill_Lib1_20241220',
                 genome:'H_elongata'],
-                file('${projectDir}/test_data/HE_USER-gapfill_Lib1_20241220/5HKJT6_1_sample_1.fastq.gz'),
-                file('${projectDir}test_data/HE_USER-gapfill_Lib1_20241220/c.00323.dna'),
-                file('${projectDir}/test_data/HE_USER-gapfill_Lib1_20241220/flanking.gb'))])
-                input[1] = Channel.fromList( [file('${projectDir}/test_data/HE_USER-gapfill_Lib1_20241220/untrimmed.fastq')])
+                file('${projectDir}/test_data/HE_USER-gapfill_Lib1_20241220/flanking.gb'),
+                file('${projectDir}/test_data/HE_USER-gapfill_Lib1_20241220/untrimmed.fastq'))])
                 """
             }
         }

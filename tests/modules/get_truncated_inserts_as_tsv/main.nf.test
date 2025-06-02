@@ -1,0 +1,30 @@
+nextflow_process {
+
+    name "Test Process get_truncated_inserts_as_tsv"
+    script "modules/get_truncated_inserts_as_tsv/main.nf"
+    process "get_truncated_inserts_as_tsv"
+
+    test("Should generate a tsv table of truncated inserts with seq id, sequence, and insert length") {
+
+        when {
+            params {
+                outdir = outputDir
+            }
+            process {
+                """
+                input[0] = Channel.fromList([ tuple([ id:'Gateway_EmptyBarcodedLib1_20241217',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/inserts_from_truncated_flanks.fasta'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/cutadapt_inserts_report_from_truncated_flanks.json'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/untrimmed_from_truncated_flanks.fastq'),
+                file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/cutadapt_info_from_truncated_flanks.tsv'))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot("$outputDir/Gateway_EmptyBarcodedLib1_20241217/truncated_inserts.tsv").match()
+        }
+    }
+}
