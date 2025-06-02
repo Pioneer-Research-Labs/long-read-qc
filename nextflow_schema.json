@@ -1,0 +1,97 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com///nextflow_schema.json",
+    "title": " pipeline parameters",
+    "description": "",
+    "type": "object",
+    "$defs": {
+        "input_output_options": {
+            "title": "Input/output options",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Define where the pipeline should find input data and save output data.",
+            "properties": {
+                "outdir": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
+                    "fa_icon": "fas fa-folder-open",
+                    "default": "s3://pioneer-analysis/long_read_qc/prod/2025_06_02_10_16_55_samplesheet",
+                    "hidden": true
+                }
+            }
+        }
+    },
+    "allOf": [
+        {
+            "$ref": "#/$defs/input_output_options"
+        }
+    ],
+    "properties": {
+        "cores": {
+            "type": "integer",
+            "default": 4
+        },
+        "tech": {
+            "type": "string",
+            "default": "map-ont"
+        },
+        "map_genome": {
+            "type": "boolean"
+        },
+        "samplesheet": {
+            "type": "string",
+            "default": "samplesheet.csv"
+        },
+        "localdir": {
+            "type": "string",
+            "default": "2025_06_02_10_16_55_samplesheet"
+        },
+        "genomes": {
+            "type": "string",
+            "default": "s3://pioneer-data/genomes/"
+        },
+        "constructs": {
+            "type": "string",
+            "default": "s3://pioneer-sequencing/constructs/"
+        },
+        "error_rate": {
+            "type": "number",
+            "default": 0.1
+        },
+        "min_overlap": {
+            "type": "integer",
+            "default": 3
+        },
+        "min_bc_len": {
+            "type": "integer",
+            "default": 20
+        },
+        "max_bc_len": {
+            "type": "integer",
+            "default": 60
+        },
+        "sourmash_db": {
+            "type": "string",
+            "default": "/srv/shared/databases/sourmash/gtdb-rs220-k21.zip"
+        },
+        "meta_ovlp": {
+            "type": "integer",
+            "default": 1000
+        },
+        "taxonomy": {
+            "type": "string",
+            "default": "/srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb"
+        },
+        "path_prefix": {
+            "type": "string"
+        },
+        "aws_batch": {
+            "type": "boolean",
+            "default": true
+        }
+    },
+    "required": [
+        "samplesheet"
+    ]
+}
