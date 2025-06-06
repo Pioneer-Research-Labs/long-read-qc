@@ -1,119 +1,75 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com///nextflow_schema.json",
-    "title": " pipeline parameters",
-    "description": "",
-    "type": "object",
-    "$defs": {
-        "input_output_options": {
-            "title": "Input/output options",
-            "type": "object",
-            "fa_icon": "fas fa-terminal",
-            "description": "Define where the pipeline should find the sample sheet.",
-            "properties": {
-                "samplesheet": {
-                    "type": "string",
-                    "default": "samplesheet.csv",
-                    "description": "The csv file of samples",
-                    "fa_icon": "fas fa-file-csv",
-                    "format": "file-path",
-                    "mimetype": "text/csv"
-                },
-                "outdir": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
-                    "fa_icon": "fas fa-folder-open",
-                    "default": "s3://pioneer-analysis/long_read_qc/prod/2025_06_02_10_16_55_samplesheet",
-                    "hidden": true
-                }
-            },
-            "required": [
-                "samplesheet"
-            ]
-        }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com///nextflow_schema.json",
+  "title": " pipeline parameters",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "cores": {
+      "type": "integer",
+      "default": 4
     },
-    "allOf": [
-        {
-            "$ref": "#/$defs/input_output_options"
-        }
-    ],
-    "properties": {
-        "cores": {
-            "type": "integer",
-            "default": 4,
-            "fa_icon": "fas fa-database"
-        },
-        "tech": {
-            "type": "string",
-            "default": "map-ont"
-        },
-        "map_genome": {
-            "type": "boolean",
-            "fa_icon": "fab fa-500px"
-        },
-        "localdir": {
-            "type": "string",
-            "default": "2025_06_02_10_16_55_samplesheet",
-            "fa_icon": "fas fa-folder"
-        },
-        "genomes": {
-            "type": "string",
-            "default": "s3://pioneer-data/genomes/",
-            "fa_icon": "fas fa-dna"
-        },
-        "constructs": {
-            "type": "string",
-            "default": "s3://pioneer-sequencing/constructs/",
-            "fa_icon": "far fa-circle"
-        },
-        "error_rate": {
-            "type": "number",
-            "default": 0.1,
-            "fa_icon": "fas fa-exclamation-circle"
-        },
-        "min_overlap": {
-            "type": "integer",
-            "default": 3,
-            "fa_icon": "fas fa-bacon"
-        },
-        "min_bc_len": {
-            "type": "integer",
-            "default": 20,
-            "fa_icon": "fas fa-ruler-horizontal"
-        },
-        "max_bc_len": {
-            "type": "integer",
-            "default": 60,
-            "fa_icon": "fas fa-ruler-horizontal"
-        },
-        "sourmash_db": {
-            "type": "string",
-            "default": "/srv/shared/databases/sourmash/gtdb-rs220-k21.zip",
-            "fa_icon": "fas fa-server",
-            "hidden": true
-        },
-        "meta_ovlp": {
-            "type": "integer",
-            "default": 1000,
-            "hidden": true
-        },
-        "taxonomy": {
-            "type": "string",
-            "default": "/srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb",
-            "hidden": true
-        },
-        "path_prefix": {
-            "type": "string",
-            "description": "Path separator (used by aws batch only)",
-            "default": "s3:/",
-            "hidden": true
-        },
-        "aws_batch": {
-            "type": "boolean",
-            "fa_icon": "fab fa-aws",
-            "default": true,
-            "hidden": true
-        }
+    "tech": {
+      "type": "string",
+      "default": "map-ont"
+    },
+    "map_genome": {
+      "type": "boolean"
+    },
+    "parentdir": {
+      "type": "string",
+      "default": "prod",
+      "enum": ["prod", "dev"]
+    },
+    "genomes": {
+      "type": "string",
+      "default": "s3://pioneer-data/genomes/"
+    },
+    "constructs": {
+      "type": "string",
+      "default": "s3://pioneer-sequencing/constructs/"
+    },
+    "error_rate": {
+      "type": "number",
+      "default": 0.1
+    },
+    "min_overlap": {
+      "type": "integer",
+      "default": 3
+    },
+    "min_bc_len": {
+      "type": "integer",
+      "default": 20
+    },
+    "max_bc_len": {
+      "type": "integer",
+      "default": 60
+    },
+    "sourmash_db": {
+      "type": "string",
+      "default": "/srv/shared/databases/sourmash/gtdb-rs220-k21.zip"
+    },
+    "meta_ovlp": {
+      "type": "integer",
+      "default": 1000
+    },
+    "taxonomy": {
+      "type": "string",
+      "default": "/srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb"
+    },
+    "path_prefix": {
+      "type": "string"
+    },
+    "aws_batch": {
+      "type": "boolean"
+    },
+    "s3_path": {
+      "type": "string",
+      "default": "s3://pioneer-analysis/long_read_qc/"
+    },
+    "outdir": {
+      "type": "string",
+      "hidden": true
     }
+  }
 }
