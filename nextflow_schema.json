@@ -6,7 +6,9 @@
   "type": "object",
   "properties": {
     "samplesheet": {
-      "type": "string"
+      "type": "string",
+      "format": "file-path",
+      "mimetype": "text/csv"
     },
     "cores": {
       "type": "integer",
