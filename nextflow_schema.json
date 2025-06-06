@@ -11,7 +11,8 @@
     },
     "tech": {
       "type": "string",
-      "default": "map-ont"
+      "default": "map-ont",
+      "enum": ["map-ont", "map-pb", "map-iclr"]
     },
     "map_genome": {
       "type": "boolean"
