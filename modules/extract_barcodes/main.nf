@@ -1,5 +1,4 @@
 process extract_barcodes {
-    publishDir "$params.localdir/$meta.id",  mode: 'copy'
     publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 

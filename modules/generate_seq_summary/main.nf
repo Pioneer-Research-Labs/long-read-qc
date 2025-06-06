@@ -1,5 +1,4 @@
 process generate_seq_summary{
-    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Summarizing sequence stats'
 

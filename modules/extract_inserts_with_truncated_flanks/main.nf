@@ -1,5 +1,4 @@
 process extract_inserts_with_truncated_flanks {
-    publishDir "$params.localdir/$meta.id",  mode: 'copy'
     publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 

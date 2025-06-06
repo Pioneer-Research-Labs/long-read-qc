@@ -1,5 +1,4 @@
 process get_barcodes_as_tsv{
-    publishDir "$params.localdir/$meta.id",  mode: 'copy'
     publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 
