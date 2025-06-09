@@ -9,7 +9,7 @@
       "type": "string",
       "format": "file-path",
       "mimetype": "text/csv",
-      "schema": "/assets/samplesheet_validation_schema.json"
+      "schema": "assets/samplesheet_validation_schema.json"
     },
     "cores": {
       "type": "integer",
