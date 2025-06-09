@@ -36,6 +36,7 @@ include { get_truncated_inserts_as_tsv } from './modules/get_truncated_inserts_a
 include { barcode_counts } from './modules/barcode_counts'
 include { prepare_report } from './modules/prepare_report'
 include { samples } from './modules/samples'
+include { fromSamplesheet } from 'plugin/nf-validation'
 
 def helpMessage() {
     log.info """
@@ -78,6 +79,10 @@ Long Read Processing and QC Pipeline
         helpMessage()
         exit 0
     }
+
+    // The sample_input isn't used beyond validating the sample sheet.
+    // TODO: determine how to replace input_ch and/or constructs channel with this.
+    sample_input = Channel.fromSamplesheet("samplesheet")
 
     channel.fromPath(params.samplesheet)
         .splitCsv(header:true)
