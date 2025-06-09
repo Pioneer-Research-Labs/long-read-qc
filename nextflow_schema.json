@@ -75,7 +75,8 @@
       "hidden": true
     },
     "path_prefix": {
-      "type": "string"
+      "type": "string",
+      "hidden": true
     },
     "aws_batch": {
       "type": "boolean",
