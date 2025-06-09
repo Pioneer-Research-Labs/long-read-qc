@@ -8,7 +8,8 @@
     "samplesheet": {
       "type": "string",
       "format": "file-path",
-      "mimetype": "text/csv"
+      "mimetype": "text/csv",
+      "schema": "/assets/samplesheet_validation_schema.json"
     },
     "cores": {
       "type": "integer",
@@ -80,7 +81,6 @@
     },
     "aws_batch": {
       "type": "boolean",
-      "default": true,
       "hidden": true
     },
     "s3_path": {
