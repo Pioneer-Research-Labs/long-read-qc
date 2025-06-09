@@ -7,10 +7,12 @@
       "id": {
         "type": "string",
         "unique" : true,
-        "errorMessage": "Sample name must be provided and must be unique"
+        "errorMessage": "Sample name must be provided and must be unique",
+        "meta": ["id"]
       },
       "genome": {
-        "type": "string"
+        "type": "string",
+        "meta": ["genome"]
       },
       "construct": {
         "type": "string"
