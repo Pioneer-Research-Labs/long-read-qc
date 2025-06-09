@@ -12,7 +12,8 @@
     },
     "cores": {
       "type": "integer",
-      "default": 4
+      "default": 4,
+      "hidden": true
     },
     "tech": {
       "type": "string",
@@ -25,53 +26,66 @@
     "parentdir": {
       "type": "string",
       "default": "prod",
-      "enum": ["prod", "dev"]
+      "enum": ["prod", "dev"],
+      "hidden": true
     },
     "genomes": {
       "type": "string",
-      "default": "s3://pioneer-data/genomes/"
+      "default": "s3://pioneer-data/genomes/",
+      "hidden": true
     },
     "constructs": {
       "type": "string",
-      "default": "s3://pioneer-sequencing/constructs/"
+      "default": "s3://pioneer-sequencing/constructs/",
+      "hidden": true
     },
     "error_rate": {
       "type": "number",
-      "default": 0.1
+      "default": 0.1,
+      "hidden": true
     },
     "min_overlap": {
       "type": "integer",
-      "default": 3
+      "default": 3,
+      "hidden": true
     },
     "min_bc_len": {
       "type": "integer",
-      "default": 20
+      "default": 20,
+      "hidden": true
     },
     "max_bc_len": {
       "type": "integer",
-      "default": 60
+      "default": 60,
+      "hidden": true
     },
     "sourmash_db": {
       "type": "string",
-      "default": "/srv/shared/databases/sourmash/gtdb-rs220-k21.zip"
+      "default": "/srv/shared/databases/sourmash/gtdb-rs220-k21.zip",
+      "hidden": true
     },
     "meta_ovlp": {
       "type": "integer",
-      "default": 1000
+      "default": 1000,
+      "hidden": true
     },
     "taxonomy": {
       "type": "string",
-      "default": "/srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb"
+      "default": "/srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb",
+      "hidden": true
     },
     "path_prefix": {
       "type": "string"
     },
     "aws_batch": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": true,
+      "hidden": true
     },
     "s3_path": {
       "type": "string",
-      "default": "s3://pioneer-analysis/long_read_qc/"
+      "default": "s3://pioneer-analysis/long_read_qc/",
+      "hidden": true
     },
     "outdir": {
       "type": "string",
