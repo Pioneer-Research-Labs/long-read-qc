@@ -83,8 +83,8 @@ Long Read Processing and QC Pipeline
     Channel.fromSamplesheet("samplesheet")
         .map { meta, construct, sequence ->
             file(params.genomes + meta.genome + "/" + meta.genome + "_contigs.fna", checkIfExists:true)
-            file(params.genomes + row.genome + "/" + row.genome + "_genes.bed", checkIfExists:true)
-            file(params.genomes + row.genome + "/" + row.genome + "_genes.gff", checkIfExists:true)
+            file(params.genomes + meta.genome + "/" + meta.genome + "_genes.bed", checkIfExists:true)
+            file(params.genomes + meta.genome + "/" + meta.genome + "_genes.gff", checkIfExists:true)
             [meta, file(sequence), file(params.constructs + construct, checkIfExists:true)]
 
         }
