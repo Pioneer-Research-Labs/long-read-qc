@@ -192,7 +192,7 @@ Long Read Processing and QC Pipeline
             [meta2, path]
     }
 
-    // map inserts and add the dynamically generated path to the contigs.fna file, adding it to the channel
+    // map inserts and add the dynamically generate the path to the contigs.fna file, adding it to the channel
     mapped = map_inserts(splits.single | map {
 	meta, seq_path -> [meta, seq_path, "${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()]
 	})
