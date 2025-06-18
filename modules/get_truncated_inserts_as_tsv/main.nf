@@ -1,5 +1,4 @@
 process get_truncated_inserts_as_tsv {
-    publishDir "$params.localdir/$meta.id",  mode: 'copy'
     publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 

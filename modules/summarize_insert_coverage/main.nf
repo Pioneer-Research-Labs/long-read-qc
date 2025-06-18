@@ -1,5 +1,4 @@
 process summarize_insert_coverage{
-    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Summarizing insert coverage'
 

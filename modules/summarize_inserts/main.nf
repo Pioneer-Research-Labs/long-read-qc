@@ -1,5 +1,4 @@
 process summarize_inserts{
-    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Summarizing inserts'
 

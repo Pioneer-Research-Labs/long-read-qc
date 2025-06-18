@@ -1,6 +1,4 @@
 process samples {
-
-    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Moving sample sheet'
 

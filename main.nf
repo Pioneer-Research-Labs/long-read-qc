@@ -36,6 +36,7 @@ include { get_truncated_inserts_as_tsv } from './modules/get_truncated_inserts_a
 include { barcode_counts } from './modules/barcode_counts'
 include { prepare_report } from './modules/prepare_report'
 include { samples } from './modules/samples'
+include { fromSamplesheet } from 'plugin/nf-validation'
 
 def helpMessage() {
     log.info """
@@ -79,11 +80,12 @@ Long Read Processing and QC Pipeline
         exit 0
     }
 
-    channel.fromPath(params.samplesheet)
-        .splitCsv(header:true)
-        .map { row ->
-            meta = [id:row.id, genome:row.genome]
-            [meta, file(row.file), file(params.constructs + row.construct)]
+    Channel.fromSamplesheet("samplesheet")
+        .map { meta, construct, sequence ->
+            file(params.genomes + meta.genome + "/" + meta.genome + "_contigs.fna", checkIfExists:true)
+            file(params.genomes + meta.genome + "/" + meta.genome + "_genes.bed", checkIfExists:true)
+            file(params.genomes + meta.genome + "/" + meta.genome + "_genes.gff", checkIfExists:true)
+            [meta, file(sequence), file(params.constructs + construct, checkIfExists:true)]
 
         }
         | set {input_ch}
@@ -190,7 +192,7 @@ Long Read Processing and QC Pipeline
             [meta2, path]
     }
 
-    // map inserts and add the dynamically generated path to the contigs.fna file, adding it to the channel
+    // map inserts and add the dynamically generate the path to the contigs.fna file, adding it to the channel
     mapped = map_inserts(splits.single | map {
 	meta, seq_path -> [meta, seq_path, "${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()]
 	})

@@ -1,6 +1,4 @@
 process prepare_report {
-
-    publishDir("$params.localdir"),  mode: 'copy'
     publishDir("$params.outdir"),  mode: 'copy'
     tag 'Preparing report'
 
