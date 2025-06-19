@@ -1,0 +1,13 @@
+{
+    "Should generate genome tags": {
+        "content": [
+            "combined_tags.csv:md5,02e69e651be84ddcfbb422dda08e3ee2",
+            "prefixed_tags.csv:md5,e4eb395740c83f03c22776c0320d2932"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.2"
+        },
+        "timestamp": "2025-06-18T21:05:29.302349"
+    }
+}

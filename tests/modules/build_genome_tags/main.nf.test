@@ -1,0 +1,34 @@
+nextflow_process {
+
+    name "Test Process build_genome_tags"
+    script "modules/build_genome_tags/main.nf"
+    process "build_genome_tags"
+
+    test("Should generate genome tags") {
+
+        when {
+            params {
+                 outdir = outputDir
+            }
+            process {
+                """
+                // define inputs of the process here
+                input[0] = Channel.fromList([ tuple( [id:'Gateway_EmptyBarcodedLib1_20241217',
+                genome:'H_elongata'],
+                file('${projectDir}/test_data/c.00432.dna'),
+                file('${projectDir}/test_data/Tesseract_Barcode_Tracking_Grid.csv'))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot(
+                "$outputDir/Gateway_EmptyBarcodedLib1_20241217/combined_tags.csv",
+                "$outputDir/Gateway_EmptyBarcodedLib1_20241217/prefixed_tags.csv",
+            ).match()
+        }
+
+    }
+
+}
