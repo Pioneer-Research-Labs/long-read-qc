@@ -1,0 +1,15 @@
+{
+    "Should extract two genome tags from inputs": {
+        "content": [
+            "extracted_genome_tags.tsv:md5,9766e52d6aaf6266931df85580c3caa0",
+            "genome_tags.fasta:md5,2fae16d07bc950eb02d18f03a2dcba3f",
+            "cutadapt_genome_tags_info.tsv:md5,c804dc0c1d53a3a766c77037afd30c2c",
+            "cutadapt_genome_tags_report.json:md5,7b2b08f248752223ca84bba9dadc7320"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.2"
+        },
+        "timestamp": "2025-06-19T09:24:05.25498"
+    }
+}

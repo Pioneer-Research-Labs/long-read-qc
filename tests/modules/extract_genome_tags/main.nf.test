@@ -1,0 +1,39 @@
+nextflow_process {
+
+    name "Test Process extract_genome_tags"
+    script "modules/extract_genome_tags/main.nf"
+    process "extract_genome_tags"
+
+    test("Should extract two genome tags from inputs") {
+
+        when {
+            params {
+                outdir = outputDir
+            }
+            process {
+                """
+                // define inputs of the process here. Example:
+                input[0] = Channel.fromList([ tuple( [id:'WJ4Y3Y_MNT_008',
+                genome:''],
+                file('${projectDir}/test_data/WJ4Y3Y_MNT_008/WJ4Y3Y_samples.fasta'),
+                file('${projectDir}/test_data/c.00432.dna'),
+                file('${projectDir}/test_data/WJ4Y3Y_MNT_008/genome_tag_flanking.gb'))])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path("$outputDir/WJ4Y3Y_MNT_008/extracted_genome_tags.tsv").readLines().size() == 2
+            assert snapshot(
+                ("$outputDir/WJ4Y3Y_MNT_008/extracted_genome_tags.tsv"),
+                ("$outputDir/WJ4Y3Y_MNT_008/genome_tags.fasta"),
+                ("$outputDir/WJ4Y3Y_MNT_008/cutadapt_genome_tags_info.tsv"),
+                ("$outputDir/WJ4Y3Y_MNT_008/cutadapt_genome_tags_report.json")
+            ).match()
+
+        }
+
+    }
+
+}
