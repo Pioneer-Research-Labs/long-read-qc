@@ -24,7 +24,7 @@ process extract_genome_tags {
         -j $task.cpus \
         --json cutadapt_genome_tags_report.json \
         $reads
-    seqkit seq --min-len 1 genome_tags_cutadapt.fasta > genome_tags.fasta
+    seqkit seq --min-len 8 --max-len 8 genome_tags_cutadapt.fasta > genome_tags.fasta
     seqkit fx2tab -Q genome_tags.fasta > extracted_genome_tags.tsv
     """
 }
