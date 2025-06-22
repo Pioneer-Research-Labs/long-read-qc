@@ -10,22 +10,20 @@
         "errorMessage": "Sample name must be provided and must be unique",
         "meta": ["id"]
       },
-      "genome": {
-        "type": "string",
-        "meta": ["genome"]
-      },
       "construct": {
-        "type": "string"
+        "type": "string",
+        "meta": ["construct"]
       },
       "file": {
           "type": "string",
           "format": "file-path",
           "exists": true,
           "unique" : true,
-          "pattern": "^s3:\\/\\/pioneer-seq(uencing|center)|pioneer-analysis\\/\\S*.f(ast)?q\\.gz$",
-          "errorMessage": "FastQ file for reads must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+          "pattern": "^s3:\\/\\/pioneer-seq(uencing|center)\\/\\S*.f(ast)?q\\.gz$",
+          "errorMessage": "FastQ file for reads must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'",
+          "meta": ["fastq"]
       }
     },
-    "required": ["id", "construct", "genome", "file"]
+    "required": ["id", "construct", "file"]
   }
 }

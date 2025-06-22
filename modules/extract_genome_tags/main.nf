@@ -5,7 +5,7 @@ process extract_genome_tags {
     cpus params.cores
 
     input:
-    tuple val(meta), path(reads), path(construct), path(flanking)
+    tuple val(meta),  path(construct), path(reads), path(flanking)
 
     output:
     tuple val(meta), path("genome_tags.fasta"), path ("cutadapt_genome_tags_report.json"),
@@ -14,6 +14,7 @@ process extract_genome_tags {
 
     script:
     """
+
     cutadapt \
         -g \$(bc_template.py $flanking cutadapt_genome_tag False $construct ) \
         --revcomp \

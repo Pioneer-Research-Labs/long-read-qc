@@ -1,0 +1,32 @@
+nextflow_process {
+
+    name "Test Process process_8bp_genome_tags"
+    script "modules/process_8bp_genome_tags/main.nf"
+    process "process_8bp_genome_tags"
+
+    test("Should generate several fastq files by genome") {
+
+        when {
+            params {
+                outdir = outputDir
+            }
+            process {
+                """
+               input[0] = Channel.fromList([ tuple( [id:'test_sample'],
+                file('${projectDir}/test_data/test_extracted_genome_tags.tsv'),
+                file('${projectDir}/test_data/Tesseract_Barcode_Tracking_Grid.csv'),
+                file('s3://pioneer-scratch/dummy/dummy_seqs/test.fastq.gz'),
+                file('${projectDir}/test_data/c.00432.dna') )])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path("$outputDir/test_sample/test_sample_sample_sheet.csv").readLines().size() == 11
+            assert snapshot("$outputDir/test_sample/test_sample_sample_sheet.csv").match()
+        }
+
+    }
+
+}
