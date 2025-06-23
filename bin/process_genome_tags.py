@@ -54,7 +54,7 @@ def run_command(cmd):
                 print(f"Error: {err.decode()}")
 
 
-def run_seqkit(output_files, fastq_file):
+def run_seqkit(output_files, fastq_file, sample_name, construct, outdir):
     """
     Run seqkit to extract sequences from a fastq.gz file using the output CSV files.
 
@@ -76,17 +76,6 @@ def run_seqkit(output_files, fastq_file):
     for t in threads:
         t.join()
 
-    return output_files
-
-
-def generate_sample_sheet(sample_name, output_files, construct, outdir):
-    """
-    Generate a sample sheet for the output files.
-
-    Parameters:
-    sample_name (str): Name of the sample.
-    output_files (list): List of output CSV files.
-    """
     with open(f"{sample_name}_sample_sheet.csv", 'w') as f:
         for file in output_files:
             fastq = file.replace('.csv', '.fq.gz')
@@ -94,14 +83,18 @@ def generate_sample_sheet(sample_name, output_files, construct, outdir):
             s3_location = f"{outdir}/{sample_name}/{fastq}"
             f.write(f"{sample_name}_{genome},{genome},{construct},{s3_location}\n")
 
+    return output_files
+
+
+
 if __name__ == '__main__':
     genome_tags_tsv = sys.argv[1]
     tesseract_oligos_csv = sys.argv[2]
     sample_name = sys.argv[3]
     fastq_file = sys.argv[4]
     construct = sys.argv[5]
-    outdir = sys.argv[6]
+    outdir: str = sys.argv[6]
     outputs = process_genome_tags(genome_tags_tsv, tesseract_oligos_csv, sample_name)
-    output_files = run_seqkit(outputs, fastq_file)
-    generate_sample_sheet(sample_name, output_files, construct, outdir)
+    output_files = run_seqkit(outputs, fastq_file, sample_name, construct, outdir)
+    #generate_sample_sheet(sample_name, output_files, construct, outdir)
 
