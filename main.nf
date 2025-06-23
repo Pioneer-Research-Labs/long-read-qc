@@ -38,6 +38,7 @@ include { barcode_counts } from './modules/barcode_counts'
 include { prepare_report } from './modules/prepare_report'
 include { samples } from './modules/samples'
 include { process_8bp_genome_tags} from './modules/process_8bp_genome_tags'
+include {aggregate_sample_sheets} from './modules/aggregate_sample_sheets'
 include { samplesheetToList } from 'plugin/nf-schema'
 
 def helpMessage() {
@@ -94,7 +95,12 @@ workflow preprocess_genome_tags {
             meta, genome_tags, report, genome_tags_info, genome_tags_tsv, construct, fastq ->
             [meta, genome_tags_tsv, file(params.tesseract_oligo_file), fastq, construct]
         }
-    (genome_fq_list, samplesheet) = process_8bp_genome_tags(process_inputs)
+    sample_sheet_map = process_8bp_genome_tags(process_inputs).collectFile(){
+        meta, genome_fastqs, sample_sheet ->
+        ["sample_sheet_map.tsv", "${meta.id}\t${params.path_prefix}${sample_sheet}\n"]
+    }
+
+    final_sample_sheet = aggregate_sample_sheets(sample_sheet_map)
 
 }
 

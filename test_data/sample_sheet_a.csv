@@ -1,0 +1,3 @@
+b.59_11genomes_H_elongata,H_elongata,c.00432.dna,s3://pioneer-analysis/long_read_qc/dev/2025_06_22_11_22_49_samplesheet/b.59_11genomes/H_elongata.fq.gz
+b.59_11genomes_R_radiotolerans,R_radiotolerans,c.00432.dna,s3://pioneer-analysis/long_read_qc/dev/2025_06_22_11_22_49_samplesheet/b.59_11genomes/R_radiotolerans.fq.gz
+b.59_11genomes_E_coli_K12,E_coli_K12,c.00432.dna,s3://pioneer-analysis/long_read_qc/dev/2025_06_22_11_22_49_samplesheet/b.59_11genomes/E_coli_K12.fq.gz
