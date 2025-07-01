@@ -22,8 +22,8 @@
           "format": "file-path",
           "exists": true,
           "unique" : true,
-          "pattern": "^s3:\\/\\/pioneer-seq(uencing|center)|pioneer-analysis\\/\\S*.f(ast)?q\\.gz$",
-          "errorMessage": "FastQ file for reads must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+          "pattern": "^s3:\\/\\/pioneer.*(\\.fastq\\.gz|\\.fq\\.gz|fastq|\\.fq)$",
+          "errorMessage": "FastQ file for reads must be provided, cannot contain spaces and must have extension '.fq.gz','.fastq.gz','fq', or 'fastq'"
       }
     },
     "required": ["id", "construct", "genome", "file"]
