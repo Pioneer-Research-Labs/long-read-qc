@@ -5,3 +5,7 @@ work
 .fileid.db
 .nextflow*
 .DS_Store
+.idea/
+.nf-test/
+.nextflow.log*
+
