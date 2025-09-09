@@ -74,7 +74,7 @@ workflow preprocess_genome_tags {
             id = [id:meta.id]
             meta = [id, file(params.constructs + meta.construct),file(meta.fastq, checkIfExists:true)]
 
-        }
+    }
 
     genome_constructs = data
         .map { data ->
