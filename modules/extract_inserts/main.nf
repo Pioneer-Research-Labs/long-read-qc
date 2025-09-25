@@ -11,7 +11,6 @@ process extract_inserts {
     tuple val(meta), path("inserts.fasta")
     path ("cutadapt_inserts_report.json")
     path ("cutadapt_info.tsv")
-    path(" inserts_size_0.tsv")
     tuple val(meta), path ("untrimmed.fastq")
 
 
@@ -28,7 +27,6 @@ process extract_inserts {
         -j $task.cpus \
         --json cutadapt_inserts_report.json \
         $reads
-    seqkit seq --min-len 1 inserts_cutadapt.fasta > inserts.fasta
-    seqkit seq --min-len 0 inserts_cutadapt.fasta | seqkit fx2tab >  inserts_size_0.tsv
+    seqkit seq --min-len 0 inserts_cutadapt.fasta > inserts.fasta
     """
 }
