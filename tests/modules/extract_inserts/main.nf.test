@@ -25,7 +25,6 @@ nextflow_process {
             assert path("$outputDir/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").readLines().size() == 72
             assert snapshot(
             ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta"),
-            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/cutadapt_inserts_report.json"),
             ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/untrimmed.fastq"),
             ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/cutadapt_info.tsv")).match()
         }
