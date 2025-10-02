@@ -128,7 +128,7 @@ Long Read Processing and QC Pipeline
     // extract barcodes
     (barcodes, bc_report, bc_tab) = extract_barcodes(joinChannel)
     // extract inserts, returning insert_fasta (with metadata), cutadapt report, cutadapt info, and a fastq file of reads that weren't trimmed
-    (inserts, ins_report, in_tab, untrimmed_meta) = extract_inserts(joinChannel)
+    (inserts, ins_report, in_tab, zero_len_inserts, untrimmed_meta) = extract_inserts(joinChannel)
 
 
     // Join untrimmed_meta with input_ch, yielding a channel that contains the metadata,
