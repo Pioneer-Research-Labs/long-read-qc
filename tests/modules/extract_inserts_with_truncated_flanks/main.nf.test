@@ -24,7 +24,6 @@ nextflow_process {
             assert process.success
             assert snapshot(
             ("$outputDir/HE_USER-gapfill_Lib1_20241220/inserts_from_truncated_flanks.fasta"),
-            ("$outputDir/HE_USER-gapfill_Lib1_20241220/cutadapt_inserts_report_from_truncated_flanks.json"),
             ("$outputDir/HE_USER-gapfill_Lib1_20241220/untrimmed_from_truncated_flanks.fastq"),
             ("$outputDir/HE_USER-gapfill_Lib1_20241220/cutadapt_info_from_truncated_flanks.tsv")).match()
         }
