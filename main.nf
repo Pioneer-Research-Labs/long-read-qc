@@ -127,34 +127,39 @@ Long Read Processing and QC Pipeline
 
     // extract barcodes
     (barcodes, bc_report, bc_tab) = extract_barcodes(joinChannel)
+
     // extract inserts, returning insert_fasta (with metadata), cutadapt report, cutadapt info, and a fastq file of reads that weren't trimmed
     (inserts, ins_report, in_tab, zero_len_inserts, untrimmed_meta) = extract_inserts(joinChannel)
 
 
+
     // Join untrimmed_meta with input_ch, yielding a channel that contains the metadata,
     // reads, construct, flanking sequence and the fastq file of reads that weren't trimmed.
-    joinChannel.join(untrimmed_meta)
-        .map { meta, reads, construct, flanking, untrimmed_fq ->
-            // Return the meta data, flanking sequence, and the fastq file of reads that weren't trimmed
-            [meta, flanking, untrimmed_fq]
-        } | set {untrimmed_with_reads}
+    if (untrimmed_meta) {
+         joinChannel.join(untrimmed_meta)
+            .map { meta, reads, construct, flanking, untrimmed_fq ->
+                // Return the meta data, flanking sequence, and the fastq file of reads that weren't trimmed
+                [meta, flanking, untrimmed_fq]
+            } | set {untrimmed_with_reads}
 
-    // extract any inserts with truncated flanking sequences
-    truncated_data = extract_inserts_with_truncated_flanks(untrimmed_with_reads)
+        // extract any inserts with truncated flanking sequences
+        truncated_data = extract_inserts_with_truncated_flanks(untrimmed_with_reads)
 
-    // Generate a .tsv of the truncated insert data
-    get_truncated_inserts_as_tsv(truncated_data)
+        // Generate a .tsv of the truncated insert data
+        get_truncated_inserts_as_tsv(truncated_data)
 
-    // We need the insert fasta file for the full inserts and the truncated inserts to compare them.
-    data_for_plot = truncated_data.join(inserts)
-         .map { meta, truncated_insert_fasta, cutadapt_truncated_report,  untrimmed_from_truncated_fq, cutadapt_truncated_info, full_inserts ->
-             // Return the meta data, full inserts, truncated inserts, and untrimmed fastq file
-             [meta, full_inserts, truncated_insert_fasta, untrimmed_from_truncated_fq]
-         } // We also need the original sequence file to generate a list of sequence ids/lengths.
-         .join(read_ch)
+        // We need the insert fasta file for the full inserts and the truncated inserts to compare them.
+        data_for_plot = truncated_data.join(inserts)
+             .map { meta, truncated_insert_fasta, cutadapt_truncated_report,  untrimmed_from_truncated_fq, cutadapt_truncated_info, full_inserts ->
+                 // Return the meta data, full inserts, truncated inserts, and untrimmed fastq file
+                 [meta, full_inserts, truncated_insert_fasta, untrimmed_from_truncated_fq]
+             } // We also need the original sequence file to generate a list of sequence ids/lengths.
+             .join(read_ch)
 
-    // Plot the comparisons between full and truncated inserts
-   plot_comparison_of_full_to_truncated_inserts(data_for_plot)
+        // Plot the comparisons between full and truncated inserts
+       plot_comparison_of_full_to_truncated_inserts(data_for_plot)
+    }
+
 
 
     // combine for read stats
