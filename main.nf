@@ -74,7 +74,7 @@ Long Read Processing and QC Pipeline
 """
 
  // Show help message
-
+    print("Long read qc pipeline started and results are stored in :" + params.outdir)
     if (params.help) {
         helpMessage()
         exit 0
