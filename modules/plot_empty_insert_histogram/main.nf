@@ -1,0 +1,19 @@
+process empty_insert_histogram {
+    publishDir("$params.outdir/$meta.id", mode: 'copy')
+
+    input:
+        tuple val(meta), path(barcodes), path(inserts), path(sites)
+
+    output:
+        path("histogram_of_sites_with_barcode_no_insert.png")
+        path('summary_of_counts.csv')
+        path('sites.tsv')
+
+    script:
+    """
+     seqkit fx2tab -li $barcodes > barcodes.tsv;
+     seqkit fx2tab -li $inserts > inserts.tsv;
+     seqkit fx2tab -li $sites > sites.tsv;
+     empty_insert_plots.py barcodes.tsv inserts.tsv sites.tsv ${meta.id}
+    """
+}
