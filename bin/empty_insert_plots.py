@@ -1,5 +1,7 @@
+#!/usr/bin/env python
+
 import pandas as pd
-import seaborn as sns
+from textwrap import fill
 import matplotlib.pyplot as plt
 from pathlib import Path
 
@@ -18,15 +20,19 @@ def empty_insert_plots(barcode_file, insert_file, site_file, title):
     sites_with_barcodes_no_inserts = sites_with_barcodes.merge(inserts, on='id', how='outer', indicator=True, ).query(
         '_merge=="left_only"').drop('_merge', axis=1)
 
-    sns.histplot(data=sites_with_barcodes_no_inserts, x="length_x")
-    plt.title(f"{title} - Histogram of sites with barcodes but no inserts")
+    plt.hist(sites_with_barcodes_no_inserts['length_x'])
+    plt.ylabel('Count')
+    plt.xlabel('Length of sequence')
+    plt.title(fill(f"{title} - Flanking site regions with barcodes but no inserts"))
     output_file = Path('histogram_of_sites_with_barcode_no_insert.png')
+    plt.tight_layout()
     plt.savefig(output_file)
     plt.close()
 
     # Write out file summarizing lengths for each dataframe
-    with open("summary_of_counts.csv", "w") as summary_file:
+    with open("counts_of_inserts_barcodes_flanking_site_sequences.csv", "w") as summary_file:
         summary_file.write(
+            f"Sample name,"
             f"Count of sequences with inserts,"
             f"Count of sequences with barcodes,"
             f"Count of sequences with site flanks,"
@@ -34,6 +40,7 @@ def empty_insert_plots(barcode_file, insert_file, site_file, title):
             f"Count of sequences with site flanks and barcodes but no inserts\n"
         )
         summary_file.write(
+            f"{title},"
             f"{len(inserts)},"
             f"{len(barcodes)},"
             f"{len(sites)},"
