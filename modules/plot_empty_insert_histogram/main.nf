@@ -6,7 +6,7 @@ process empty_insert_histogram {
 
     output:
         path("histogram_of_sites_with_barcode_no_insert.png")
-        path('summary_of_counts.csv')
+        path('counts_of_inserts_barcodes_flanking_site_sequences.csv')
         path('sites.tsv')
 
     script:
@@ -14,6 +14,6 @@ process empty_insert_histogram {
      seqkit fx2tab -li $barcodes > barcodes.tsv;
      seqkit fx2tab -li $inserts > inserts.tsv;
      seqkit fx2tab -li $sites > sites.tsv;
-     empty_insert_plots.py barcodes.tsv inserts.tsv sites.tsv ${meta.id}
+     empty_insert_plots.py barcodes.tsv inserts.tsv sites.tsv $meta.id
     """
 }
