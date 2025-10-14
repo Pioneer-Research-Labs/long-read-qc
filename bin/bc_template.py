@@ -29,6 +29,9 @@ def extract_flanks(path, out_type, trim_insert_flank=False):
             seq_up = trim_string(seq_up, 0, 35)
             seq_dn = trim_string(seq_dn, 35, 0)
         bc = f'{seq_up}...{seq_dn}'
+    elif out_type == 'cutadapt_site':
+        ordered_seqs = order_based_on_position(filter_seqs_on_name(seqs, r'SITE(UP|DN)'))
+        bc = f'{str(ordered_seqs[0].seq)}...{str(ordered_seqs[1].seq)}'
     elif out_type == "bartender":
         ordered_seqs = order_based_on_position(filter_seqs_on_name(seqs, r'BARCODE[0-9]{0,2}(UP|DN)'))
         bc = f'{str(ordered_seqs[0].seq[-5:])}[20]{mid}[20]{str(ordered_seqs[1].seq[:5])}'
