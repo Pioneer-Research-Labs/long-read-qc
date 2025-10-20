@@ -20,7 +20,7 @@ def empty_insert_plots(barcode_file, insert_file, site_file, title):
     sites_with_barcodes_no_inserts = sites_with_barcodes.merge(inserts, on='id', how='outer', indicator=True, ).query(
         '_merge=="left_only"').drop('_merge', axis=1)
 
-    plt.hist(sites_with_barcodes_no_inserts['length_x'])
+    plt.hist(sites_with_barcodes_no_inserts['length_y'])
     plt.ylabel('Count')
     plt.xlabel('Length of sequence')
     plt.title(fill(f"{title} - Flanking site regions with barcodes but no inserts"))
