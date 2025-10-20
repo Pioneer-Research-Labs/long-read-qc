@@ -30,6 +30,12 @@
       "enum": ["prod", "dev"],
       "hidden": true
     },
+    "queue": {,
+      "type": "string",
+      "default": "nextflow-batch",
+      "enum": ["nextflow-batch", "nextflow-short-read-queue"],
+      "hidden": true
+    },
     "genomes": {
       "type": "string",
       "default": "s3://pioneer-data/genomes/",
