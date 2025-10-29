@@ -8,7 +8,7 @@ process summarize_inserts{
     output:
         path 'concatenated_inserts.csv'
         path 'insert_length_distribution.csv'
-        path 'insert_length_distribution.png'
+        path 'insert_length_barplot.png'
 
     script:
     """

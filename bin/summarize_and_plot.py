@@ -146,16 +146,33 @@ def plot_copy_number(barcode_df):
     sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     plt.savefig('barcode_copy_number.png', bbox_inches='tight')
 
-
-
-def plot_insert_length_histogram(inserts):
+def plot_insert_length_histogram(insert):
     """
-    Plot the distribution of insert lengths
+    Plot the distribution of insert lengths as a histogram
+    :param insert: DataFrame containing insert information
+    """
+    df_plot = insert
+    if df_plot.empty:
+        plt.savefig('insert_length_histogram.png') # empty plot
+        return
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    sns.histplot(df_plot,
+                 x='insert_len',
+                 ax=ax)
+    ax.set_xlabel('Insert length (bp)')
+    ax.set_title('Insert lengths')
+    plt.savefig('insert_length_histogram.png', bbox_inches='tight')
+
+
+def plot_insert_length_barplot(inserts):
+    """
+    Create barplot of insert lengths
     :param inserts: DataFrame containing insert information
     """
     df_plot = inserts
     if df_plot.empty:
-        plt.savefig('insert_length_distribution.png') # empty plot
+        plt.savefig('insert_length_barplot.png') # empty plot
         write_empty_file('insert_length_distribution.csv')
         return
     df_plot.to_csv('insert_length_distribution.csv', index=False)
@@ -167,7 +184,7 @@ def plot_insert_length_histogram(inserts):
                 ax=ax)
 
     ax.set_title('Distribution of insert lengths')
-    plt.savefig('insert_length_distribution.png', bbox_inches='tight')
+    plt.savefig('insert_length_barplot.png', bbox_inches='tight')
 
 
 def plot_genome_coverage(coverage_df):
@@ -320,10 +337,13 @@ def process(sample_file_map, summary_type, **kwargs):
             plot_proportions_of_barcodes(concatenated_df)
             plot_copy_number(concatenated_df)
 
+        case 'insert_histogram':
+            df = pd.read_table(sample_file_map, names=['read', 'insert_seq', 'insert_len'], usecols=[0, 1, 3], engine='c', quoting=csv.QUOTE_NONE, sep="\t")
+            plot_insert_length_histogram(df)
         case 'insert':
             output_file_name = 'concatenated_inserts.csv'
             concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
-            plot_insert_length_histogram(concatenated_df)
+            plot_insert_length_barplot(concatenated_df)
 
         case 'genome_coverage':
             output_file_name = 'concatenated_genome_coverage.csv'

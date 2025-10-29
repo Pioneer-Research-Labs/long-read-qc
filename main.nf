@@ -33,6 +33,7 @@ include { plot_comparison_of_full_to_truncated_inserts } from './modules/plot_co
 include { plot_depth } from './modules/plot_depth'
 include { get_flanks } from './modules/get_flanks'
 include { get_barcodes_as_tsv } from './modules/get_barcodes_as_tsv'
+include { plot_insert_histogram } from './modules/plot_insert_histogram'
 include { get_inserts_as_tsv } from './modules/get_inserts_as_tsv'
 include { get_truncated_inserts_as_tsv } from './modules/get_truncated_inserts_as_tsv'
 include { barcode_counts } from './modules/barcode_counts'
@@ -133,6 +134,8 @@ Long Read Processing and QC Pipeline
     // extract inserts, returning insert_fasta (with metadata), cutadapt report, cutadapt info, and a fastq file of reads that weren't trimmed
     (inserts, ins_report, in_tab, untrimmed_meta) = extract_inserts(joinChannel)
 
+    // plot histogram of insert lengths
+    plot_insert_histogram(inserts)
 
     //extract cut sites from constructs
     (sites_fasta, site_report, site_info, untrimmed_site_fastq) = extract_sites(joinChannel)
