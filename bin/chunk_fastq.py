@@ -57,7 +57,7 @@ def process_sample_sheet(sample_sheet_path):
         path = row['file']
         if not path.startswith('s3://'):
             print(f"Sequence files in the samples sheet must reside in AWS S3")
-            return
+            return None
         # Get the bucket and key from the s3 path
         s = S3Url(path)
         bucket = s.bucket
@@ -171,7 +171,7 @@ def count_reads_using_seqkit(fastq_file):
     error_str = error.decode('utf-8')
     if error_str.startswith("Error"):
         print(f"Error: {error_str}")
-        return
+        return None
     else:
         print(f"Successfully counted reads in fastq file using seqkit")
 

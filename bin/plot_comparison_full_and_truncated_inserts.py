@@ -21,6 +21,12 @@ def plot(inserts_full, insert_truncated, all_seq_lengths, length_untrimmed, samp
     full_df['source'] = 'intact_flanks'
     truncated_df = pd.read_csv(insert_truncated, sep='\t', names=['id', 'length'])
     truncated_df['source'] = 'truncated_flanks'
+
+    # If empty dataframes are returned, return early
+    if full_df.empty or truncated_df.empty:
+        print("No data to plot. Exiting.")
+        plt.savefig('truncated_vs_intact_flanks_comparison_plot.png')
+        return
     all_inserts_df = pd.concat([truncated_df, full_df])
 
     # Read lengths for intact and truncated inserts
@@ -28,6 +34,7 @@ def plot(inserts_full, insert_truncated, all_seq_lengths, length_untrimmed, samp
     all_inserts_with_lengths = pd.merge(all_inserts_df, all_seq_lengths_df, on='id', how='left')
     combined_with_read_length = all_inserts_with_lengths[all_inserts_with_lengths['read_length'].notna()]
     no_inserts = pd.read_csv(length_untrimmed, sep='\t', names=['id', 'read_length'])
+
 
     fig, ax = plt.subplots(ncols=4, figsize=(25, 6))
     sns.histplot(all_inserts_df,

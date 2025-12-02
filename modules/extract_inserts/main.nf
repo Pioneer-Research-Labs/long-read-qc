@@ -27,6 +27,6 @@ process extract_inserts {
         -j $task.cpus \
         --json cutadapt_inserts_report.json \
         $reads
-    seqkit seq --min-len 1 inserts_cutadapt.fasta > inserts.fasta
+    seqkit seq --min-len 0 inserts_cutadapt.fasta > inserts.fasta
     """
 }
