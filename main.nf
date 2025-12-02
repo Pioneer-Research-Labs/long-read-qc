@@ -150,19 +150,37 @@ workflow long_read_qc{
 
     joinChannel = input_ch.join(flanking)
 
-    // extract barcodes
+    //extract barcodes
     (barcodes, bc_report, bc_tab) = extract_barcodes(joinChannel)
+
     // extract inserts, returning insert_fasta (with metadata), cutadapt report, cutadapt info, and a fastq file of reads that weren't trimmed
-     (inserts, ins_report, in_tab, untrimmed_meta) = extract_inserts(joinChannel)
+    (inserts, ins_report, in_tab, untrimmed_meta) = extract_inserts(joinChannel)
+
+    // plot histogram of insert lengths
+    plot_insert_histogram(inserts)
+
+    //extract cut sites from constructs
+    (sites_fasta, site_report, site_info, untrimmed_site_fastq) = extract_sites(joinChannel)
+
+    input_ch
+        .join(barcodes)
+        .join(inserts)
+        .join(sites_fasta)
+        .map { meta, reads, construct, barcodes, inserts, sites ->
+            // Return the meta data, barcodes, inserts, and cut sites
+            [meta, barcodes, inserts, sites]
+        } | set {dataChannel}
+
+   empty_insert_histogram(dataChannel)
+
 
     // Join untrimmed_meta with input_ch, yielding a channel that contains the metadata,
     // reads, construct, flanking sequence and the fastq file of reads that weren't trimmed.
-    joinChannel.join(untrimmed_meta)
+     joinChannel.join(untrimmed_meta)
         .map { meta, reads, construct, flanking, untrimmed_fq ->
             // Return the meta data, flanking sequence, and the fastq file of reads that weren't trimmed
             [meta, flanking, untrimmed_fq]
         } | set {untrimmed_with_reads}
-
     // extract any inserts with truncated flanking sequences
     truncated_data = extract_inserts_with_truncated_flanks(untrimmed_with_reads)
 
@@ -179,7 +197,6 @@ workflow long_read_qc{
 
     // Plot the comparisons between full and truncated inserts
    plot_comparison_of_full_to_truncated_inserts(data_for_plot)
-
 
     // combine for read stats
     combined_data = input_ch

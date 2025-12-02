@@ -16,7 +16,7 @@ def extract_flanks(path):
     :return: Written Genbank file with the flanking sequences
     """
     con = snapgene_file_to_dict(path)
-    part_labels = [r'INSERT(UP|DN)', r'BARCODE[0-9]{0,2}(UP|DN)',  r'Barcode (R|F)', 'Secondary Barcode for Donor gDNA']
+    part_labels = [r'INSERT(UP|DN)', r'BARCODE[0-9]{0,2}(UP|DN)',  r'Barcode (R|F)', 'Secondary Barcode for Donor gDNA', r'SITE(UP|DN)']
     part_list = {}
     for x in con['features']:
         if any(re.match(reg, x['name']) for reg in part_labels):
