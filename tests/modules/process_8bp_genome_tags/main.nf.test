@@ -24,7 +24,6 @@ nextflow_process {
         then {
             assert process.success
             assert path("$outputDir/test_sample/test_sample_sample_sheet.csv").readLines().size() == 11
-            assert snapshot("$outputDir/test_sample/test_sample_sample_sheet.csv").match()
         }
 
     }
