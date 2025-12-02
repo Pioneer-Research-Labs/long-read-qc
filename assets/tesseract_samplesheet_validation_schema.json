@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "unique" : true,
+        "errorMessage": "Sample name must be provided and must be unique",
+        "meta": ["id"]
+      },
+      "construct": {
+        "type": "string",
+        "meta": ["construct"]
+      },
+      "file": {
+          "type": "string",
+          "format": "file-path",
+          "exists": true,
+          "unique" : true,
+          "pattern": "^s3:\\/\\/pioneer.*(\\.fastq\\.gz|\\.fq\\.gz|fastq|\\.fq)$",
+          "errorMessage": "FastQ file for reads must be provided, cannot contain spaces and must have extension '.fq.gz','.fastq.gz','fq', or 'fastq'",
+          "meta": ["fastq"]
+      }
+    },
+    "required": ["id", "construct", "file"]
+  }
+}
