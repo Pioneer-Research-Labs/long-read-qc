@@ -7,7 +7,4 @@ work
 .DS_Store
 .idea/
 .nf-test/
-*.fastq
-*.json
-*.csv
 __pychache__/
