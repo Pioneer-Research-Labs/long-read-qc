@@ -11,16 +11,6 @@
       "mimetype": "text/csv",
       "schema": "assets/samplesheet_validation_schema.json"
     },
-    "preprocess_genome_tags": {
-      "type": "boolean",
-      "default": false
-    },
-    "tesseract_samplesheet": {
-      "type": "string",
-      "format": "file-path",
-      "mimetype": "text/csv",
-      "schema": "assets/tesseract_samplesheet_validation_schema.json"
-    },
     "cores": {
       "type": "integer",
       "default": 4,
@@ -109,17 +99,5 @@
       "hidden": true
     }
   },
-  "if": {
-    "properties": {
-      "preprocess_genome_tags": {
-        "const": true
-      }
-    }
-  },
-  "then": {
-    "required": ["tesseract_samplesheet"]
-  },
-  "else": {
-    "required": ["samplesheet"]
-  }
+  "required": ["samplesheet"]
 }
