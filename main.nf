@@ -15,6 +15,7 @@ include { extract_inserts } from './modules/extract_inserts'
 include { extract_sites } from './modules/extract_sites'
 include { empty_insert_histogram } from './modules/plot_empty_insert_histogram'
 include { extract_inserts_with_truncated_flanks } from './modules/extract_inserts_with_truncated_flanks'
+include { extract_genome_tags } from './modules/extract_genome_tags'
 include { map_inserts } from './modules/map_inserts'
 include { genome_coverage } from './modules/genome_coverage'
 include { insert_coverage } from './modules/insert_coverage'
@@ -39,7 +40,9 @@ include { get_truncated_inserts_as_tsv } from './modules/get_truncated_inserts_a
 include { barcode_counts } from './modules/barcode_counts'
 include { prepare_report } from './modules/prepare_report'
 include { samples } from './modules/samples'
-include { fromSamplesheet } from 'plugin/nf-validation'
+include { process_8bp_genome_tags} from './modules/process_8bp_genome_tags'
+include {aggregate_sample_sheets} from './modules/aggregate_sample_sheets'
+include { samplesheetToList } from 'plugin/nf-schema'
 
 def helpMessage() {
     log.info """
@@ -58,42 +61,64 @@ Options:
 --sourmash_db <file>      Path to the sourmash database (default: /srv/shared/databases/sourmash/gtdb-rs220-k21.zip)
 --taxonomy <file>         Path to the taxonomy database (default: /srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb)
 --cores <int>             Number of cores to use (default: 4)
+--preprocess_genome_tags  <bool>  Preprocess genome tags (default: false)
 
 """
 }
 
 
-// Run the workflow
+// Named workflow for pre-processing genome tags
+workflow preprocess_genome_tags {
 
-workflow {
+    // Validate the samplesheet
+    data = Channel.fromList(samplesheetToList(params.tesseract_samplesheet, "assets/tesseract_samplesheet_validation_schema.json"))
+        .map { data ->
+            meta = data[0]
+            id = [id:meta.id]
+            meta = [id, file(params.constructs + meta.construct),file(meta.fastq, checkIfExists:true)]
 
-    log.info """
-▗▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖▗▄▄▄▖▗▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▄▄▄▖▗▖   ▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖
-▐▌ ▐▌ █  ▐▌ ▐▌▐▛▚▖▐▌▐▌   ▐▌   ▐▌ ▐▌    ▐▌ ▐▌ █  ▐▌ ▐▌▐▌   ▐▌     █  ▐▛▚▖▐▌▐▌   ▐▌
-▐▛▀▘  █  ▐▌ ▐▌▐▌ ▝▜▌▐▛▀▀▘▐▛▀▀▘▐▛▀▚▖    ▐▛▀▘  █  ▐▛▀▘ ▐▛▀▀▘▐▌     █  ▐▌ ▝▜▌▐▛▀▀▘ ▝▀▚▖
-▐▌  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖▐▙▄▄▖▐▌ ▐▌    ▐▌  ▗▄█▄▖▐▌   ▐▙▄▄▖▐▙▄▄▖▗▄█▄▖▐▌  ▐▌▐▙▄▄▖▗▄▄▞▘
-
-Long Read Processing and QC Pipeline
-"""
-
- // Show help message
-    print("Long read qc pipeline started and results are stored in :" + params.outdir)
-    if (params.help) {
-        helpMessage()
-        exit 0
     }
 
-    Channel.fromSamplesheet("samplesheet")
-        .map { meta, construct, sequence ->
-            file(params.genomes + meta.genome + "/" + meta.genome + "_contigs.fna", checkIfExists:true)
-            file(params.genomes + meta.genome + "/" + meta.genome + "_genes.bed", checkIfExists:true)
-            file(params.genomes + meta.genome + "/" + meta.genome + "_genes.gff", checkIfExists:true)
-            [meta, file(sequence), file(params.constructs + construct, checkIfExists:true)]
+    genome_constructs = data
+        .map { data ->
+            // Return the meta data and the construct file
+            [data[0], data[1]]
 
         }
-        | set {input_ch}
 
-    channel.fromPath(params.samplesheet)
+    genome_flanking = get_flanks(genome_constructs)
+
+    joinChannel = data.join(genome_flanking)
+
+    tagChannel = extract_genome_tags(joinChannel)
+    process_channel = tagChannel.join(data)
+
+    process_inputs = process_channel
+        .map{
+            meta, genome_tags, report, genome_tags_info, genome_tags_tsv, construct, fastq ->
+            [meta, genome_tags_tsv, file(params.tesseract_oligo_file), fastq, construct]
+        }
+    sample_sheet_map = process_8bp_genome_tags(process_inputs).collectFile(){
+        meta, genome_fastqs, sample_sheet ->
+        ["sample_sheet_map.tsv", "${meta.id}\t${params.path_prefix}${sample_sheet}\n"]
+    }
+
+    final_sample_sheet = aggregate_sample_sheets(sample_sheet_map)
+
+}
+
+workflow long_read_qc{
+
+        input_ch = Channel.fromList(samplesheetToList(params.samplesheet, "assets/samplesheet_validation_schema.json"))
+            .map { meta, construct, sequence ->
+                file(params.genomes + meta.genome + "/" + meta.genome + "_contigs.fna", checkIfExists:true)
+                file(params.genomes + meta.genome + "/" + meta.genome + "_genes.bed", checkIfExists:true)
+                file(params.genomes + meta.genome + "/" + meta.genome + "_genes.gff", checkIfExists:true)
+                [meta, file(sequence), file(params.constructs + construct, checkIfExists:true)]
+
+            }
+
+        channel.fromPath(params.samplesheet)
         .splitCsv(header:true)
         .map { row ->
             meta = [id:row.id, genome:row.genome]
@@ -272,4 +297,31 @@ Long Read Processing and QC Pipeline
 
     channel.fromPath(params.samplesheet) | samples
 
+}
+
+workflow {
+
+    log.info """
+▗▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖▗▄▄▄▖▗▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▄▄▄▖▗▖   ▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖
+▐▌ ▐▌ █  ▐▌ ▐▌▐▛▚▖▐▌▐▌   ▐▌   ▐▌ ▐▌    ▐▌ ▐▌ █  ▐▌ ▐▌▐▌   ▐▌     █  ▐▛▚▖▐▌▐▌   ▐▌
+▐▛▀▘  █  ▐▌ ▐▌▐▌ ▝▜▌▐▛▀▀▘▐▛▀▀▘▐▛▀▚▖    ▐▛▀▘  █  ▐▛▀▘ ▐▛▀▀▘▐▌     █  ▐▌ ▝▜▌▐▛▀▀▘ ▝▀▚▖
+▐▌  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖▐▙▄▄▖▐▌ ▐▌    ▐▌  ▗▄█▄▖▐▌   ▐▙▄▄▖▐▙▄▄▖▗▄█▄▖▐▌  ▐▌▐▙▄▄▖▗▄▄▞▘
+
+Long Read Processing and QC Pipeline
+"""
+
+ // Show help message
+    print("Long read qc pipeline started and results are stored in :" + params.outdir)
+    if (params.help) {
+        helpMessage()
+        exit 0
+    }
+
+    // If processing genome tags, the genome is not validated
+    if (params.preprocess_genome_tags) {
+        log.info "Preprocessing genome tags..."
+        preprocess_genome_tags()
+    } else{
+        long_read_qc()
+     }
 }

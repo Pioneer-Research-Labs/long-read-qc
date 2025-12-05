@@ -1,0 +1,28 @@
+nextflow_process {
+
+    name "Test Process aggregate_sample_sheets"
+    script "modules/aggregate_sample_sheets/main.nf"
+    process "aggregate_sample_sheets"
+
+    test("Should generate aggregated sample sheets") {
+
+        when {
+            params {
+                outdir = outputDir
+            }
+            process {
+                """
+                // define inputs of the process here. Example:
+                input[0] = file('${projectDir}/test_data/sample_sheet_map.tsv')
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+        }
+
+    }
+
+}

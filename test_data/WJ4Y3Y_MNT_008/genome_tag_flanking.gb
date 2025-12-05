@@ -1,0 +1,95 @@
+LOCUS       Barcode_R                 20 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   Barcode_R
+VERSION     Barcode_R
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    1320..1339
+ORIGIN
+        1 nnnwsnnnws nnnwsnnnws
+//
+LOCUS       Barcode_F                 20 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   Barcode_F
+VERSION     Barcode_F
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    1344..1363
+ORIGIN
+        1 nnnwsnnnws nnnwsnnnws
+//
+LOCUS       Secondary_Barcode_for_Donor_gDNA 8 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   Secondary_Barcode_for_Donor_gDNA
+VERSION     Secondary_Barcode_for_Donor_gDNA
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    1273..1280
+ORIGIN
+        1 nnnnnnnn
+//
+LOCUS       INSERTUP                  75 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   INSERTUP
+VERSION     INSERTUP
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    1125..1199
+ORIGIN
+        1 gcctgggcac aatcctattc cgcgctatct tcgctacctt aggaccgtta tagttaagat
+       61 gtgtataaga gacag
+//
+LOCUS       INSERTDN                  75 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   INSERTDN
+VERSION     INSERTDN
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    1208..1282
+ORIGIN
+        1 ctgtctctta tacacatctt aactataacg gtcctaaggt agcgaacgat ctactgtgtt
+       61 cgtgtnnnnn nnncc
+//
+LOCUS       BARCODEUP                 75 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   BARCODEUP
+VERSION     BARCODEUP
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    1245..1319
+ORIGIN
+        1 ggtagcgaac gatctactgt gttcgtgtnn nnnnnnccga caatctccaa gacattaggt
+       61 gggttcgaaa tgact
+//
+LOCUS       BARCODEDN                 75 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   BARCODEDN
+VERSION     BARCODEDN
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    1364..1438
+ORIGIN
+        1 ctagaatgcg agagtaggga actgccaggc agacgaacaa taaggcctcc ctaacggggg
+       61 gcctttttta ttgat
+//

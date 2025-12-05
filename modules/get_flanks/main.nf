@@ -10,7 +10,6 @@ process get_flanks {
 
     script:
     """
-    echo $meta.id
     get_flanking.py $construct
     """
 }

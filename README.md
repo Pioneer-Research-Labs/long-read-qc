@@ -4,11 +4,15 @@
 
 ### Prep construct file
 
-To determine the regions of the read that have the barcode and insert the pipeline uses flanking regions for each part.  
-These are provided by way of annotations in a SnapGene `.dna` file.  To create these, add annotations named `BARCODEUP`, 
-`BARCODEDN`, `INSERTUP`, and `INSERTDN` for the 5' and 3' flanking regions for the barcode and insert.  Ideally these 
-will be between 100-30 bp long but the exact length is not particularly important here.  Generally don't go below 20 bp
-but that's not a fixed limit.  Once you've added these annotations with the exact names as above the save the file and
+To determine the regions of the read that have the barcode and insert, the pipeline uses flanking regions for each part.  
+These are provided by way of annotations in a SnapGene `.dna` file.  Ideally the annotations will represent regions
+between 100-30 bp long but the exact length is not particularly important here.  Generally don't go below 20 bp
+but that's not a fixed limit. To create these, add annotations named `BARCODEUP`, 
+`BARCODEDN`, `INSERTUP`, and `INSERTDN` for the 5' and 3' flanking regions for the barcode and insert. Additionally, plasmids
+can be annotated with `SITEUP` and `SITEDN` to denote the 5' and 3' flanking regions of the fragment insertions site if applicable. 
+The site tags are used to identify empty inserts that are used in downstream analysis outside this pipeline.  For samples
+from mixed genome libraries, an annotation called  `Secondary_Barcode_for_Donor_gDNA` denotes a barcode sequence that 
+uniquely identifies the genomic DNA donor source.  This is optional and only needed for mixed genome libraries. Once you've added these annotations with the exact names as above the save the file and
 upload to the S3 path at s3://pioneer-sequencing/constructs/.
 
 ### Create sample sheet
@@ -30,14 +34,12 @@ path is the file column.  Here's an example:
 Once you've created this file (probably easiest to do this on your local machine, not the server), you can upload it 
 to the server in the working directory you'd like to use for the run.
 
-#### Current genomes available in the pipeline (s3://pioneer-data/genomes/)
 
-- B_subtilis
-- C_psychrerythraea
-- G_obscurus
-- H_elongata
-- P_halocryophilus
-- R_radiotolerans
+### Create sample sheet for mixed genome libraries
+For mixed genome libraries, only `id`, `construct`, and `file` columns are required. The `genome` column can be left blank or omitted entirely.
+
+### For current genomes available in the pipeline see s3://pioneer-data/genomes/
+
 
 ### Large sequencing files
 For large sequencing files we recommend splitting the files into smaller chunks and using the `awsbatch` pipeline profile.
@@ -65,6 +67,14 @@ Start the run locally:
 ```
 nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet mysample.csv 
 ```
+
+To run the de-multiplexing pipeline, use the following command which will output a sample sheet
+entitled `aggregated_sample_sheet.csv` that can then be used to run the main long-read-qc pipeline.
+
+```
+nextflow run Pioneer-Research-Labs/long-read-qc --tesseract_samplesheet my_multiplexed_samples.csv
+```
+
 
 Start the run on AWS Batch:
 

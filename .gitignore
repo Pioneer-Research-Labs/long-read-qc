@@ -7,4 +7,5 @@ work
 .DS_Store
 .idea/
 .nf-test/
-__pychache__/
+.nextflow.log*
+

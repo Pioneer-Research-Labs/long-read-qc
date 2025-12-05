@@ -17,7 +17,7 @@ process extract_inserts {
     script:
     """
     cutadapt \
-        -g \$(bc_template.py $flanking cutadapt_insert) \
+        -g \$(bc_template.py $flanking cutadapt_insert ) \
         --revcomp \
         --untrimmed-output untrimmed.fastq \
         --info-file cutadapt_info.tsv \
