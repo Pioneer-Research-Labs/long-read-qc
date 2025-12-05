@@ -68,6 +68,12 @@ Start the run locally:
 nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet mysample.csv 
 ```
 
+Start the run on AWS Batch:
+
+```
+nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet mysample.csv -profile awsbatch
+```
+
 To run the de-multiplexing pipeline, use the following command which will output a sample sheet
 entitled `aggregated_sample_sheet.csv` that can then be used to run the main long-read-qc pipeline.
 
@@ -75,12 +81,6 @@ entitled `aggregated_sample_sheet.csv` that can then be used to run the main lon
 nextflow run Pioneer-Research-Labs/long-read-qc --tesseract_samplesheet my_multiplexed_samples.csv
 ```
 
-
-Start the run on AWS Batch:
-
-```
-nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet mysample.csv -profile awsbatch
-```
 
 For low-depth QC samples this should run in less than a minute. For high-depth PacBio samples this will take an hour or more.
 
