@@ -111,9 +111,9 @@ workflow long_read_qc{
 
         input_ch = Channel.fromList(samplesheetToList(params.samplesheet, "assets/samplesheet_validation_schema.json"))
             .map { meta, construct, sequence ->
-                file(params.genomes + meta.genome + "/" + meta.genome + "_contigs.fna", checkIfExists:true)
-                file(params.genomes + meta.genome + "/" + meta.genome + "_genes.bed", checkIfExists:true)
-                file(params.genomes + meta.genome + "/" + meta.genome + "_genes.gff", checkIfExists:true)
+                file(params.genomes + meta.genome + "/*_genomic.fna", checkIfExists:true)
+                file(params.genomes + meta.genome + "/gene.bed", checkIfExists:true)
+                file(params.genomes + meta.genome + "/genes.gff", checkIfExists:true)
                 [meta, file(sequence), file(params.constructs + construct, checkIfExists:true)]
 
             }
@@ -236,9 +236,9 @@ workflow long_read_qc{
             [meta2, path]
     }
 
-    // map inserts and add the dynamically generate the path to the contigs.fna file, adding it to the channel
+    // map inserts and add the dynamically generate the path to the genomic.fna file, adding it to the channel
     mapped = map_inserts(splits.single | map {
-	meta, seq_path -> [meta, seq_path, "${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()]
+	meta, seq_path -> [meta, seq_path, file(params.genomes + meta.genome + "/*_genomic.fna")]
 	})
 
     // Map genome coverage
@@ -273,7 +273,7 @@ workflow long_read_qc{
     // Add the genome .fna file to the input ch
     if (params.map_genome) {
         genome_map = map_genome(input_ch | map {
-            meta, reads, construct -> [meta, reads, construct, "${params.genomes}/${meta.genome}/${meta.genome}_contigs.fna".toString()]
+            meta, reads, construct -> [meta, reads, construct, file(params.genomes + meta.genome + "/*_genomic.fna")]
         }).collectFile(){
             meta, bam, bai, stats ->
             ["mapped_genome_map.tsv", "${meta.id}\t${params.path_prefix}${stats}\n"]
