@@ -12,6 +12,7 @@ process map_genome {
 
     script:
     """
+    echo $fna
     minimap2 -ax $params.tech -t $task.cpus $fna $reads | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o 'mapped_genome.bam'
     samtools index -@ $task.cpus mapped_genome.bam
     samtools flagstat -@ $task.cpus -O tsv mapped_genome.bam > mapped_genome_stats.tsv

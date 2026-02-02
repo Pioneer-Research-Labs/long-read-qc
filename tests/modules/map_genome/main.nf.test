@@ -13,10 +13,10 @@ nextflow_process {
             process {
                 """
                 input[0] = Channel.fromList([ tuple( [id:'Gateway_EmptyBarcodedLib1_20241217',
-                genome:'H_elongata'],
+                genome:'Halomonas_elongata_DSM_2581_GCF_000196875.2'],
                 file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/5HKJT6_1_sample_1.fastq.gz'),
                 file('${projectDir}/test_data/Gateway_EmptyBarcodedLib1_20241217/c.00323.dna'),
-                file("s3://pioneer-data/genomes/H_elongata/H_elongata_contigs.fna".toString()))])
+                file("s3://pioneer-data/pioneer-genomes/Halomonas_elongata_DSM_2581_GCF_000196875.2/*_genomic.fna".toString()))])
                 """
             }
         }
