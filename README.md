@@ -43,7 +43,7 @@ For mixed genome libraries, only `id`, `construct`, and `file` columns are requi
 
 ### Large sequencing files
 For large sequencing files we recommend splitting the files into smaller chunks and using the `awsbatch` pipeline profile.
-To split the files, check out the repo and run the following command:
+To split the files, check out the repo and run the following command: 
 
 ```bash
 python bin/chunk_fastq.py <path to samplesheet>
