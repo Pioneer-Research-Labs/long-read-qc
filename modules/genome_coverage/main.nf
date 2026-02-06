@@ -1,5 +1,5 @@
 process genome_coverage {
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
+    publishDir("$params.outdir/$meta.id/primary_data"),  mode: 'copy'
     tag "$meta.id"
 
     input:

@@ -1,5 +1,5 @@
 process summarize_barcode_counts{
-    publishDir("$params.outdir"),  mode: 'copy'
+    publishDir("$params.outdir/summary_and_plots"),  mode: 'copy'
     tag 'Summarizing barcode counts'
 
     input:

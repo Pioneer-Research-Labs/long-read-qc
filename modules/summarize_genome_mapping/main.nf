@@ -1,5 +1,5 @@
 process summarize_genome_mapping {
-    publishDir("$params.outdir"),  mode: 'copy'
+    publishDir("$params.outdir/summary_and_plots"),  mode: 'copy'
 
     cpus params.cores
 

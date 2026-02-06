@@ -1,5 +1,5 @@
 process map_genome {
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
+    publishDir("$params.outdir/$meta.id/map_genome_analysis"),  mode: 'copy'
     tag "$meta.id"
 
     cpus params.cores

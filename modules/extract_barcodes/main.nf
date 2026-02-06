@@ -1,5 +1,5 @@
 process extract_barcodes {
-    publishDir "$params.outdir/$meta.id",  mode: 'copy'
+    publishDir "$params.outdir/$meta.id/primary_data",  mode: 'copy'
     tag("$meta.id")
 
     cpus params.cores
@@ -9,7 +9,6 @@ process extract_barcodes {
 
     output:
     tuple val(meta), path("barcodes.fasta")
-    path "cutadapt_barcode_report.json"
 
     script:
     """
@@ -21,7 +20,6 @@ process extract_barcodes {
         -O $params.min_overlap \
         -o barcodes_raw.fasta \
         -j $task.cpus \
-        --json cutadapt_barcode_report.json \
         $reads
     seqkit seq -j $task.cpus --min-len $params.min_bc_len --max-len $params.max_bc_len \
         barcodes_raw.fasta > barcodes.fasta
