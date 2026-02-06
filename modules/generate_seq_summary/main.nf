@@ -10,8 +10,6 @@ process generate_seq_summary{
 
     output:
         path 'seq_summary.csv'
-        path 'concatenated_seq_stats.csv'
-        path 'concatenated_vector_map_stats.csv'
 
     script:
     """

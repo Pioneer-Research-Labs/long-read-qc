@@ -17,17 +17,10 @@ include { empty_insert_histogram } from './modules/plot_empty_insert_histogram'
 include { extract_inserts_with_truncated_flanks } from './modules/extract_inserts_with_truncated_flanks'
 include { extract_genome_tags } from './modules/extract_genome_tags'
 include { map_inserts } from './modules/map_inserts'
-include { genome_coverage } from './modules/genome_coverage'
-include { insert_coverage } from './modules/insert_coverage'
 include { map_genome } from './modules/map_genome'
-include { sketch } from './modules/sketch'
-include { classify } from './modules/classify'
-include { taxonomy } from './modules/taxonomy'
 include { summarize_barcode_counts } from './modules/summarize_barcode_counts'
 include { summarize_inserts } from './modules/summarize_inserts'
 include { summarize_barcodes } from './modules/summarize_barcodes'
-include { summarize_insert_coverage } from './modules/summarize_insert_coverage'
-include { summarize_genome_coverage } from './modules/summarize_genome_coverage'
 include { summarize_genome_mapping } from './modules/summarize_genome_mapping'
 include { generate_seq_summary } from './modules/generate_seq_summary'
 include { plot_comparison_of_full_to_truncated_inserts } from './modules/plot_comparison_of_full_to_truncated_inserts'
@@ -38,10 +31,7 @@ include { plot_insert_histogram } from './modules/plot_insert_histogram'
 include { get_inserts_as_tsv } from './modules/get_inserts_as_tsv'
 include { get_truncated_inserts_as_tsv } from './modules/get_truncated_inserts_as_tsv'
 include { barcode_counts } from './modules/barcode_counts'
-include { prepare_report } from './modules/prepare_report'
-include { samples } from './modules/samples'
 include { process_8bp_genome_tags} from './modules/process_8bp_genome_tags'
-include {aggregate_sample_sheets} from './modules/aggregate_sample_sheets'
 include { samplesheetToList } from 'plugin/nf-schema'
 
 def helpMessage() {
@@ -57,12 +47,8 @@ Options:
 --min_overlap <int>       Minimum overlap for barcode searching (default: 3)
 --min_bc_len <int>        Minimum barcode length (default: 20)
 --max_bc_len <int>        Maximum barcode length (default: 60)
---meta_ovlp <int>         Overlap bp for sourmash (default: 1000)
---sourmash_db <file>      Path to the sourmash database (default: /srv/shared/databases/sourmash/gtdb-rs220-k21.zip)
---taxonomy <file>         Path to the taxonomy database (default: /srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb)
 --cores <int>             Number of cores to use (default: 4)
 --preprocess_genome_tags  <bool>  Preprocess genome tags (default: false)
-
 """
 }
 
@@ -112,8 +98,6 @@ workflow long_read_qc{
         input_ch = Channel.fromList(samplesheetToList(params.samplesheet, "assets/samplesheet_validation_schema.json"))
             .map { meta, construct, sequence ->
                 file(params.genomes + meta.genome + "/*_genomic.fna", checkIfExists:true)
-                file(params.genomes + meta.genome + "/gene.bed", checkIfExists:true)
-                file(params.genomes + meta.genome + "/genes.gff", checkIfExists:true)
                 [meta, file(sequence), file(params.constructs + construct, checkIfExists:true)]
 
             }
@@ -156,14 +140,14 @@ workflow long_read_qc{
     //extract barcodes
     (barcodes, bc_report, bc_tab) = extract_barcodes(joinChannel)
 
-    // extract inserts, returning insert_fasta (with metadata), cutadapt report, cutadapt info, and a fastq file of reads that weren't trimmed
-    (inserts, ins_report, in_tab, untrimmed_meta) = extract_inserts(joinChannel)
+    // extract inserts, returning insert_fasta (with metadata) and a metadata with fastq file of reads that weren't trimmed
+    (inserts, untrimmed_meta) = extract_inserts(joinChannel)
 
     // plot histogram of insert lengths
     plot_insert_histogram(inserts)
 
     //extract cut sites from constructs
-    (sites_fasta, site_report, site_info, untrimmed_site_fastq) = extract_sites(joinChannel)
+    sites_fasta = extract_sites(joinChannel)
 
     input_ch
         .join(barcodes)
@@ -175,8 +159,6 @@ workflow long_read_qc{
         } | set {dataChannel}
 
    empty_insert_histogram(dataChannel)
-
-
     // Join untrimmed_meta with input_ch, yielding a channel that contains the metadata,
     // reads, construct, flanking sequence and the fastq file of reads that weren't trimmed.
      joinChannel.join(untrimmed_meta)
@@ -192,7 +174,7 @@ workflow long_read_qc{
 
     // We need the insert fasta file for the full inserts and the truncated inserts to compare them.
     data_for_plot = truncated_data.join(inserts)
-         .map { meta, truncated_insert_fasta, cutadapt_truncated_report,  untrimmed_from_truncated_fq, cutadapt_truncated_info, full_inserts ->
+         .map { meta, truncated_insert_fasta,  untrimmed_from_truncated_fq, full_inserts ->
              // Return the meta data, full inserts, truncated inserts, and untrimmed fastq file
              [meta, full_inserts, truncated_insert_fasta, untrimmed_from_truncated_fq]
          } // We also need the original sequence file to generate a list of sequence ids/lengths.
@@ -228,49 +210,29 @@ workflow long_read_qc{
         ["insert_map.tsv", "${meta.id}\t${params.path_prefix}${fasta}\n"]
     }
 
-    //split based on single genome or metagenome mode
-    splits = inserts.branch { meta2, path ->
-        single: meta2.genome != 'meta'
-            [meta2, path]
-        multi: meta2.genome == 'meta'
-            [meta2, path]
-    }
+
 
     // map inserts and add the dynamically generate the path to the genomic.fna file, adding it to the channel
-    mapped = map_inserts(splits.single | map {
+    mapped = map_inserts(inserts | map {
 	meta, seq_path -> [meta, seq_path, file(params.genomes + meta.genome + "/*_genomic.fna")]
 	})
 
-    // Map genome coverage
-    genome_cov_map = genome_coverage(mapped).collectFile(){
-        meta, cov, stats ->
-        ["genome_coverage.tsv", "${meta.id}\t${params.path_prefix}${stats}\n"]
-    }
     // Add the files needed for insert coverage by dynamically creating paths based on genome.
     mapped_with_references = mapped | map {
 	meta, bam, bai, stats -> [
-		meta, bam,  bai, stats , "${params.genomes}/${meta.genome}/${meta.genome}_genes.gff".toString(),
-		"${params.genomes}/${meta.genome}/${meta.genome}_genes.bed".toString()]
+		meta, bam]
 	}
-
-    // get insert coverage and collect the results into a file that maps the sample to the location of
-    // the insert coverage output.
-    insert_outputs = insert_coverage(mapped_with_references
-			).collectFile(){
-            meta, gene_cov, insert_cov  , insert_cov_full, insert_intersect, depth ->
-        ["insert_coverage.tsv", "${meta.id}\t${params.path_prefix}${insert_cov_full}\n"]
-    }
 
      // Here we generate various summary files and plots for all the sequences processed
      summarize_barcode_counts(barcode_count_sample_map)
-     summarize_genome_coverage(genome_cov_map)
      summarize_inserts(insert_map)
      summarize_barcodes(barcode_map)
      seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map)
-     summarize_insert_coverage(insert_outputs)
+
 
     // If we want to, map all reads to the donor genome
     // Add the genome .fna file to the input ch
+
     if (params.map_genome) {
         genome_map = map_genome(input_ch | map {
             meta, reads, construct -> [meta, reads, construct, file(params.genomes + meta.genome + "/*_genomic.fna")]
@@ -278,24 +240,11 @@ workflow long_read_qc{
             meta, bam, bai, stats ->
             ["mapped_genome_map.tsv", "${meta.id}\t${params.path_prefix}${stats}\n"]
         }
-        summarize_genome_mapping(genome_map, seq_summary_results[1])
+        seq_stats_results.view()
+        summarize_genome_mapping(genome_map, seq_stats_results)
     }
      // Plot coverage depth
      plot_depth(mapped)
-
-    // metagenomic samples
-    sketched = sketch(splits.multi)
-    classified = classify(sketched, params.sourmash_db)
-    taxonomy(classified, params.taxonomy)
-
-
-    // report
-    report = channel.fromPath("${projectDir}/assets/report_template.ipynb")
-    report_utils = channel.fromPath("${projectDir}/assets/report_utils_template.py")
-
-    prepare_report(report, report_utils)
-
-    channel.fromPath(params.samplesheet) | samples
 
 }
 

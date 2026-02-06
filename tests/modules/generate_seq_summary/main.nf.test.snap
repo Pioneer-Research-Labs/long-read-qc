@@ -1,14 +1,12 @@
 {
     "Should generate a sequencing summary for two libraries": {
         "content": [
-            "seq_summary.csv:md5,b37c915057aa36d19adfc8b1c1949650",
-            "concatenated_seq_stats.csv:md5,d9f3f59a79b043974991ab81a5edaf50",
-            "concatenated_vector_map_stats.csv:md5,0649358705d8af6e9a61dc8edeeb5b58"
+            "seq_summary.csv:md5,b37c915057aa36d19adfc8b1c1949650"
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2025-05-15T12:25:52.360597"
+        "timestamp": "2026-02-05T13:14:18.960327"
     }
 }

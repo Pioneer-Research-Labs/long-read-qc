@@ -24,9 +24,7 @@ nextflow_process {
             assert process.success
             assert path("$outputDir/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").readLines().size() == 72
             assert snapshot(
-            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta"),
-            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/untrimmed.fastq"),
-            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/cutadapt_info.tsv")).match()
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta")).match()
         }
    }
        test("Should extract 0 inserts") {
@@ -69,7 +67,7 @@ nextflow_process {
 
         then {
             assert process.success
-            assert process.out.size() == 4
+            assert process.out.size() == 2
             assert process.out[0][0].size() == 2
             assert process.out[1].size() == 1
             assert path("$outputDir/Gib_Lib1_240801/inserts.fasta").readLines().size() == 216

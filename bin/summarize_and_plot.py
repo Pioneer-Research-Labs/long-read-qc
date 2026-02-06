@@ -27,102 +27,6 @@ def write_empty_file(filename):
     with open(filename, "w") as _:
         pass
 
-
-def plot_full_genes_per_fragment(insert_cov_full):
-    """
-    Plot the number of full genes per insert
-    :param insert_cov_full: DataFrame containing the number of full genes per insert
-
-    """
-    if insert_cov_full.empty:
-        plt.savefig('full_genes_per_fragment.png') # empty plot
-        write_empty_file('full_genes_per_fragment.csv')
-        return
-    insert_cov_full.to_csv('full_genes_per_fragment.csv', index=False)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.histplot(insert_cov_full,
-                 x='count',
-                 hue='sample',
-                 stat='frequency',
-                 common_norm=True,
-                 ax=ax)
-    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
-    ax.set_title('Number of full genes per insert')
-    plt.savefig('full_genes_per_fragment.png', bbox_inches='tight')
-
-
-def plot_partial_genes_per_fragment(insert_cov):
-    """
-    Plot the partial genes per insert
-    :param insert_cov: DataFrame containing the number of partial genes per insert
-    """
-    if insert_cov.empty:
-        plt.savefig('partial_genes_per_fragment.png') # empty plot
-        write_empty_file('partial_genes_per_fragment.csv')
-        return
-    insert_cov.to_csv('partial_genes_per_fragment.csv', index=False)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.histplot(insert_cov,
-                 x='count',
-                 hue='sample',
-                 stat='frequency',
-                 common_norm=True,
-                 ax=ax)
-    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
-    ax.set_title('Number of partial or full genes per insert')
-    plt.savefig('partial_genes_per_fragment.png', bbox_inches='tight')
-
-
-def plot_barcode_length_boxplot(barcode_df):
-    """
-    Plot a boxplot of barcode lengths
-    :param barcode_df: DataFrame containing barcode lengths
-    """
-    df_plot = barcode_df
-    fig, ax = plt.subplots(figsize=(10, 6))
-    if df_plot.empty:
-        plt.savefig('barcode_length_distribution.png')  # empty plot
-        write_empty_file('barcode_lengths.csv')
-        return
-    df_plot.to_csv('barcode_lengths.csv', index=False)
-
-    sns.boxplot(data=df_plot, x="sample", y="barcode_len", ax=ax)
-    plt.xticks(rotation=90)
-    ax.set_title('Distribution of barcode lengths')
-    plt.savefig('barcode_length_distribution.png', bbox_inches='tight')
-
-
-def plot_proportions_of_barcodes(barcode_df):
-    """
-    Plot the proportion of true/empty/other detected barcodes
-    :param barcode_df: DataFrame containing barcode information
-    """
-    if barcode_df.empty:
-        plt.savefig('barcode_proportions.png')
-        write_empty_file('barcode_proportions.csv')
-        return
-    # Categorize barcodes by length and plot fraction composition for each library
-    # Use 1bp tolerance on either end
-    barcode_length = 44  # expected bp length of barcodes
-    empty_cutoff = 5  # cutoff for labeling a vector as empty
-    barcode_df['barcode_exists'] = 'other'
-    barcode_df.loc[
-        barcode_df.barcode_len.between(barcode_length - 1, barcode_length + 1), 'barcode_exists'] = 'true'
-    barcode_df.loc[barcode_df.barcode_len <= empty_cutoff, 'barcode_exists'] = 'false'
-
-    df_plot = barcode_df.groupby('sample')['barcode_exists'].value_counts(normalize=True).to_frame()
-    barcode_df.to_csv('barcode_proportions.csv', index=False)
-    fig, ax = plt.subplots(figsize=(10, 6))
-
-    sns.barplot(df_plot,
-                y='sample',
-                x='proportion',
-                hue='barcode_exists',
-                ax=ax)
-    ax.set_title('Proportion of true/empty/other detected barcodes')
-    plt.savefig('barcode_proportions.png', bbox_inches='tight')
-
-
 def plot_copy_number(barcode_df):
     """
     Plot the copy number of each unique barcode
@@ -130,14 +34,12 @@ def plot_copy_number(barcode_df):
     """
     if barcode_df.empty:
         plt.savefig('barcode_copy_number.png')  # empty plot
-        write_empty_file('barcode_copy_number.csv')
         return
     df_plot = barcode_df.groupby('sample')['barcode_seq'].value_counts().to_frame().rename(
         columns={'count': 'counts_per_barcode'})
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    df_plot.to_csv('barcode_copy_number.csv', index=False)
     sns.histplot(df_plot,
                  x='counts_per_barcode',
                  hue='sample',
@@ -187,23 +89,6 @@ def plot_insert_length_barplot(inserts):
     plt.savefig('insert_length_barplot.png', bbox_inches='tight')
 
 
-def plot_genome_coverage(coverage_df):
-    """
-    Plot the genome coverage
-    :param coverage_df: DataFrame containing genome coverage information
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    if coverage_df.empty:
-        plt.savefig('genome_coverage.png') # empty plot
-        write_empty_file('genome_coverage.csv')
-        return
-    coverage_df.to_csv('genome_coverage.csv', index=False)
-    sns.barplot(coverage_df,
-                 x='sample',
-                 y='coverage',
-                 ax=ax)
-    ax.set_title('Genome Coverage')
-    plt.savefig('genome_coverage.png', bbox_inches='tight')
 
 def concatenate_files(file_map, summary_type, output_file, save_file=True):
     """
@@ -311,7 +196,9 @@ def genome_mapping_summary(seq_stat, genome_mapping):
     :param seq_stat: DataFrame containing sequence statistics
     :param genome_mapping: DataFrame containing genome mapping statistics merged with sequencing statistics
     """
+
     genome_stats = genome_mapping.pivot(columns='key', values='value', index='sample').reset_index()[['sample', 'primary mapped']]
+
     seq_stat["name"] = seq_stat["file"].apply(lambda x: str(Path(x).with_suffix('')))
     seq_stat["name"] = seq_stat["name"].apply(lambda x: x if x in ['inserts', 'barcodes'] else "raw_reads")
     seq_stat_pivot = seq_stat[['sample', 'name', 'num_seqs']].pivot(columns="name", values="num_seqs", index="sample")
@@ -333,8 +220,6 @@ def process(sample_file_map, summary_type, **kwargs):
         case 'barcode':
             output_file_name = 'concatenated_barcodes.csv'
             concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
-            plot_barcode_length_boxplot(concatenated_df)
-            plot_proportions_of_barcodes(concatenated_df)
             plot_copy_number(concatenated_df)
 
         case 'insert_histogram':
@@ -345,20 +230,11 @@ def process(sample_file_map, summary_type, **kwargs):
             concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
             plot_insert_length_barplot(concatenated_df)
 
-        case 'genome_coverage':
-            output_file_name = 'concatenated_genome_coverage.csv'
-            concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
-            plot_genome_coverage(concatenated_df)
-
-        case 'insert_coverage':
-            output_file_name = 'concatenated_insert_coverage.csv'
-            concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
-            plot_full_genes_per_fragment(concatenated_df)
-            plot_partial_genes_per_fragment(concatenated_df)
-
         case 'genome_mapping':
             genome_mapping_output_file_name = 'concatenated_genome_mapping.csv'
-            seq_stats_df = pd.read_csv(kwargs.get('seqstat'))
+            seq_stats_df = concatenate_files(kwargs.get('seqstat'), 'seq_stat', None, False)
+            #print(kwargs.get('seqstat'))
+            print(seq_stats_df.head())
             concatenated_df = concatenate_files(sample_file_map, summary_type, genome_mapping_output_file_name)
             merged_df = genome_mapping_summary(seq_stats_df, concatenated_df)
             merged_df.to_csv('genome_mapping_summary.csv', index=False)
@@ -367,12 +243,11 @@ def process(sample_file_map, summary_type, **kwargs):
             barcode_map = kwargs.get('barcode')
             insert_map = kwargs.get('insert')
             vector_map = kwargs.get('vector')
-            seq_stats_df = concatenate_files(sample_file_map, summary_type, 'concatenated_seq_stats.csv')
+            seq_stats_df = concatenate_files(sample_file_map, summary_type, None, False)
             barcode_df = concatenate_files(barcode_map, 'barcode',
                                            None, False)
             insert_df = concatenate_files(insert_map, 'insert', None, False)
-            vector_output_file_name = 'concatenated_vector_map_stats.csv'
-            vector_df = concatenate_files(vector_map, 'vec_map', vector_output_file_name)
+            vector_df = concatenate_files(vector_map, 'vec_map', None, False)
             # Combine all if possible
             if barcode_df.empty  or insert_df.empty  or seq_stats_df.empty or vector_df.empty:
                 write_empty_file('seq_summary.csv')

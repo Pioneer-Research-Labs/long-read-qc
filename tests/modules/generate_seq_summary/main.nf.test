@@ -23,9 +23,7 @@ nextflow_process {
         then {
             assert process.success
             assert snapshot(
-            path("${params.outdir}/seq_summary.csv"),
-            path("${params.outdir}/concatenated_seq_stats.csv"),
-            path("${params.outdir}/concatenated_vector_map_stats.csv")).match()
+            path("${params.outdir}/seq_summary.csv")).match()
         }
 
     }
