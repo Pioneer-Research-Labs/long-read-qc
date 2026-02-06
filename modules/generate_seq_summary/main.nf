@@ -1,5 +1,5 @@
 process generate_seq_summary{
-    publishDir("$params.outdir/summary_and_plots"),  mode: 'copy'
+    publishDir("$params.outdir"),  mode: 'copy'
     tag 'Summarizing sequence stats'
 
     input:

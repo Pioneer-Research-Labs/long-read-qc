@@ -1,7 +1,5 @@
 process extract_inserts_with_truncated_flanks {
-
-    publishDir "$params.outdir/$meta.id/primary_data", pattern: "*.fasta",  mode: 'copy'
-    publishDir "$params.outdir/$meta.id/raw_qc", pattern: "*.fastq",  mode: 'copy'
+    publishDir "$params.outdir/$meta.id",  mode: 'copy'
     tag("$meta.id")
 
     cpus params.cores

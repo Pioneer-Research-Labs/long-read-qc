@@ -1,5 +1,5 @@
 process plot_depth{
-    publishDir("$params.outdir/$meta.id/summary_and_plots") ,  mode: 'copy'
+    publishDir("$params.outdir/$meta.id") ,  mode: 'copy'
     tag "$meta.id"
 
     input:

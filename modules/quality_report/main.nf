@@ -1,5 +1,5 @@
 process quality_report {
-    publishDir("$params.outdir/$meta.id/raw_qc"),  mode: 'copy'
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag "$meta.id"
 
     input:

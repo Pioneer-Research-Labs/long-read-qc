@@ -47,7 +47,9 @@ nextflow_process {
 
         then {
             assert process.success
-            assert process.out.size() == 1
+            assert process.out.size() == 2
+            assert process.out[0][0].size() == 2
+            assert process.out[1].size() == 1
             assert path("$outputDir/Gib_Lib1_240801/barcodes.fasta").readLines().size() == 0
             assert snapshot("$outputDir/Gib_Lib1_240801/barcodes.fasta").match()
         }

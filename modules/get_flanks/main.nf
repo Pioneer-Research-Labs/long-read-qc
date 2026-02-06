@@ -1,5 +1,5 @@
 process get_flanks {
-    publishDir("$params.outdir/$meta.id/primary_data"),  mode: 'copy'
+    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
     tag ("$meta.id")
 
     input:
