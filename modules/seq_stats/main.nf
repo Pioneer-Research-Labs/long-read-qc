@@ -1,5 +1,5 @@
 process seq_stats {
-    publishDir("$params.outdir/$meta.id"),  mode: 'copy'
+    publishDir("$params.outdir/$meta.id/summary_and_plots"),  mode: 'copy'
 
     tag "$meta.id"
 

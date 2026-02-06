@@ -1,5 +1,5 @@
 process empty_insert_histogram {
-    publishDir("$params.outdir/$meta.id", mode: 'copy')
+    publishDir("$params.outdir/$meta.id/truncated_analysis", mode: 'copy')
 
     input:
         tuple val(meta), path(barcodes), path(inserts), path(sites)

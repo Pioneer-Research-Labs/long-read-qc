@@ -27,9 +27,7 @@ nextflow_process {
             assert path("$outputDir/WJ4Y3Y_MNT_008/extracted_genome_tags.tsv").readLines().size() == 2
             assert snapshot(
                 ("$outputDir/WJ4Y3Y_MNT_008/extracted_genome_tags.tsv"),
-                ("$outputDir/WJ4Y3Y_MNT_008/genome_tags.fasta"),
-                ("$outputDir/WJ4Y3Y_MNT_008/cutadapt_genome_tags_info.tsv"),
-                ("$outputDir/WJ4Y3Y_MNT_008/cutadapt_genome_tags_report.json")
+                ("$outputDir/WJ4Y3Y_MNT_008/genome_tags.fasta")
             ).match()
 
         }

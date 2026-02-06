@@ -1,5 +1,5 @@
 process plot_comparison_of_full_to_truncated_inserts {
-    publishDir "$params.outdir/$meta.id", mode: 'copy'
+    publishDir "$params.outdir/$meta.id/truncated_analysis", mode: 'copy'
     tag("$meta.id")
 
     input:
