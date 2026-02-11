@@ -21,6 +21,9 @@
       "default": "map-ont",
       "enum": ["map-ont", "map-pb", "map-iclr"]
     },
+    "analyze_truncated_flanks": {
+      "type": "boolean"
+    },
     "map_genome": {
       "type": "boolean"
     },
@@ -38,7 +41,7 @@
     },
     "genomes": {
       "type": "string",
-      "default": "s3://pioneer-data/genomes/",
+      "default": "s3://pioneer-data/pioneer-genomes/",
       "hidden": true
     },
     "constructs": {
@@ -64,21 +67,6 @@
     "max_bc_len": {
       "type": "integer",
       "default": 60,
-      "hidden": true
-    },
-    "sourmash_db": {
-      "type": "string",
-      "default": "/srv/shared/databases/sourmash/gtdb-rs220-k21.zip",
-      "hidden": true
-    },
-    "meta_ovlp": {
-      "type": "integer",
-      "default": 1000,
-      "hidden": true
-    },
-    "taxonomy": {
-      "type": "string",
-      "default": "/srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb",
       "hidden": true
     },
     "path_prefix": {
