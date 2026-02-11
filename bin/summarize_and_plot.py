@@ -75,9 +75,7 @@ def plot_insert_length_barplot(inserts):
     df_plot = inserts
     if df_plot.empty:
         plt.savefig('insert_length_barplot.png') # empty plot
-        write_empty_file('insert_length_distribution.csv')
         return
-    df_plot.to_csv('insert_length_distribution.csv', index=False)
     fig, ax = plt.subplots(figsize=(10, 6))
 
     sns.barplot(df_plot,
@@ -218,16 +216,14 @@ def process(sample_file_map, summary_type, **kwargs):
 
     match summary_type:
         case 'barcode':
-            output_file_name = 'concatenated_barcodes.csv'
-            concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
+            concatenated_df = concatenate_files(sample_file_map, summary_type, None,False)
             plot_copy_number(concatenated_df)
 
         case 'insert_histogram':
             df = pd.read_table(sample_file_map, names=['read', 'insert_seq', 'insert_len'], usecols=[0, 1, 3], engine='c', quoting=csv.QUOTE_NONE, sep="\t")
             plot_insert_length_histogram(df)
         case 'insert':
-            output_file_name = 'concatenated_inserts.csv'
-            concatenated_df = concatenate_files(sample_file_map, summary_type, output_file_name)
+            concatenated_df = concatenate_files(sample_file_map, summary_type, None, False)
             plot_insert_length_barplot(concatenated_df)
 
         case 'genome_mapping':
@@ -256,9 +252,6 @@ def process(sample_file_map, summary_type, **kwargs):
                 num_seqs_df = seq_summary(barcode_df, insert_df, seq_stats_df, vector_df)
                 num_seqs_df.to_csv('seq_summary.csv', index=False)
 
-        case 'barcode_counts':
-            output_file_name = 'concatenated_barcode_counts.csv'
-            concatenate_files(sample_file_map, summary_type, output_file_name)
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:

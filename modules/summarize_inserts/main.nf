@@ -6,8 +6,6 @@ process summarize_inserts{
     path insert_map
 
     output:
-        path 'concatenated_inserts.csv'
-        path 'insert_length_distribution.csv'
         path 'insert_length_barplot.png'
 
     script:

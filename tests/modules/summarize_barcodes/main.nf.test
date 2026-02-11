@@ -19,10 +19,8 @@ nextflow_process {
 
         then {
             assert process.success
-            assert process.out.size() == 2
-            assert snapshot("$outputDir/concatenated_barcodes.csv",
-            "$outputDir/barcode_copy_number.png"
-            ).match()
+            assert process.out.size() == 1
+            assert snapshot("$outputDir/barcode_copy_number.png").match()
         }
 
     }

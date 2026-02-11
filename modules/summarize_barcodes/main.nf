@@ -6,8 +6,7 @@ process summarize_barcodes {
     path sample_map
 
     output:
-        path ('*.csv', arity: '1')
-        path('*.png', arity: '1')
+        path('barcode_copy_number.png')
 
     script:
     """

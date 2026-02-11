@@ -1,13 +1,12 @@
 {
     "Should generate barcode summaries and plots": {
         "content": [
-            "concatenated_barcodes.csv:md5,994b6ee6428993ed190247f4f02cc346",
-            "barcode_copy_number.png:md5,08eb2433f4239b2d61f365aa962f2a11"
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/4be242e7c362da352875ece4641d7293/output/barcode_copy_number.png"
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2026-02-05T13:31:06.660479"
+        "timestamp": "2026-02-10T15:29:38.680873"
     }
 }

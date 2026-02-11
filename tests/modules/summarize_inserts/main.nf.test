@@ -19,13 +19,9 @@ nextflow_process {
 
         then {
             assert process.success
-            assert process.out.size() == 3
-            assert process.out[0].size() == 1
-            assert process.out[1].size() == 1
-            assert process.out[2].size() == 1
+            assert process.out.size() == 1
             assert snapshot(
-                "$outputDir/concatenated_inserts.csv",
-                "$outputDir/insert_length_distribution.csv").match()
+                "$outputDir/concatenated_inserts.csv").match()
         }
 
     }

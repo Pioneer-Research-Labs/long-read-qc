@@ -1,12 +1,12 @@
 {
     "Should generate barcode counts": {
         "content": [
-            "barcode_counts.tsv:md5,123f794003cc447241814baf03f3f6e4"
+            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/f84e7246db4ac0e8e3f091b2a63a1e9d/output/Gateway_EmptyBarcodedLib1_20241217/barcode_counts.tsv"
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2025-05-15T11:52:54.051047"
+        "timestamp": "2026-02-11T10:59:29.396731"
     }
 }

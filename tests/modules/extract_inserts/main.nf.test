@@ -22,9 +22,9 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path("$outputDir/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").readLines().size() == 72
+            assert path("$outputDir/Gateway_EmptyBarcodedLib1_20241217/primary_data/inserts.fasta").readLines().size() == 72
             assert snapshot(
-            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta")).match()
+            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/primary_data/inserts.fasta")).match()
         }
    }
        test("Should extract 0 inserts") {
@@ -45,8 +45,8 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path("$outputDir/b.33TransposonBarcodedLibraryLinear/inserts.fasta").readLines().size() == 0
-            assert snapshot("$outputDir/b.33TransposonBarcodedLibraryLinear/inserts.fasta").match()
+            assert path("$outputDir/b.33TransposonBarcodedLibraryLinear/primary_data/inserts.fasta").readLines().size() == 0
+            assert snapshot("$outputDir/b.33TransposonBarcodedLibraryLinear/primary_data/inserts.fasta").match()
         }
    }
         test("Should extract inserts from a sample with no barcodes") {
@@ -70,8 +70,8 @@ nextflow_process {
             assert process.out.size() == 2
             assert process.out[0][0].size() == 2
             assert process.out[1].size() == 1
-            assert path("$outputDir/Gib_Lib1_240801/inserts.fasta").readLines().size() == 216
-            assert snapshot("$outputDir/Gib_Lib1_240801/inserts.fasta").match()
+            assert path("$outputDir/Gib_Lib1_240801/primary_data/inserts.fasta").readLines().size() == 216
+            assert snapshot("$outputDir/Gib_Lib1_240801/primary_data/inserts.fasta").match()
         }
    }
 

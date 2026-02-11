@@ -23,8 +23,8 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path("$outputDir/Gateway_EmptyBarcodedLib1_20241217/barcodes.fasta").readLines().size() == 12560
-            assert snapshot("$outputDir/Gateway_EmptyBarcodedLib1_20241217/barcodes.fasta").match()
+            assert path("$outputDir/Gateway_EmptyBarcodedLib1_20241217/primary_data/barcodes.fasta").readLines().size() == 12560
+            assert snapshot("$outputDir/Gateway_EmptyBarcodedLib1_20241217/primary_data/barcodes.fasta").match()
         }
 
     }
@@ -48,8 +48,8 @@ nextflow_process {
         then {
             assert process.success
             assert process.out.size() == 1
-            assert path("$outputDir/Gib_Lib1_240801/barcodes.fasta").readLines().size() == 0
-            assert snapshot("$outputDir/Gib_Lib1_240801/barcodes.fasta").match()
+            assert path("$outputDir/Gib_Lib1_240801/primary_data/barcodes.fasta").readLines().size() == 0
+            assert snapshot("$outputDir/Gib_Lib1_240801/primary_data/barcodes.fasta").match()
         }
 
     }
@@ -71,8 +71,8 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path("$outputDir/b.33TransposonBarcodedLibraryLinear/barcodes.fasta").readLines().size() == 1464
-            assert snapshot("$outputDir/b.33TransposonBarcodedLibraryLinear/barcodes.fasta").match()
+            assert path("$outputDir/b.33TransposonBarcodedLibraryLinear/primary_data/barcodes.fasta").readLines().size() == 1464
+            assert snapshot("$outputDir/b.33TransposonBarcodedLibraryLinear/primary_data/barcodes.fasta").match()
         }
    }
 
