@@ -1,13 +1,15 @@
 {
     "Should extract two genome tags from inputs": {
         "content": [
-            "extracted_genome_tags.tsv:md5,9766e52d6aaf6266931df85580c3caa0",
-            "genome_tags.fasta:md5,2fae16d07bc950eb02d18f03a2dcba3f"
+            [
+                "extracted_genome_tags.tsv",
+                "genome_tags.fasta"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2026-02-06T14:07:11.983568"
+        "timestamp": "2026-02-11T15:40:29.762604"
     }
 }

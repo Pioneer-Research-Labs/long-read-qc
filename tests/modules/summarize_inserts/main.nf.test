@@ -4,11 +4,11 @@ nextflow_process {
     script "modules/summarize_inserts/main.nf"
     process "summarize_inserts"
 
-    test("Should generate insert summaries and plots") {
+    test("Should generate barplot") {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -18,10 +18,10 @@ nextflow_process {
         }
 
         then {
+            def stable_name_bar_plot = getAllFilesFromDir("$outputDir/summary_and_plots" , relative: true, includeDir: false )
             assert process.success
             assert process.out.size() == 1
-            assert snapshot(
-                "$outputDir/concatenated_inserts.csv").match()
+            assert snapshot(stable_name_bar_plot).match("Should generate barplot")
         }
 
     }

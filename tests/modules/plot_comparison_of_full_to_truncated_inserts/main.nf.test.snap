@@ -1,12 +1,17 @@
 {
-    "Should generate a file containing 4 plots": {
+    "Should generate 4 plots comparing full to truncated inserts": {
         "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/1d627c409d409a4b1c902f2c271060f7/output/Gateway_EmptyBarcodedLib1_20241217/truncated_vs_intact_flanks_comparison_plot.png"
+            [
+                "intact_vs_truncated_insert_lengths.png",
+                "raw_counts_intact_vs_truncated_inserts.png",
+                "read_lengths_for_trimmed_seqs.png",
+                "untrimmed_read_lengths.png"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2026-02-11T11:01:51.770938"
+        "timestamp": "2026-02-11T16:09:04.016623"
     }
 }

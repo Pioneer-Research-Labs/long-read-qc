@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -20,11 +20,9 @@ nextflow_process {
         }
 
         then {
+            def stable_name_g_mapping = getAllFilesFromDir("$outputDir/summary_and_plots" , relative: true, includeDir: false )
             assert process.success
-            assert snapshot(
-            "$outputDir/concatenated_genome_mapping.csv",
-            "$outputDir/genome_mapping_summary.csv"
-            ).match()
+            assert snapshot(stable_name_g_mapping).match("Should generate two files summarizing genome mapping statistics")
         }
 
     }

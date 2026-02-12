@@ -1,0 +1,25 @@
+{
+    "Should process 8bp genome tags and generate sample sheet": {
+        "content": [
+            [
+                "B_subtilus.fq.gz",
+                "C_necator.fq.gz",
+                "C_psychrerythraea.fq.gz",
+                "D_radiodurans.fq.gz",
+                "E_coli_K12.fq.gz",
+                "G_obscurus.fq.gz",
+                "H_elongata.fq.gz",
+                "K_variicola.fq.gz",
+                "P_halocryophilus.fq.gz",
+                "P_putida.fq.gz",
+                "R_radiotolerans.fq.gz",
+                "test_sample_sample_sheet.csv"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.2"
+        },
+        "timestamp": "2026-02-11T16:13:00.793318"
+    }
+}

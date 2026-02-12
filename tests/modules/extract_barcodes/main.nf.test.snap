@@ -1,32 +1,38 @@
 {
     "Should extract barcodes": {
         "content": [
-            "barcodes.fasta:md5,8c7dbffbb4d82dac42a1122464c59c62"
+            [
+                "barcodes.fasta"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2025-05-15T11:55:42.966741"
+        "timestamp": "2026-02-11T15:36:47.991748"
     },
     "Should extract 0 barcodes": {
         "content": [
-            "barcodes.fasta:md5,d41d8cd98f00b204e9800998ecf8427e"
+            [
+                "barcodes.fasta"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2025-05-15T11:54:31.964242"
+        "timestamp": "2026-02-11T15:36:54.597116"
     },
     "Should extract barcodes from a sample with no inserts": {
         "content": [
-            "barcodes.fasta:md5,4bb621391d2d1598e1af2ee4ce0bcff7"
+            [
+                "barcodes.fasta"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2025-05-15T11:54:37.914313"
+        "timestamp": "2026-02-11T15:37:00.785252"
     }
 }

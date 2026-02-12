@@ -1,12 +1,14 @@
 {
-    "Should generate insert summaries and plots": {
+    "Should generate barplot": {
         "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/61d435726bc33d7a68e95771c15428a5/output/concatenated_inserts.csv"
+            [
+                "insert_length_barplot.png"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2026-02-06T18:36:11.556578"
+        "timestamp": "2026-02-11T16:23:28.783975"
     }
 }

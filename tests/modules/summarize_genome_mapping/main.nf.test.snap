@@ -1,13 +1,14 @@
 {
     "Should generate two files summarizing genome mapping statistics": {
         "content": [
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/4d0773dad964595c67374bc2bfeb680a/output/concatenated_genome_mapping.csv",
-            "/Users/sandie/projects/pioneerlabs/long-read-qc/.nf-test/tests/4d0773dad964595c67374bc2bfeb680a/output/genome_mapping_summary.csv"
+            [
+                "genome_mapping_summary.csv"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2026-02-11T11:02:38.391323"
+        "timestamp": "2026-02-11T16:21:26.188581"
     }
 }

@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -21,9 +21,9 @@ nextflow_process {
         }
 
         then {
+            def stable_name_summary = getAllFilesFromDir("$outputDir/summary_and_plots" , relative: true, includeDir: false )
             assert process.success
-            assert snapshot(
-            path("${params.outdir}/summary_and_plots/seq_summary.csv")).match()
+            assert snapshot(stable_name_summary).match("Should generate a sequencing summary for two libraries")
         }
 
     }
