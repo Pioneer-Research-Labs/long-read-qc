@@ -137,7 +137,7 @@ workflow long_read_qc{
     joinChannel = input_ch.join(flanking)
 
     //extract barcodes
-   barcodes = extract_barcodes(joinChannel)
+    barcodes = extract_barcodes(joinChannel)
 
     // extract inserts, returning insert_fasta (with metadata) and a metadata with fastq file of reads that weren't trimmed
     (inserts, untrimmed_meta) = extract_inserts(joinChannel)
@@ -157,7 +157,10 @@ workflow long_read_qc{
             [meta, barcodes, inserts, sites]
         } | set {dataChannel}
 
-   empty_insert_histogram(dataChannel)
+    sites_sample_map = empty_insert_histogram(dataChannel).collectFile(){
+         id, histogram, count_csv, tsv ->
+        ["sites_map.tsv", "${id}\t${params.path_prefix}${tsv}\n"]
+        }
 
     // Optional analysis of truncated flanking sequences, which can occur either end of the insert is truncated.
     //This analysis extracts any inserts with truncated flanks, generates a .tsv of the truncated insert data,
@@ -215,6 +218,8 @@ workflow long_read_qc{
         ["insert_map.tsv", "${meta.id}\t${params.path_prefix}${fasta}\n"]
     }
 
+
+
     // Map inserts to the genome, adding the dynamically generated path to the genomic.fna file
     mapped = map_inserts(inserts | map {
 	meta, seq_path -> [meta, seq_path, file(params.genomes + meta.genome + "/*_genomic.fna")]
@@ -226,7 +231,7 @@ workflow long_read_qc{
      // Here we generate various summary files and plots for all the sequences processed
      summarize_inserts(insert_map)
      summarize_barcodes(barcode_map)
-     seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map)
+     seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map, sites_sample_map)
 
 
     // If we want to, map all reads to the donor genome

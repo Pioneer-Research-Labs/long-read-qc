@@ -7,12 +7,13 @@ process generate_seq_summary{
     path barcode_map
     path vector_map
     path insert_map
+    path site_map
 
     output:
         path 'seq_summary.csv'
 
     script:
     """
-    summarize_and_plot.py $seq_stats_map seq_stat $barcode_map $vector_map $insert_map
+    summarize_and_plot.py $seq_stats_map seq_stat $barcode_map $vector_map $insert_map $site_map
     """
 }
