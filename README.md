@@ -45,6 +45,8 @@ cd long-read-qc
   - `SITEUP`, `SITEDN` — 5' and 3' flanking regions surrounding insertion site(s)
   - `Secondary_Barcode_for_Donor_gDNA` — optional: for mixed genome libraries to denote donor-specific barcode
 - Save and upload `.dna` files to your constructs S3 path ( `s3://pioneer-sequencing/constructs/`).
+- Below is a schematic showing the layout of the barcode, insert, and site features in a vector. The SITEUP and SITEDN features are used to detect reads with empty or partial barcodes/inserts and other cloning artifacts. 
+<img width="801" height="258" alt="Screenshot 2026-02-17 at 2 57 49 PM" src="https://github.com/user-attachments/assets/4e4fb731-90bf-4a5e-90c0-4e8772899ee6" />
 
 ## Sample sheet format
 - A CSV describing samples is required. Minimum columns (for standard runs): `id`, `genome`, `construct`, `file`.
