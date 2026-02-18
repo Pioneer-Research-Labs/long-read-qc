@@ -1,32 +1,41 @@
 {
     "Should extract 0 inserts": {
         "content": [
-            "inserts.fasta:md5,d41d8cd98f00b204e9800998ecf8427e"
+            [
+                "inserts.fasta",
+                "untrimmed.fastq"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2026-02-05T13:09:42.605492"
+        "timestamp": "2026-02-11T15:46:58.388188"
     },
     "Should extract some inserts": {
         "content": [
-            "inserts.fasta:md5,7c0b0140289d271a6a5af323a69958e1"
+            [
+                "inserts.fasta",
+                "untrimmed.fastq"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2026-02-05T13:09:36.238373"
+        "timestamp": "2026-02-11T15:46:51.46815"
     },
     "Should extract inserts from a sample with no barcodes": {
         "content": [
-            "inserts.fasta:md5,9ee3de61c7f497a93c60ca476f74381c"
+            [
+                "inserts.fasta",
+                "untrimmed.fastq"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2026-02-05T13:11:11.630459"
+        "timestamp": "2026-02-11T15:47:04.645028"
     }
 }

@@ -1,13 +1,15 @@
 process empty_insert_histogram {
-    publishDir("$params.outdir/$meta.id", mode: 'copy')
+    publishDir("$params.outdir/$meta.id/summary_and_plots", mode: 'copy')
 
     input:
         tuple val(meta), path(barcodes), path(inserts), path(sites)
 
     output:
-        path("histogram_of_sites_with_barcode_no_insert.png")
-        path('counts_of_inserts_barcodes_flanking_site_sequences.csv')
+        tuple val("$meta.id"),
+        path("histogram_of_sites_with_barcode_no_insert.png"),
+        path('counts_of_inserts_barcodes_flanking_site_sequences.csv'),
         path('sites.tsv')
+
 
     script:
     """

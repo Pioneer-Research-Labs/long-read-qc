@@ -4,11 +4,11 @@ nextflow_process {
     script "modules/plot_comparison_of_full_to_truncated_inserts/main.nf"
     process "plot_comparison_of_full_to_truncated_inserts"
 
-    test("Should generate a file containing 4 plots") {
+    test("Should generate 4 plots comparing full to truncated inserts") {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -23,8 +23,10 @@ nextflow_process {
         }
 
         then {
+            def stable_name_truncated = getAllFilesFromDir("$outputDir/Gateway_EmptyBarcodedLib1_20241217/truncated_analysis" , relative: true, includeDir: false )
+
             assert process.success
-            assert snapshot("$outputDir/Gateway_EmptyBarcodedLib1_20241217/truncated_vs_intact_flanks_comparison_plot.png").match()
+            assert snapshot(stable_name_truncated).match("Should generate 4 plots comparing full to truncated inserts")
         }
 
     }

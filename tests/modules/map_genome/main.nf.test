@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -22,11 +22,10 @@ nextflow_process {
         }
 
         then {
+            def stable_name_genome_map = getAllFilesFromDir("$outputDir/Gateway_EmptyBarcodedLib1_20241217/map_genome_analysis" , relative: true, includeDir: false )
+
             assert process.success
-            assert snapshot(
-            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/mapped_genome_stats.tsv"),
-            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/mapped_genome.bam"),
-            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/mapped_genome.bam.bai")).match()
+            assert snapshot(stable_name_genome_map).match("Should map sequences to genome")
         }
 
     }

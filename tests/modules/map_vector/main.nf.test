@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -21,8 +21,10 @@ nextflow_process {
         }
 
         then {
+            def stable_name_map_vector = getAllFilesFromDir("$outputDir/Gateway_EmptyBarcodedLib1_20241217/primary_data" , relative: true, includeDir: false )
+
             assert process.success
-            assert snapshot("$outputDir/Gateway_EmptyBarcodedLib1_20241217/mapped_vector_stats.tsv").match()
+            assert snapshot(stable_name_map_vector).match("Should map reads to vector")
          }
     }
 

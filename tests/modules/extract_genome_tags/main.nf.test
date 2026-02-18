@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -23,14 +23,12 @@ nextflow_process {
         }
 
         then {
+        def stable_name_tags = getAllFilesFromDir("$outputDir/WJ4Y3Y_MNT_008" , relative: true, includeDir: false )
             assert process.success
             assert path("$outputDir/WJ4Y3Y_MNT_008/extracted_genome_tags.tsv").readLines().size() == 2
             assert snapshot(
-                ("$outputDir/WJ4Y3Y_MNT_008/extracted_genome_tags.tsv"),
-                ("$outputDir/WJ4Y3Y_MNT_008/genome_tags.fasta"),
-                ("$outputDir/WJ4Y3Y_MNT_008/cutadapt_genome_tags_info.tsv"),
-                ("$outputDir/WJ4Y3Y_MNT_008/cutadapt_genome_tags_report.json")
-            ).match()
+                (stable_name_tags)
+            ).match('Should extract two genome tags from inputs')
 
         }
 

@@ -7,7 +7,7 @@ nextflow_process {
     test("Should extract some inserts") {
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -21,16 +21,17 @@ nextflow_process {
         }
 
         then {
+            def stable_name_inserts = getAllFilesFromDir("$outputDir/Gateway_EmptyBarcodedLib1_20241217/primary_data" , relative: true, includeDir: false )
             assert process.success
-            assert path("$outputDir/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta").readLines().size() == 72
+            assert path("$outputDir/Gateway_EmptyBarcodedLib1_20241217/primary_data/inserts.fasta").readLines().size() == 72
             assert snapshot(
-            ("$outputDir/Gateway_EmptyBarcodedLib1_20241217/inserts.fasta")).match()
+            (stable_name_inserts)).match("Should extract some inserts")
         }
    }
        test("Should extract 0 inserts") {
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -44,15 +45,16 @@ nextflow_process {
         }
 
         then {
+            def stable_name_inserts = getAllFilesFromDir("$outputDir/b.33TransposonBarcodedLibraryLinear/primary_data" , relative: true, includeDir: false )
             assert process.success
-            assert path("$outputDir/b.33TransposonBarcodedLibraryLinear/inserts.fasta").readLines().size() == 0
-            assert snapshot("$outputDir/b.33TransposonBarcodedLibraryLinear/inserts.fasta").match()
+            assert path("$outputDir/b.33TransposonBarcodedLibraryLinear/primary_data/inserts.fasta").readLines().size() == 0
+            assert snapshot(stable_name_inserts).match("Should extract 0 inserts")
         }
    }
         test("Should extract inserts from a sample with no barcodes") {
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -66,12 +68,13 @@ nextflow_process {
         }
 
         then {
+            def stable_name_inserts = getAllFilesFromDir("$outputDir/Gib_Lib1_240801/primary_data" , relative: true, includeDir: false )
             assert process.success
             assert process.out.size() == 2
             assert process.out[0][0].size() == 2
             assert process.out[1].size() == 1
-            assert path("$outputDir/Gib_Lib1_240801/inserts.fasta").readLines().size() == 216
-            assert snapshot("$outputDir/Gib_Lib1_240801/inserts.fasta").match()
+            assert path("$outputDir/Gib_Lib1_240801/primary_data/inserts.fasta").readLines().size() == 216
+            assert snapshot(stable_name_inserts).match("Should extract inserts from a sample with no barcodes")
         }
    }
 

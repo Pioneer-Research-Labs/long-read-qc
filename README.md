@@ -1,158 +1,161 @@
-# Analysis pipeline for long reads
+# long-read-qc
 
-## Usage
+Long-read processing and QC pipeline for Pioneer Research Labs.
 
-### Prep construct file
+This repository contains a Nextflow-based pipeline that extracts barcodes and inserts from long-read sequencing data, maps inserts to vector and genome references, and generates QC reports and summary tables/plots.
 
-To determine the regions of the read that have the barcode and insert, the pipeline uses flanking regions for each part.  
-These are provided by way of annotations in a SnapGene `.dna` file.  Ideally the annotations will represent regions
-between 100-30 bp long but the exact length is not particularly important here.  Generally don't go below 20 bp
-but that's not a fixed limit. To create these, add annotations named `BARCODEUP`, 
-`BARCODEDN`, `INSERTUP`, and `INSERTDN` for the 5' and 3' flanking regions for the barcode and insert. Additionally, plasmids
-can be annotated with `SITEUP` and `SITEDN` to denote the 5' and 3' flanking regions of the fragment insertions site if applicable. 
-The site tags are used to identify empty inserts that are used in downstream analysis outside this pipeline.  For samples
-from mixed genome libraries, an annotation called  `Secondary_Barcode_for_Donor_gDNA` denotes a barcode sequence that 
-uniquely identifies the genomic DNA donor source.  This is optional and only needed for mixed genome libraries. Once you've added these annotations with the exact names as above the save the file and
-upload to the S3 path at s3://pioneer-sequencing/constructs/.
+## Key features
+- Modular Nextflow workflows for extraction, mapping, QC and summarization.
+- Supports preprocessing of genome tags and truncated flank analysis.
+- Produces per-sample results and aggregate summary maps for downstream reporting.
 
-### Create sample sheet
+## Repository layout
+- `main.nf` — pipeline entrypoint and workflow orchestration.
+- `modules/` — Nextflow modules implementing atomic tasks (barcode extraction, mapping, plotting, etc.).
+- `bin/` — helper scripts used by modules and workflow (aggregation, conversions, etc.).
+- `assets/` — validation schemas, templates and example resources.
+- `tests/` — Nextflow tests for helper scripts and modules.
+- `test_data/` — small example inputs and expected artifacts for local testing.
 
-To run the pipeline a csv file describing the samples must be provided.  At minimum this file needs to have four columns 
-titled, `id`, `genome`, `construct`, and `file`.  The `id` column should be a unique sample id that is simple and not too 
-long. `genome` is the genome id to use for mapping inserts and identifying genes.  See below for current list of genomes.  
-`construct` is the name of the plasmid. This should be the plasmid name without the path to the S3 location.  The `file` 
-column is the S3 path to the raw fastq file for that sample. The only column in the sample sheet that contains a full S3
-path is the file column.  Here's an example:
+## Requirements
+- Java 11+ (for Nextflow runtime)
+- Nextflow (https://www.nextflow.io)
+- Docker or Singularity (optional; pipeline can run locally or inside containers)
+- Standard bioinformatics tools used inside modules (see `modules/*` for per-module requirements). Many modules expect standard command-line tools (samtools, minimap2, cutadapt, seqkit, bedtools, etc.).
 
-| id                                 | genome     | construct   | file                                                             |
-|------------------------------------|------------|-------------|------------------------------------------------------------------|
-| HE_Gateway_Lib1_20241217           | H_elongata | c.00323.dna | s3://pioneer-scratch/dummy/dummy_seqs/5HKJT6_3_sample_3.fastq.gz |
-| Gateway_EmptyBarcodedLib2_20241217 | H_elongata | c.00323.dna | s3://pioneer-scratch/dummy/dummy_seqs/5HKJT6_2_sample_2.fastq.gz |
-| HE_USER-NOgapfill_Lib1_20241220    | H_elongata | c.00215.dna | s3://pioneer-scratch/dummy/dummy_seqs/CJ39YZ_2_sample_2.fastq.gz |
+## Quick install
+1. Install Java and Nextflow per official docs.
+2. (Optional) Install Docker or Singularity if you plan to run with containers.
+3. Clone this repository and change into it:
+
+```bash
+git clone https://github.com/Pioneer-Research-Labs/long-read-qc.git
+cd long-read-qc
+```
+
+## High-level workflow
+- The pipeline has two main entry workflows implemented in `main.nf`:
+  - `preprocess_genome_tags`: processes Tesseract multiplexed sample sheets and generates an aggregated sample sheet suitable for the main pipeline.
+  - `long_read_qc`: the primary QC and analysis workflow that extracts barcodes and inserts, maps inserts to vector/genome, and generates per-sample and aggregate summaries.
+
+## Preparing construct files
+- The pipeline uses SnapGene `.dna` annotations to determine flanking sequences for barcode and insert extraction. Annotate plasmids with the following feature names:
+  - `BARCODEUP`, `BARCODEDN` — 5' and 3' flanking regions for the barcode
+  - `INSERTUP`, `INSERTDN` — 5' and 3' flanking regions for the insert
+  - `SITEUP`, `SITEDN` — 5' and 3' flanking regions surrounding insertion site(s)
+  - `Secondary_Barcode_for_Donor_gDNA` — optional: for mixed genome libraries to denote donor-specific barcode
+- Save and upload `.dna` files to your constructs S3 path ( `s3://pioneer-sequencing/constructs/`).
+- Below is a schematic showing the layout of the barcode, insert, and site features in a vector. The SITEUP and SITEDN features are used to detect reads with empty or partial barcodes/inserts and other cloning artifacts. 
+<img width="801" height="258" alt="Screenshot 2026-02-17 at 2 57 49 PM" src="https://github.com/user-attachments/assets/4e4fb731-90bf-4a5e-90c0-4e8772899ee6" />
+
+## Sample sheet format
+- A CSV describing samples is required. Minimum columns (for standard runs): `id`, `genome`, `construct`, `file`.
+  - `id`: a unique sample identifier
+  - `genome`: genome id (used to find reference `*_genomic.fna` under your genome path in S3 - `s3://pioneer-sequencing/pioneer-genomes/`)
+  - `construct`: plasmid name (filename of `.dna` under the construct path in `s3://pioneer-sequencing/constructs/`)
+  - `file`: path to the sample reads in S3 path like `s3://.../sample.fastq.gz`)
+- See an example sample sheet in `documentation/example_samplesheet.csv`.
+- For mixed-genome libraries the `genome` column may be omitted or left blank; the pipeline supports this mode when using the Tesseract preprocessing workflow.
+- Validation schemas are included in `assets/` (e.g. `samplesheet_validation_schema.json`) and are used to validate sample sheets when the pipeline starts in Seqera.
+
+## Running the pipeline from Seqera
+- The pipeline is designed to run on Seqera's AWS Batch infrastructure, but can also be run locally with Docker or Singularity profiles. 
+Follow the instructions for running on Seqera [here](https://www.notion.so/pioneer-labs/Infrastructure-149c5334475180d18f8fecfaf3eac640?source=copy_link#216c53344751805f9e82d3e28d49a7cf) or
+follow the local run instructions below.
 
 
-Once you've created this file (probably easiest to do this on your local machine, not the server), you can upload it 
-to the server in the working directory you'd like to use for the run.
+## Running the pipeline locally
+When running the pipeline locally, you'll need to authenticate with AWS to allow the pipeline to read/write from S3. 
+You can do this by [configuring the AWS CLI with your credentials](https://www.notion.so/pioneer-labs/Running-developing-Nextflow-pipelines-locally-287c53344751809399a3f54bfc6cc337#287c53344751803c8f11d22a4e3f234c).
 
+```bash
+Running the pipeline
+- Pull the latest pipeline (optional):
 
-### Create sample sheet for mixed genome libraries
-For mixed genome libraries, only `id`, `construct`, and `file` columns are required. The `genome` column can be left blank or omitted entirely.
+```bash
+nextflow pull Pioneer-Research-Labs/long-read-qc
+```
+ 
+- Run locally with Docker profile (example):
 
-### For current genomes available in the pipeline see s3://pioneer-data/genomes/
+```bash
+nextflow run Pioneer-Research-Labs/long-read-qc -profile standard --samplesheet samples.csv
+```
 
+- Run on AWS Batch (example):
 
-### Large sequencing files
-For large sequencing files we recommend splitting the files into smaller chunks and using the `awsbatch` pipeline profile.
-To split the files, check out the repo and run the following command: 
+```bash
+nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet samples.csv -profile awsbatch
+```
+
+- Preprocess multiplexed (Tesseract) sample sheet and generate an aggregated sample sheet:
+
+```bash
+nextflow run Pioneer-Research-Labs/long-read-qc --tesseract_samplesheet my_multiplexed_samples.csv --preprocess_genome_tags true
+```
+
+Splitting large FASTQ files
+- For very large FASTQ files we recommend splitting into chunked files and using the `awsbatch` profile for scalable processing.
+- A helper script `bin/chunk_fastq.py` produces chunked files and an updated chunked sample sheet:
 
 ```bash
 python bin/chunk_fastq.py <path to samplesheet>
 ```
-The script takes a while to run since it first determines how many reads are present, and then calculates the number of
-reads per 1GB of data.  The file is split into 1GB chunks and the chunks uploaded to S3. A new sample sheet is created
-with the same name as the input file but with `_chunked` appended to the end.  
-This file will have the same structure as the original sample sheet but with the `file` column updated to point to the 
-chunked files loaded to S3 and the `id` column updated with sample and chunk name. 
 
-### Run the pipeline
+### Parameters overview
+- `--samplesheet <file>`: path to the sample sheet (default: `samplesheet.csv`)
+- `--tesseract_samplesheet <file>`: path to Tesseract multiplexed sample sheet for preprocessing
+- `--tech <str>`: sequencing tech hint (e.g., `map-ont`, `map-pb`, `map-hifi`)
+- `--map_genome <bool>`: map reads to donor genome (default: `false`)
+- `--preprocess_genome_tags <bool>`: run `preprocess_genome_tags` workflow instead of main
+- `--error_rate <float>`: barcode search error rate (default: `0.1`)
+- `--min_overlap <int>`: minimum overlap for barcode searching (default: `3`)
+- `--min_bc_len` / `--max_bc_len`: minimum/maximum barcode lengths (default: `20` / `60`)
+- `--cores <int>`: number of CPU cores to allocate
+- Use `--help` or inspect `main.nf`'s `helpMessage()` for the full list and defaults.
 
-Before running the pipeline make sure you have the latest version of the pipeline.  You can do this by running the following command:
+### Outputs
+- The output is stored in a directory in S3 (s3://pioneer-analysis/long_read_qc/prod/).
+The directory name the sample sheet file name prefixed with today's date (yyyy_MM_dd_HH_mm_ss). 
+For example, a sample sheet entitled `my_samples.csv` will result in an output directory `2025_03_04_14_37_19_my_samples`.
+In the output directory, a folder is created for each sample containing task outputs, summary TSVs, plots, and intermediate files as applicable.
+- For more details on outputs, see `OUTPUTS.md` in the documentation folder.
 
-```
-nextflow pull Pioneer-Research-Labs/long-read-qc
-````
+### Workflow diagram
+- See the workflow diagram in the documentation folder (`documentation/workflow_diagram.png`) for a visual overview of the main workflow and its modules.
 
-Start the run locally:
+## Testing
+- Install `nf-test`(https://www.nf-test.com/)
+- Use the provided `test_data/` to run local smoke tests
 
-```
-nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet mysample.csv 
-```
-
-Start the run on AWS Batch:
-
-```
-nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet mysample.csv -profile awsbatch
-```
-
-For low-depth QC samples this should run in less than a minute. For high-depth PacBio samples this will take an hour or more.
-
-To run the de-multiplexing pipeline, use the following command which will output a sample sheet
-entitled `aggregated_sample_sheet.csv` that can then be used to run the main long-read-qc pipeline.
-
-```
-nextflow run Pioneer-Research-Labs/long-read-qc --tesseract_samplesheet my_multiplexed_samples.csv
-```
-or an AWS Batch
-```
-nextflow run Pioneer-Research-Labs/long-read-qc --tesseract_samplesheet my_multiplexed_samples.csv -profile awsbatch
+```bash
+nf-test test tests
 ```
 
-### Results
+## Developer notes
+- The pipeline is modular: each module in `modules/` implements a small Nextflow process or subworkflow. Open a module to see tool-specific commands, containers, and resource hints.
+- Helper scripts live in `bin/` (e.g. `aggregate_sample_sheets.py`, `chunk_fastq.py`) and can be run standalone.
+- `params.path_prefix` is used to add prefixes (for S3 or other storage) to outputs in collection maps; verify this if your outputs end up under unexpected locations. This
+and other parameters can be set in `nextflow.config` or overridden on the command line.
 
-The output is stored in a directory locally and in S3 (s3://pioneer-analysis/long_read_qc/prod/). The directory name
-the sample sheet file name prefixed with today's date (yyyy_MM_dd_HH_mm_ss). For example, a sample sheet entitled `my_samples.csv` will
-result in an output directory `2025_03_04_14_37_19_my_samples`. In the output directory, a folder is created for each sample id and the raw output 
-files are stored here.  
+## Troubleshooting
+- Missing tools: inspect the failing task logs under `work/` (task stderr/stdout) and install the required tool or run with an appropriate container profile.
+- File not found / permission errors: verify sample sheet paths and S3 access. Use absolute paths or S3 URIs, and ensure IAM permissions for S3 when running on AWS.
+- Resume a failed run using Nextflow's resume feature by re-running the same command with `-resume`:
 
-In addition to outputs for each sample, the pipeline aggregates results across all samples and generates the following plots:
-- `barcode_copy_number.png` - A histogram of the copy number of each unique barcode
-- `barcode_length_distribution.png` - A violin plot of the length distribution of the barcodes
-- `barcode_proportions.png` - A bar chart showing the proportion of true/empty/other detected barcodes
-- `full_genes_per_fragment.png` - A histogram of the number of full genes per insert
-- `insert_length_distribution.png` - A violin plot of the length distribution of the inserts
-- `partial_genes_per_fragment.png` - A histogram of the number of partial genes per insert
-
-A file (seq_summary.csv) summarizing the results for each sample is also generated in the output directory.
-
-The legacy tool to generate reports and plots is still in place.  To run the report and perform additional analysis 
-if required the `results` directory contains a Jupyter notebook called `report.ipynb`.  On the server you can open 
-this directly and run it to get all the sample summaries and plots.  Please note
-that you may want to restart the Jupyter Kernel if you've run other notebooks recently with the same name.  The report 
-notebook will aggregate the results from the samples, write out aggregated files for future analysis, and create some summary 
-plots and tables.  Feel free to modify and extend the analysis as requried.
-
-
-### Pipeline options
-
-```
-▗▄▄▖▗▄▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖▗▄▄▄▖▗▄▄▖     ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▄▄▄▖▗▖   ▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖
-▐▌ ▐▌ █  ▐▌ ▐▌▐▛▚▖▐▌▐▌   ▐▌   ▐▌ ▐▌    ▐▌ ▐▌ █  ▐▌ ▐▌▐▌   ▐▌     █  ▐▛▚▖▐▌▐▌   ▐▌   
-▐▛▀▘  █  ▐▌ ▐▌▐▌ ▝▜▌▐▛▀▀▘▐▛▀▀▘▐▛▀▚▖    ▐▛▀▘  █  ▐▛▀▘ ▐▛▀▀▘▐▌     █  ▐▌ ▝▜▌▐▛▀▀▘ ▝▀▚▖
-▐▌  ▗▄█▄▖▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖▐▙▄▄▖▐▌ ▐▌    ▐▌  ▗▄█▄▖▐▌   ▐▙▄▄▖▐▙▄▄▖▗▄█▄▖▐▌  ▐▌▐▙▄▄▖▗▄▄▞▘
-
-Long Read Processing and QC Pipeline          
-
-
-Usage: nextflow run Pioneer-Research-Labs/long-read-qc -latest
-
-Options:
---samplesheet <file>      Path to the sample sheet (default: samplesheet.csv)
---outdir <dir>            Output directory (default: results)
---tech <str>              Sequencing technology, map-ont/map-pb/map-hifi (default: map-ont)
---error_rate <float>      Error rate for barcode searching (default: 0.1)
---min_overlap <int>       Minimum overlap for barcode searching (default: 3)
---min_bc_len <int>        Minimum barcode length (default: 20)
---max_bc_len <int>        Maximum barcode length (default: 60)
---meta_ovlp <int>         Overlap bp for sourmash (default: 1000)
---sourmash_db <file>      Path to the sourmash database (default: /srv/shared/databases/sourmash/gtdb-rs220-k21.zip)
---taxonomy <file>         Path to the taxonomy database (default: /srv/shared/databases/sourmash/gtdb-rs220.lineages.sqldb)
---cores <int>             Number of cores to use (default: 4)
-
-Profiles:
--profile standard              Run pipeline locally with Docker
--profile awsbatch              Run pipeline on AWS Batch
+```bash
+nextflow run main.nf -resume --samplesheet samples.csv
 ```
 
-## About
+- For difficult failures, include the Nextflow run command, Nextflow version (`nextflow -v`), Java version (`java -version`), and the relevant `work/<task>` stderr log when opening an issue.
 
-This is a fairly straightforward pipeline that uses `cutadapt` to locate barcodes and inserts on the reads. 
+## Testing and CI
+- Continuous integration is set up with GitHub Actions to run `nf-test` on the `tests/` directory for each push and pull request. This ensures that helper scripts and modules are functioning as expected with the provided test data.
+- To add new tests, create a new test file in `tests/` (e.g. `test_new_module.nf`) and add corresponding test data in `test_data/`. The test should include a minimal Nextflow script that calls the module or script being tested, along with assertions to verify expected outputs.
 
-Using the provided `.dna` Snapgene file the annotations are extracted and flanking sequences saved in a format for `cutadapt`.   Then the reads are run through `cutadapt` twice, once to extract the barcode and once to extract the insert.  Cutadapt has a feature called "linked adapters"  which will uses the provided flanking sequence to locate the 5' and 3' flanking regions and then it trims off this sequence from the read and everything outside it, leaving just the barcode or insert.
+## Contributing
+- Please open issues and PRs. Include a minimal reproducer (use `test_data/` if possible) and describe expected vs actual behavior.
 
-After counting unique barcodes the inserts are mapped to the provided genome and overlaps with genes and the genome are assesed using a variety of bedtools commands
+## Contact
+- For help or questions, provide the pipeline run command and a snippet of failing task logs (found under `work/`).
 
-
-## Developing
-
-### Adding genome files
-TODO

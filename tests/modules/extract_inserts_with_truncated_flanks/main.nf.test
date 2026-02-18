@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -21,11 +21,9 @@ nextflow_process {
         }
 
         then {
+            def stable_name_flanks = getAllFilesFromDir("$outputDir/HE_USER-gapfill_Lib1_20241220/primary_data" , relative: true, includeDir: false )
             assert process.success
-            assert snapshot(
-            ("$outputDir/HE_USER-gapfill_Lib1_20241220/inserts_from_truncated_flanks.fasta"),
-            ("$outputDir/HE_USER-gapfill_Lib1_20241220/untrimmed_from_truncated_flanks.fastq"),
-            ("$outputDir/HE_USER-gapfill_Lib1_20241220/cutadapt_info_from_truncated_flanks.tsv")).match()
+            assert snapshot(stable_name_flanks).match("Should find inserts from untrimmed fastq file")
         }
 
     }

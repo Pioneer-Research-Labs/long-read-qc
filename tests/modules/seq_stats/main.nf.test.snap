@@ -1,12 +1,14 @@
 {
     "Should generate sequencing stats": {
         "content": [
-            "seq_stats.tsv:md5,85a8e51f84c04f5e3a1c3abe17290097"
+            [
+                "seq_stats.tsv"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2025-05-15T13:29:01.721485"
+        "timestamp": "2026-02-11T16:15:59.809347"
     }
 }

@@ -25,7 +25,10 @@ def plot(inserts_full, insert_truncated, all_seq_lengths, length_untrimmed, samp
     # If empty dataframes are returned, return early
     if full_df.empty or truncated_df.empty:
         print("No data to plot. Exiting.")
-        plt.savefig('truncated_vs_intact_flanks_comparison_plot.png')
+        plt.savefig('intact_vs_truncated_insert_lengths.png')
+        plt.savefig('raw_counts_intact_vs_truncated_inserts.png')
+        plt.savefig('read_lengths_for_trimmed_seqs.png')
+        plt.savefig('untrimmed_read_lengths.png')
         return
     all_inserts_df = pd.concat([truncated_df, full_df])
 
@@ -35,35 +38,45 @@ def plot(inserts_full, insert_truncated, all_seq_lengths, length_untrimmed, samp
     combined_with_read_length = all_inserts_with_lengths[all_inserts_with_lengths['read_length'].notna()]
     no_inserts = pd.read_csv(length_untrimmed, sep='\t', names=['id', 'read_length'])
 
-
-    fig, ax = plt.subplots(ncols=4, figsize=(25, 6))
+    # histogram of insert lengths for intact vs truncated
+    fig, ax = plt.subplots( figsize=(10, 6))
     sns.histplot(all_inserts_df,
                  x='length',
                  hue='source',
-                 ax=ax[0])
-    ax[0].set_xlabel('Insert length')
-    ax[0].set_title(f'Insert lengths for {sample}')
-    sns.countplot(x="source", data=all_inserts_df, dodge=False, ax=ax[1])
-    ax[1].set_title(f'Raw counts of inserts for {sample}')
+                 ax=ax)
+    ax.set_xlabel('Insert length')
+    ax.set_title(f'Insert lengths for {sample}')
+    plt.savefig('intact_vs_truncated_insert_lengths.png')
+    plt.close()
 
+    # histogram of counts of intact vs truncated inserts
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.countplot(x="source", data=all_inserts_df, dodge=False, ax=ax)
+    ax.set_title(f'Raw counts of inserts for {sample}')
+    plt.savefig('raw_counts_intact_vs_truncated_inserts.png')
+    plt.close()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
     sns.histplot(combined_with_read_length,
                  x='read_length',
                  hue='source',
-                 ax=ax[2])
-    ax[2].set_xlabel('Read length')
-    ax[2].set_title(f'Read lengths for trimmed seqs in {sample}')
-    # Plot read lengths for reads with no inserts
+                 ax=ax)
+    ax.set_xlabel('Read length')
+    ax.set_title(f'Read lengths for trimmed seqs in {sample}')
+    plt.savefig('read_lengths_for_trimmed_seqs.png')
+    plt.close()
 
+    # Plot read lengths for reads with no inserts
+    fig, ax = plt.subplots(figsize=(10, 6))
     sns.histplot(no_inserts,
                  x='read_length',
-                 ax=ax[3])
-    ax[3].set_xlabel('Read length')
-    ax[3].set_title(f'Read lengths for untrimmed reads from {sample}')
+                 ax=ax)
+    ax.set_xlabel('Read length')
+    ax.set_title(f'Read lengths for untrimmed reads from {sample}')
     plt.tight_layout()
-
-    output_file = Path('truncated_vs_intact_flanks_comparison_plot.png')
-    plt.savefig(output_file)
+    plt.savefig('untrimmed_read_lengths.png')
     plt.close()
+
 
 if __name__ == '__main__':
     full_insert_lengths = sys.argv[1]

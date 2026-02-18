@@ -1,0 +1,3 @@
+id,genome,construct,file
+s.D.1515_day0,Halomonas_elongata_DSM_2581_GCF_000196875.2,c.00430_noinserts.dna,s3://pioneer-sequencing/Nanopore/251021/BH9WC5_1_s.1515.fastq
+b.74_day0,Halomonas_elongata_DSM_2581_GCF_000196875.2,c.00430_noinserts.dna,s3://pioneer-sequencing/Nanopore/251021/CRZV2S_1_b.74_Day_0.fastq

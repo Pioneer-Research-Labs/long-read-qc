@@ -1,5 +1,5 @@
 process plot_comparison_of_full_to_truncated_inserts {
-    publishDir "$params.outdir/$meta.id", mode: 'copy'
+    publishDir "$params.outdir/$meta.id/truncated_analysis", mode: 'copy'
     tag("$meta.id")
 
     input:
@@ -7,11 +7,10 @@ process plot_comparison_of_full_to_truncated_inserts {
     path(untrimmed_from_truncated_flanks_fastq), path(reads)
 
     output:
-    path("truncated_vs_intact_flanks_comparison_plot.png")
-    path("all_seq_ids_lengths.txt")
-    path("full_insert_read_lengths.txt")
-    path("truncated_ids_read_lengths.txt")
-    path("untrimmed_ids_lengths.txt")
+    path('intact_vs_truncated_insert_lengths.png')
+    path('raw_counts_intact_vs_truncated_inserts.png')
+    path('read_lengths_for_trimmed_seqs.png')
+    path('untrimmed_read_lengths.png')
 
     script:
     """

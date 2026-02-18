@@ -18,7 +18,6 @@ include { extract_inserts_with_truncated_flanks } from './modules/extract_insert
 include { extract_genome_tags } from './modules/extract_genome_tags'
 include { map_inserts } from './modules/map_inserts'
 include { map_genome } from './modules/map_genome'
-include { summarize_barcode_counts } from './modules/summarize_barcode_counts'
 include { summarize_inserts } from './modules/summarize_inserts'
 include { summarize_barcodes } from './modules/summarize_barcodes'
 include { summarize_genome_mapping } from './modules/summarize_genome_mapping'
@@ -81,7 +80,7 @@ workflow preprocess_genome_tags {
 
     process_inputs = process_channel
         .map{
-            meta, genome_tags, report, genome_tags_info, genome_tags_tsv, construct, fastq ->
+            meta, genome_tags, genome_tags_tsv, construct, fastq ->
             [meta, genome_tags_tsv, file(params.tesseract_oligo_file), fastq, construct]
         }
     sample_sheet_map = process_8bp_genome_tags(process_inputs).collectFile(){
@@ -138,7 +137,7 @@ workflow long_read_qc{
     joinChannel = input_ch.join(flanking)
 
     //extract barcodes
-    (barcodes, bc_report, bc_tab) = extract_barcodes(joinChannel)
+    barcodes = extract_barcodes(joinChannel)
 
     // extract inserts, returning insert_fasta (with metadata) and a metadata with fastq file of reads that weren't trimmed
     (inserts, untrimmed_meta) = extract_inserts(joinChannel)
@@ -146,51 +145,60 @@ workflow long_read_qc{
     // plot histogram of insert lengths
     plot_insert_histogram(inserts)
 
-    //extract cut sites from constructs
-    sites_fasta = extract_sites(joinChannel)
+    //extract fasta between cut sites in construct
+    sites = extract_sites(joinChannel)
 
     input_ch
         .join(barcodes)
         .join(inserts)
-        .join(sites_fasta)
+        .join(sites)
         .map { meta, reads, construct, barcodes, inserts, sites ->
             // Return the meta data, barcodes, inserts, and cut sites
             [meta, barcodes, inserts, sites]
         } | set {dataChannel}
 
-   empty_insert_histogram(dataChannel)
-    // Join untrimmed_meta with input_ch, yielding a channel that contains the metadata,
-    // reads, construct, flanking sequence and the fastq file of reads that weren't trimmed.
-     joinChannel.join(untrimmed_meta)
-        .map { meta, reads, construct, flanking, untrimmed_fq ->
-            // Return the meta data, flanking sequence, and the fastq file of reads that weren't trimmed
-            [meta, flanking, untrimmed_fq]
-        } | set {untrimmed_with_reads}
-    // extract any inserts with truncated flanking sequences
-    truncated_data = extract_inserts_with_truncated_flanks(untrimmed_with_reads)
+    sites_sample_map = empty_insert_histogram(dataChannel).collectFile(){
+         id, histogram, count_csv, tsv ->
+        ["sites_map.tsv", "${id}\t${params.path_prefix}${tsv}\n"]
+        }
 
-    // Generate a .tsv of the truncated insert data
-    get_truncated_inserts_as_tsv(truncated_data)
+    // Optional analysis of truncated flanking sequences, which can occur either end of the insert is truncated.
+    //This analysis extracts any inserts with truncated flanks, generates a .tsv of the truncated insert data,
+    //and plots comparisons between the full and truncated inserts.
 
-    // We need the insert fasta file for the full inserts and the truncated inserts to compare them.
-    data_for_plot = truncated_data.join(inserts)
-         .map { meta, truncated_insert_fasta,  untrimmed_from_truncated_fq, full_inserts ->
-             // Return the meta data, full inserts, truncated inserts, and untrimmed fastq file
-             [meta, full_inserts, truncated_insert_fasta, untrimmed_from_truncated_fq]
-         } // We also need the original sequence file to generate a list of sequence ids/lengths.
-         .join(read_ch)
+    if (params.analyze_truncated_flanks){
+        // Join untrimmed_meta with input_ch, yielding a channel that contains the metadata,
+        // reads, construct, flanking sequence and the fastq file of reads that weren't trimmed.
+         joinChannel.join(untrimmed_meta)
+            .map { meta, reads, construct, flanking, untrimmed_fq ->
+                // Return the meta data, flanking sequence, and the fastq file of reads that weren't trimmed
+                [meta, flanking, untrimmed_fq]
+            } | set {untrimmed_with_reads}
+        // extract any inserts with truncated flanking sequences
+        truncated_data = extract_inserts_with_truncated_flanks(untrimmed_with_reads)
 
-    // Plot the comparisons between full and truncated inserts
-   plot_comparison_of_full_to_truncated_inserts(data_for_plot)
+        // Generate a .tsv of the truncated insert data
+        get_truncated_inserts_as_tsv(truncated_data)
 
+        // We need the insert fasta file for the full inserts and the truncated inserts to compare them.
+        data_for_plot = truncated_data.join(inserts)
+             .map { meta, truncated_insert_fasta,  untrimmed_from_truncated_fq, full_inserts ->
+                 // Return the meta data, full inserts, truncated inserts, and untrimmed fastq file
+                 [meta, full_inserts, truncated_insert_fasta, untrimmed_from_truncated_fq]
+             } // We also need the original sequence file to generate a list of sequence ids/lengths.
+             .join(read_ch)
+
+        // Plot the comparisons between full and truncated inserts
+       plot_comparison_of_full_to_truncated_inserts(data_for_plot)
+    }
     // combine for read stats
-    combined_data = input_ch
+    barcode_and_inserts = input_ch
         .join(inserts)
         .join(barcodes)
 
 
     // The seq stats map is a file that maps the sample to the path of the seq stats results file for each sample.
-    seq_stats_results = seq_stats(combined_data).collectFile(){
+    seq_stats_results = seq_stats(barcode_and_inserts).collectFile(){
         id, tsv ->
         ["seq_stats_map.tsv", "${id}\t${params.path_prefix}${tsv}\n"]
         }
@@ -212,22 +220,18 @@ workflow long_read_qc{
 
 
 
-    // map inserts and add the dynamically generate the path to the genomic.fna file, adding it to the channel
+    // Map inserts to the genome, adding the dynamically generated path to the genomic.fna file
     mapped = map_inserts(inserts | map {
 	meta, seq_path -> [meta, seq_path, file(params.genomes + meta.genome + "/*_genomic.fna")]
 	})
 
-    // Add the files needed for insert coverage by dynamically creating paths based on genome.
-    mapped_with_references = mapped | map {
-	meta, bam, bai, stats -> [
-		meta, bam]
-	}
+     // Plot coverage depth
+     plot_depth(mapped)
 
      // Here we generate various summary files and plots for all the sequences processed
-     summarize_barcode_counts(barcode_count_sample_map)
      summarize_inserts(insert_map)
      summarize_barcodes(barcode_map)
-     seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map)
+     seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map, sites_sample_map)
 
 
     // If we want to, map all reads to the donor genome
@@ -240,11 +244,10 @@ workflow long_read_qc{
             meta, bam, bai, stats ->
             ["mapped_genome_map.tsv", "${meta.id}\t${params.path_prefix}${stats}\n"]
         }
-        seq_stats_results.view()
+
         summarize_genome_mapping(genome_map, seq_stats_results)
     }
-     // Plot coverage depth
-     plot_depth(mapped)
+
 
 }
 

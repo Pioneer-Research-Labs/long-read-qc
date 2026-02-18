@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -20,8 +20,9 @@ nextflow_process {
         }
 
         then {
+            def stable_name_flanking = getAllFilesFromDir("$outputDir/Gateway_EmptyBarcodedLib1_20241217/primary_data" , relative: true, includeDir: false )
             assert process.success
-            assert snapshot("$outputDir/Gateway_EmptyBarcodedLib1_20241217/flanking.gb").match()
+            assert snapshot(stable_name_flanking).match("Should get insert and barcode flanking sequences from a plasmid with annotations reversed")
         }
 
     }
@@ -29,7 +30,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -41,8 +42,10 @@ nextflow_process {
         }
 
         then {
+            def stable_name_flanking = getAllFilesFromDir("$outputDir/Phal/primary_data" , relative: true, includeDir: false )
             assert process.success
-            assert snapshot("$outputDir/Phal/flanking.gb").match()
+            assert snapshot(stable_name_flanking).match(
+                "Should get insert and barcode flanking sequences from a plasmid with annotation in the correct order")
         }
 
     }

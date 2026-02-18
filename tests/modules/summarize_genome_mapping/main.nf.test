@@ -8,23 +8,21 @@ nextflow_process {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
                 // Two input summaries, seq_stats and genome_mapping.
                 input[0] = file('${projectDir}/test_data/mapped_genome_map.tsv')
-                input[1] = file('${projectDir}/test_data/for_genome_mapping_concatenated_seq_stats.csv')
+                input[1] = file('${projectDir}/test_data/seq_stats_map.tsv')
                 """
             }
         }
 
         then {
+            def stable_name_g_mapping = getAllFilesFromDir("$outputDir/summary_and_plots" , relative: true, includeDir: false )
             assert process.success
-            assert snapshot(
-            "$outputDir/concatenated_genome_mapping.csv",
-            "$outputDir/genome_mapping_summary.csv"
-            ).match()
+            assert snapshot(stable_name_g_mapping).match("Should generate two files summarizing genome mapping statistics")
         }
 
     }

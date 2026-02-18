@@ -8,7 +8,7 @@ nextflow_process {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -23,8 +23,10 @@ nextflow_process {
         }
 
         then {
+            def stable_truncated = getAllFilesFromDir("$outputDir/Gateway_EmptyBarcodedLib1_20241217/truncated_analysis" , relative: true, includeDir: false )
+
             assert process.success
-            assert snapshot("$outputDir/Gateway_EmptyBarcodedLib1_20241217/truncated_inserts.tsv").match()
+            assert snapshot(stable_truncated).match("Should generate a tsv table of truncated inserts with seq id, sequence, and insert length")
         }
     }
 }

@@ -1,13 +1,12 @@
 process summarize_barcodes {
-    publishDir("$params.outdir"),  mode: 'copy'
+    publishDir("$params.outdir/summary_and_plots"),  mode: 'copy'
     tag 'Summarizing barcodes'
 
     input:
     path sample_map
 
     output:
-        path ('*.csv', arity: '1')
-        path('*.png', arity: '1')
+        path('barcode_copy_number.png')
 
     script:
     """

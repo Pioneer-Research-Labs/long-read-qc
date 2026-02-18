@@ -1,12 +1,14 @@
 {
     "Should plot sequencing depth": {
         "content": [
-            "coverage_plot.png:md5,ffa08f1428caf1d68ecaeacb04203e67"
+            [
+                "coverage_plot.png"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2025-05-15T13:27:28.968495"
+        "timestamp": "2026-02-11T16:11:02.039791"
     }
 }

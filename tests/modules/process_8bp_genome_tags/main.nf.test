@@ -4,11 +4,11 @@ nextflow_process {
     script "modules/process_8bp_genome_tags/main.nf"
     process "process_8bp_genome_tags"
 
-    test("Should generate several fastq files by genome") {
+    test("Should process 8bp genome tags and generate sample sheet") {
 
         when {
             params {
-                outdir = outputDir
+                outdir = "$outputDir"
             }
             process {
                 """
@@ -22,8 +22,11 @@ nextflow_process {
         }
 
         then {
+            def stable_name_genome_tags = getAllFilesFromDir("$outputDir/test_sample" , relative: true, includeDir: false )
+
             assert process.success
             assert path("$outputDir/test_sample/test_sample_sample_sheet.csv").readLines().size() == 11
+            assert snapshot(stable_name_genome_tags).match("Should process 8bp genome tags and generate sample sheet")
         }
 
     }
