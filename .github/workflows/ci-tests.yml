@@ -32,9 +32,10 @@ jobs:
           version: "latest-edge"
 
       - name: Install nf-test
-        run: |
-          wget -qO- https://get.nf-test.com | bash
-          sudo mv nf-test /usr/local/bin/
+        uses: nf-core/setup-nf-test@v1
+        with:
+          version: 0.9.3 # Specify the desired version here
+          install-pdiff: true
 
       - name: Run Tests (Shard ${{ matrix.shard }}/${{ strategy.job-total }})
         run: nf-test test --ci --shard ${{ matrix.shard }}/${{ strategy.job-total }}
