@@ -33,33 +33,17 @@ def extract_flanks(path, out_type, trim_insert_flank=False,  construct=None):
             seq_dn = trim_string(seq_dn, 35, 0)
         bc = f'{seq_up}...{seq_dn}'
     elif out_type == "cutadapt_genome_tag":
-        ordered_seqs = order_based_on_position(filter_seqs_on_name(seqs, r'Barcode_(R|F)|INSERT(UP|DN)|Secondary_Barcode_for_Donor_gDNA'))
-        if len(ordered_seqs) != 5:
-            raise ValueError("Not enough sequences found for cutadapt_genome_tag. Expected at least 5 sequences, found {}".format(len(ordered_seqs)))
-        # We're assuming when ordered, the 2nd and 3rd are the INSERTDN and Secondary Barcode for Donor gDNA sequences
-
-        # ---<INSERTUP>---<INSERTDN---<Secondary Barcode for Donor gDNA>-->---<Barcode F>---<Barcode R>---
-
-        # We care about the span between INSERTDN and Secondary Barcode for Donor gDNA and the span between
-        # the end of the Secondary Barcode for Donor gDNA and the start of Barcode F
-        #                 <--<INSERTDN>---<Secondary Barcode for Donor gDNA>-->---<Barcode F>
-
-        # The first adapter is formed by truncating the insert dn sequence to the start of the gDNA tag sequence
-        # The second adapter is formed by truncating the end of gDNA tag to the start of the Barcode F sequence
-
-        insert_dn = ordered_seqs[1]
-        g_tag = ordered_seqs[2]
-        barcode_f = ordered_seqs[3]
-        insert_up_start = insert_dn.features[0].location.start
-        g_tag_start = g_tag.features[0].location.start
-        g_tag_end = g_tag.features[0].location.end
-        barcode_f_start = barcode_f.features[0].location.start
-        adapter_1 = str(insert_dn.seq[:g_tag_start - insert_up_start])
-        intervening_seq = get_intervening_sequence(construct, g_tag_end, barcode_f_start)
-
-        adapter_2 = str(intervening_seq)
-
-        bc = f'{adapter_1}...{adapter_2}'
+        genome_tag_feature = order_based_on_position(filter_seqs_on_name(seqs, r'Secondary_Barcode_for_Donor_gDNA'))
+        if len(genome_tag_feature) == 0:
+            raise ValueError("No feature found with name 'Secondary Barcode for Donor gDNA'")
+        elif len(genome_tag_feature) > 1:
+            raise ValueError("Multiple features found with name 'Secondary Barcode for Donor gDNA'")
+        genome_tag = genome_tag_feature[0]
+        genome_tag_start = genome_tag.features[0].location.start
+        genome_tag_end = genome_tag.features[0].location.end
+        upstream_adapter = get_intervening_sequence(construct, genome_tag_start - 35, genome_tag_start)
+        downstream_adapter = get_intervening_sequence(construct, genome_tag_end, genome_tag_end + 35)
+        bc = f'{upstream_adapter}...{downstream_adapter}'
 
     elif out_type == 'cutadapt_site':
         ordered_seqs = order_based_on_position(filter_seqs_on_name(seqs, r'SITE(UP|DN)'))
