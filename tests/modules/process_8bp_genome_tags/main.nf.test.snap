@@ -2,24 +2,24 @@
     "Should process 8bp genome tags and generate sample sheet": {
         "content": [
             [
-                "B_subtilus.fq.gz",
-                "C_necator.fq.gz",
-                "C_psychrerythraea.fq.gz",
-                "D_radiodurans.fq.gz",
-                "E_coli_K12.fq.gz",
-                "G_obscurus.fq.gz",
-                "H_elongata.fq.gz",
-                "K_variicola.fq.gz",
-                "P_halocryophilus.fq.gz",
-                "P_putida.fq.gz",
-                "R_radiotolerans.fq.gz",
-                "test_sample_sample_sheet.csv"
+                "B_subtilus.fq.gz:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "C_necator.fq.gz:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "C_psychrerythraea.fq.gz:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "D_radiodurans.fq.gz:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "E_coli_K12.fq.gz:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "G_obscurus.fq.gz:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "H_elongata.fq.gz:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "K_variicola.fq.gz:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "P_halocryophilus.fq.gz:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "P_putida.fq.gz:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "R_radiotolerans.fq.gz:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "test_sample_sample_sheet.csv:md5,d6146b2ee722bff3c1a8ce8bc0ad9dbb"
             ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.2"
         },
-        "timestamp": "2026-02-11T16:13:00.793318"
+        "timestamp": "2026-02-25T14:42:44.307473"
     }
 }

@@ -13,7 +13,7 @@ def process_genome_tags(cutadapt_file, tesseract_oligos, sample_name):
     input_file (str): Path to the input CSV file containing genome tags.
     """
     # Load the small CSV file into memory
-    tess_df = pd.read_csv(tesseract_oligos, usecols=['8bp Barcode','Base Strain'])
+    tess_df = pd.read_csv(tesseract_oligos, usecols=['8bp Barcode','Base Strain', 'Genome Path'])
     # Upper case the '8bp Barcode' column to ensure consistency
     tess_df['8bp Barcode'] = tess_df['8bp Barcode'].str.upper()
     tess_df['Base Strain'] = tess_df['Base Strain'].str.replace(" ", "_")
@@ -26,22 +26,21 @@ def process_genome_tags(cutadapt_file, tesseract_oligos, sample_name):
     chunk_iter = pd.read_csv(cutadapt_file,names=['seqid','8bp Barcode'], header=None, sep='\t', chunksize=100000)
 
     for chunk in chunk_iter:
-
         merged = chunk.merge(df, on='8bp Barcode')  # replace 'common_column' with your join key
         merged_chunks.append(merged)
 
     # Concatenate all merged chunks into a single DataFrame
     genome_tags = pd.concat(merged_chunks, ignore_index=True)
-    # Save the merged DataFrame to a new CSV file
+    # Save the merged DataFrame to a new CSV file with columns 'seqid', 'Base Strain', and 'Genome Path'
     genome_tags.to_csv(sample_name + "_assigned_genome_tags.csv", index=False)
 
     output_files = []
     unique_genomes = genome_tags['Base Strain'].unique()
     for genome in unique_genomes:
         genome_df = genome_tags[genome_tags['Base Strain'] == genome]
-        genome_df_clean = genome_df['seqid'].str.replace(" rc", "")
+        genome_df['seq_id'] = genome_df['seqid'].str.replace(" rc", "")
         output_filename = f"{genome}.csv"
-        genome_df_clean.to_csv(output_filename,columns=['seqid'], index=False,header=False)
+        genome_df.to_csv(output_filename,columns=['seqid', 'Genome Path'], index=False,header=False)
         output_files.append(output_filename)
     return output_files
 
@@ -78,14 +77,19 @@ def run_seqkit(output_files, fastq_file, sample_name, construct, outdir):
 
     with open(f"{sample_name}_sample_sheet.csv", 'w') as f:
         for file in output_files:
+            # The reference genome name (e.g. Bacillus_subtilis_PY79_GCF_023521615.1) is the second column in the output CSV file
+            # We just need the first line of the output CSV file to get the reference genome name,
+            # since all lines in the output CSV file have the same reference genome name
+            with open(file, 'r') as g:
+                first_line = g.readline()
+                genome_path = first_line.split(',')[1]
+                # Remove newline character from genome_path
+                genome_path = genome_path.strip()
             fastq = file.replace('.csv', '.fq.gz')
-            genome = file.split('.')[0]
             s3_location = f"{outdir}/{sample_name}/{fastq}"
-            f.write(f"{sample_name}_{genome},{genome},{construct},{s3_location}\n")
+            f.write(f"{sample_name},{genome_path},{construct},{s3_location}\n")
 
     return output_files
-
-
 
 if __name__ == '__main__':
     genome_tags_tsv = sys.argv[1]
@@ -93,8 +97,7 @@ if __name__ == '__main__':
     sample_name = sys.argv[3]
     fastq_file = sys.argv[4]
     construct = sys.argv[5]
-    outdir: str = sys.argv[6]
+    output_dir: str = sys.argv[6]
     outputs = process_genome_tags(genome_tags_tsv, tesseract_oligos_csv, sample_name)
-    output_files = run_seqkit(outputs, fastq_file, sample_name, construct, outdir)
-    #generate_sample_sheet(sample_name, output_files, construct, outdir)
+    output_files = run_seqkit(outputs, fastq_file, sample_name, construct, output_dir)
 
