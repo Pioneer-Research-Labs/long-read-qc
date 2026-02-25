@@ -13,7 +13,7 @@ def process_genome_tags(cutadapt_file, tesseract_oligos, sample_name):
     input_file (str): Path to the input CSV file containing genome tags.
     """
     # Load the small CSV file into memory
-    tess_df = pd.read_csv(tesseract_oligos, usecols=['8bp Barcode','Base Strain', 'Genome Path'])
+    tess_df = pd.read_csv(tesseract_oligos, usecols=['8bp Barcode','Base Strain'])
     # Upper case the '8bp Barcode' column to ensure consistency
     tess_df['8bp Barcode'] = tess_df['8bp Barcode'].str.upper()
     tess_df['Base Strain'] = tess_df['Base Strain'].str.replace(" ", "_")
@@ -34,15 +34,19 @@ def process_genome_tags(cutadapt_file, tesseract_oligos, sample_name):
     # Save the merged DataFrame to a new CSV file with columns 'seqid', 'Base Strain', and 'Genome Path'
     genome_tags.to_csv(sample_name + "_assigned_genome_tags.csv", index=False)
 
-    output_files = []
+    file_outputs = []
     unique_genomes = genome_tags['Base Strain'].unique()
     for genome in unique_genomes:
         genome_df = genome_tags[genome_tags['Base Strain'] == genome]
-        genome_df['seq_id'] = genome_df['seqid'].str.replace(" rc", "")
+        # Remove " rc" from the 'seqid' column and save to a new CSV file with only the 'seqid' column, essentially
+        # creating a file of sequences ids that will later be used to extract sequences from the fastq file using seqkit.
+        # We're removing " rc" because some of the sequence ids in the cutadapt output have " rc" appended to them (to indicate reverse complement)
+        # and we want to ensure that the sequence ids in the output files match the sequence ids in the fastq file.
+        genome_df_clean = genome_df['seqid'].str.replace(" rc", "")
         output_filename = f"{genome}.csv"
-        genome_df.to_csv(output_filename,columns=['seqid', 'Genome Path'], index=False,header=False)
-        output_files.append(output_filename)
-    return output_files
+        genome_df_clean.to_csv(output_filename,columns=['seqid'], index=False,header=False)
+        file_outputs.append(output_filename)
+    return file_outputs
 
 
 def run_command(cmd):
@@ -53,11 +57,12 @@ def run_command(cmd):
                 print(f"Error: {err.decode()}")
 
 
-def run_seqkit(output_files, fastq_file, sample_name, construct, outdir):
+def run_seqkit(output_files, fastq_file, sample_name, construct, outdir, tesseract_oligo_grid):
     """
     Run seqkit to extract sequences from a fastq.gz file using the output CSV files.
 
     Parameters:
+
     output_files (list): List of output CSV files containing genome sequences.
     """
     commands = []
@@ -75,21 +80,31 @@ def run_seqkit(output_files, fastq_file, sample_name, construct, outdir):
     for t in threads:
         t.join()
 
+    # Generate a dictionary from the tesseract oligo grid to map the genome names to the fully qualified genome names
+    # found on s3 in pioneer-genomes
+    genome_dict = convert_file_to_dict(tesseract_oligo_grid)
     with open(f"{sample_name}_sample_sheet.csv", 'w') as f:
         for file in output_files:
-            # The reference genome name (e.g. Bacillus_subtilis_PY79_GCF_023521615.1) is the second column in the output CSV file
-            # We just need the first line of the output CSV file to get the reference genome name,
-            # since all lines in the output CSV file have the same reference genome name
-            with open(file, 'r') as g:
-                first_line = g.readline()
-                genome_path = first_line.split(',')[1]
-                # Remove newline character from genome_path
-                genome_path = genome_path.strip()
             fastq = file.replace('.csv', '.fq.gz')
+            genome = file.split('.')[0]
             s3_location = f"{outdir}/{sample_name}/{fastq}"
-            f.write(f"{sample_name},{genome_path},{construct},{s3_location}\n")
+            genome_path = genome_dict[genome]  # Get the fully qualified genome name from the dictionary, or use the original genome name if not found
+            f.write(f"{sample_name}_{genome},{genome_path},{construct},{s3_location}\n")
 
     return output_files
+
+def convert_file_to_dict(file_name):
+    """
+    Convert a CSV file to a dictionary where the keys are the first column and the values are the second column.
+
+    Parameters:
+    file_name (str): Path to the input CSV file.
+
+    Returns:
+    dict: A dictionary with keys from the first column and values from the second column.
+    """
+    df = pd.read_csv(file_name)
+    return dict(zip(df.iloc[:, 2], df.iloc[:, 3]))
 
 if __name__ == '__main__':
     genome_tags_tsv = sys.argv[1]
@@ -99,5 +114,5 @@ if __name__ == '__main__':
     construct = sys.argv[5]
     output_dir: str = sys.argv[6]
     outputs = process_genome_tags(genome_tags_tsv, tesseract_oligos_csv, sample_name)
-    output_files = run_seqkit(outputs, fastq_file, sample_name, construct, output_dir)
+    output_files = run_seqkit(outputs, fastq_file, sample_name, construct, output_dir, tesseract_oligos_csv)
 
