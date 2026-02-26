@@ -5,7 +5,7 @@ import sys
 import re
 from snapgene_reader import snapgene_file_to_seqrecord
 
-def extract_flanks(path, out_type, trim_insert_flank=False,  construct=None):
+def extract_flanks(path, out_type, trim_insert_flank=False, construct=None, genome_adapter_length=35):
     """
     Extracts flanking sequences from a genbank file and returns them in the format required by cutadapt
     :param path: Path to the genbank file containing the flanking sequences
@@ -41,8 +41,8 @@ def extract_flanks(path, out_type, trim_insert_flank=False,  construct=None):
         genome_tag = genome_tag_feature[0]
         genome_tag_start = genome_tag.features[0].location.start
         genome_tag_end = genome_tag.features[0].location.end
-        upstream_adapter = get_intervening_sequence(construct, genome_tag_start - 35, genome_tag_start)
-        downstream_adapter = get_intervening_sequence(construct, genome_tag_end, genome_tag_end + 35)
+        upstream_adapter = get_intervening_sequence(construct, genome_tag_start - genome_adapter_length, genome_tag_start)
+        downstream_adapter = get_intervening_sequence(construct, genome_tag_end, genome_tag_end + genome_adapter_length)
         bc = f'{upstream_adapter}...{downstream_adapter}'
 
     elif out_type == 'cutadapt_site':
@@ -111,5 +111,5 @@ if __name__ == "__main__":
         extract_flanks(sys.argv[1], sys.argv[2])
     elif len(sys.argv) == 4:
         extract_flanks(sys.argv[1], sys.argv[2], sys.argv[3])
-    elif len(sys.argv) == 5:
-        extract_flanks(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    elif len(sys.argv) == 6:
+        extract_flanks(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))

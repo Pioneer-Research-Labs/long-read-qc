@@ -1,5 +1,5 @@
 process extract_genome_tags {
-    publishDir "$params.outdir/$meta.id",  mode: 'copy'
+    publishDir "$params.outdir/$meta.id/primary_data",  mode: 'copy'
     tag("$meta.id")
 
     cpus params.cores
@@ -15,7 +15,7 @@ process extract_genome_tags {
     """
 
     cutadapt \
-        -g \$(bc_template.py $flanking cutadapt_genome_tag False $construct ) \
+        -g \$(bc_template.py $flanking cutadapt_genome_tag False $construct $params.genome_flank_size ) \
         --revcomp \
         -e $params.error_rate \
         -O $params.min_overlap \

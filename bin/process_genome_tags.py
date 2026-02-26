@@ -6,6 +6,7 @@ import threading
 import subprocess
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
 def process_genome_tags(cutadapt_file, tesseract_oligos, sample_name):
     """
@@ -91,7 +92,7 @@ def run_seqkit(output_files, fastq_file, sample_name, construct, outdir, tessera
             fastq = file.replace('.csv', '.fq.gz')
             fastq_files.append(fastq)
             genome = file.split('.')[0]
-            s3_location = f"{outdir}/{sample_name}/{fastq}"
+            s3_location = f"{outdir}/{sample_name}/genome_fastqs/{fastq}"
             genome_path = genome_dict[genome]  # Get the fully qualified genome name from the dictionary, or use the original genome name if not found
             f.write(f"{sample_name}_{genome},{genome_path},{construct},{s3_location}\n")
 
@@ -175,7 +176,10 @@ if __name__ == '__main__':
     output_dir: str = sys.argv[6]
     outputs = process_genome_tags(genome_tags_tsv, tesseract_oligos_csv, sample_name)
     seq_fq_files = run_seqkit(outputs, fastq_file, sample_name, construct, output_dir, tesseract_oligos_csv)
-    seq_fq_files.append(fastq_file)
+    new_name = f"original_{fastq_file}"
+    os.rename(fastq_file, new_name)  # Rename the original fastq file to keep it for reference
+    seq_fq_files.append(new_name)
+
     combined_summary = generate_seq_summaries(seq_fq_files)
     generate_barplot(combined_summary)
 
