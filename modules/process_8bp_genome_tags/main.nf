@@ -6,7 +6,7 @@ process process_8bp_genome_tags {
     tuple val(meta), path(cutadapt_genome_tags_tsv), path(tesseract_genome_tags), path(fastq), path(construct)
 
     output:
-    tuple val(meta), path('*.fq.gz'), path("$meta.id"+"_sample_sheet.csv")
+    tuple val(meta), path('*.fq.gz'), path("$meta.id"+"_sample_sheet.csv"), path("combined_seq_summary.tsv")
 
     when:
     script:
