@@ -53,7 +53,10 @@ This allows the pipeline to classify reads from specific genomes based on the pr
 the pipeline searches for these tags in the reads to assign them to the correct genome. New genome tags can be added to the Tesseract_Barcode_Tracking_Grid.csv and the corresponding feature can be added to the construct .dna files to support additional genomes as needed.
 
 - By default, the adapter lengths used by cutadapt for searching the secondary barcode is 35bp, but you can specify custom lengths with `--genome_flank_size` if needed. The
-image below illustrates the placement of the adapters for the secondary barcode in relation to the main barcode and insert features.
+image below illustrates the placement of the adapters(in purple) for the secondary barcode in relation to the main barcode and insert features.
+
+<img width="1082" height="272" alt="Screenshot 2026-02-26 at 12 58 32 PM" src="https://github.com/user-attachments/assets/a877a635-d4f6-4bb0-a87d-4507e9b1cd69" />
+
 
 ## Sample sheet format
 - A CSV describing samples is required. Minimum columns (for standard runs): `id`, `genome`, `construct`, `file`.
