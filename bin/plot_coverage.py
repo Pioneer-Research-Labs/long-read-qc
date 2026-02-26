@@ -4,7 +4,18 @@ import seaborn as sns
 import numpy as np
 import sys
 import subprocess
+import plotly.io as pio
 
+
+# Color settings for seaborn and plotly
+sns.set_theme(font_scale=.8)
+sns.set_style('darkgrid')
+pioneer_colors = ['#FF8633', '#423759', '#314942', '#FFA632', '#F7F3ED']
+sns.set_palette(sns.color_palette(pioneer_colors))
+
+pio.templates['pioneer'] = pio.templates["seaborn"]
+pio.templates['pioneer'].layout.colorway = pioneer_colors
+pio.templates.default = 'pioneer'
 
 
 def plot_depth(depth_report, output_name, title, genome_size):

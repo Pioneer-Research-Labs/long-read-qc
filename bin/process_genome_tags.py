@@ -7,6 +7,19 @@ import subprocess
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import plotly.io as pio
+
+
+# Color settings for seaborn and plotly
+sns.set_theme(font_scale=.8)
+sns.set_style('darkgrid')
+pioneer_colors = ['#FF8633', '#423759', '#314942', '#FFA632', '#F7F3ED']
+sns.set_palette(sns.color_palette(pioneer_colors))
+
+pio.templates['pioneer'] = pio.templates["seaborn"]
+pio.templates['pioneer'].layout.colorway = pioneer_colors
+pio.templates.default = 'pioneer'
+
 
 def process_genome_tags(cutadapt_file, tesseract_oligos, sample_name):
     """

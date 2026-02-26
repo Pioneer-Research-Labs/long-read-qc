@@ -4,7 +4,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
-from pathlib import Path
+import plotly.io as pio
+
+
+# Color settings for seaborn and plotly
+sns.set_theme(font_scale=.8)
+sns.set_style('darkgrid')
+pioneer_colors = ['#FF8633', '#423759', '#314942', '#FFA632', '#F7F3ED']
+sns.set_palette(sns.color_palette(pioneer_colors))
+
+pio.templates['pioneer'] = pio.templates["seaborn"]
+pio.templates['pioneer'].layout.colorway = pioneer_colors
+pio.templates.default = 'pioneer'
 
 def plot(inserts_full, insert_truncated, all_seq_lengths, length_untrimmed, sample):
     """
