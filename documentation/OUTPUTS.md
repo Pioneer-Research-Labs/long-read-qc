@@ -1,6 +1,6 @@
 # Outputs
 
-This pipeline produces the following outputs grouped by sample id (e.g. `b.74_day0` and `s.D.1515_day0`, with summary files and plots in a `summary_and_plots` folder:
+This default pipeline produces the following outputs grouped by sample id (e.g. `b.74_day0` and `s.D.1515_day0`, with summary files and plots in a `summary_and_plots` folder:
 ```
 |-- b.74_day0
 |   |-- map_genome_analysis # only if `--map_genome true`)
@@ -22,6 +22,7 @@ This pipeline produces the following outputs grouped by sample id (e.g. `b.74_da
 |   |   |-- mapped_vector.bam.bai
 |   |   |-- mapped_vector_stats.tsv -tsv output from samtools flagstats using the mapped_vector.bam file
 |   |   |-- sites.fasta -- fasta file of all reads with a min length of 0 in which a site SITEUP/DN match was found.
+        `-- sites.tsv -  tsv file of all fastq reads with a min length of 0 in which a SITE UP/DOWN match was found
 |   |   `-- untrimmed.fastq - fastq file of untrimmed reads in which no insert flanking region match was found.
 |   |-- raw_qc
 |   |   |-- fastplong.fq - qc of fastq reads
@@ -33,7 +34,7 @@ This pipeline produces the following outputs grouped by sample id (e.g. `b.74_da
 |   |   |-- histogram_of_sites_with_barcode_no_insert.png - histogram of counts of reads in which a barcode was found but no insert
 |   |   |-- insert_length_histogram.png - histogram of insert lengths for reads
 |   |   |-- seq_stats.tsv - a tsv file summarizing the reads in barcode, insert, and sample reads - including num_seqs, total length, min_len, avg_len, and max_len.
-|   |   `-- sites.tsv -  tsv file of all fastq reads with a min length of 0 in which a SITE UP/DOWN match was found
+|   |
 |   `-- truncated_analysis # only if `--analyze_truncated_flanks true`
 |       |-- intact_vs_truncated_insert_lengths.png - histogram comparing insert lengths for reads in which an insert flanking region match was found vs. insert lengths for reads in which an incomplete insert flanking region match was found
 |       |-- raw_counts_intact_vs_truncated_inserts.png - barplot comparing counts of reads in which an insert flanking region match was found vs. counts of reads in which an incomplete insert flanking region match was found
@@ -48,3 +49,31 @@ This pipeline produces the following outputs grouped by sample id (e.g. `b.74_da
     `-- seq_summary.csv - csv summarizing count of raws reads, count of reads that mapped to the plasmid, the count of reads with barcodes, the count of reads with inserts, the count of reads with barcodes and inserts and the count of reads with sites for each sample. Note that the count of reads mapped to plasmid is derived from mapped_vector_stats.tsv.
 ```
 For samtools flagstats outputs, see the [samtools documentation](https://www.htslib.org/doc/samtools.html#flagstat) for details on the fields in the output tsv files. 
+
+When processing multiplexed samples, there are two main outputs - 1) the sample name folder with subdirectories for genome, containing subdirectories for 
+primary data, and summary_and_plots and 2) an aggregated sample sheet that contains the genomes extracted from the multiplexed sample. The
+aggregated_sample_sheet.csv is used in the default long-read-qc pipeline to identify barcodes, inserts, sites, etc.
+```
+
+|-- PPDT_010_inhouse_minion_02182026
+|   |-- genome_fastqs
+|   |   |-- B_subtilus.fq.gz
+|   |   |-- C_necator.fq.gz
+|   |   |-- C_psychrerythraea.fq.gz
+|   |   |-- D_radiodurans.fq.gz
+|   |   |-- E_coli_K12.fq.gz
+|   |   |-- G_obscurus.fq.gz
+|   |   |-- H_elongata.fq.gz
+|   |   |-- K_variicola.fq.gz
+|   |   |-- P_halocryophilus.fq.gz
+|   |   |-- P_putida.fq.gz
+|   |   `-- R_radiotolerans.fq.gz
+|   |-- primary_data
+|   |   |-- PPDT_010_inhouse_minion_02182026_sample_sheet.csv
+|   |   |-- extracted_genome_tags.tsv
+|   |   |-- flanking.gb
+|   |   `-- genome_tags.fasta
+|   `-- summary_and_plots
+|       |-- combined_seq_summary.tsv
+|       `-- num_sequences_per_genome.png
+`-- aggregated_sample_sheet.csv
