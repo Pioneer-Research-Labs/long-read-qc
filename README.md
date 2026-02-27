@@ -48,6 +48,16 @@ cd long-read-qc
 - Below is a schematic showing the layout of the barcode, insert, and site features in a vector. The SITEUP and SITEDN features are used to detect reads with empty or partial barcodes/inserts and other cloning artifacts. 
 <img width="801" height="258" alt="Screenshot 2026-02-17 at 2 57 49 PM" src="https://github.com/user-attachments/assets/4e4fb731-90bf-4a5e-90c0-4e8772899ee6" />
 
+- For mixed genome libraries, the `Secondary_Barcode_for_Donor_gDNA` feature can be used to denote a donor-specific barcode region that is expected to be present in reads originating from the donor genome.
+This allows the pipeline to classify reads from specific genomes based on the presence of the secondary barcode. The genome-specific tags are defined in the Tesseract_Barcode_Tracking_Grid.csv and 
+the pipeline searches for these tags in the reads to assign them to the correct genome. New genome tags can be added to the Tesseract_Barcode_Tracking_Grid.csv and the corresponding feature can be added to the construct .dna files to support additional genomes as needed.
+
+- By default, the adapter lengths used by cutadapt for searching the secondary barcode is 35bp, but you can specify custom lengths with `--genome_flank_size` if needed. The
+image below illustrates the placement of the adapters(in purple) for the secondary barcode in relation to the main barcode and insert features.
+
+<img width="1082" height="272" alt="Screenshot 2026-02-26 at 12 58 32 PM" src="https://github.com/user-attachments/assets/a877a635-d4f6-4bb0-a87d-4507e9b1cd69" />
+
+
 ## Sample sheet format
 - A CSV describing samples is required. Minimum columns (for standard runs): `id`, `genome`, `construct`, `file`.
   - `id`: a unique sample identifier
@@ -65,34 +75,46 @@ follow the local run instructions below.
 
 
 ## Running the pipeline locally
-When running the pipeline locally, you'll need to authenticate with AWS to allow the pipeline to read/write from S3. 
-You can do this by [configuring the AWS CLI with your credentials](https://www.notion.so/pioneer-labs/Running-developing-Nextflow-pipelines-locally-287c53344751809399a3f54bfc6cc337#287c53344751803c8f11d22a4e3f234c).
+There are different [command line options](https://www.nextflow.io/docs/edge/cli.html) for running Nextflow.
+Here we show some common ones for running the pipeline from the Insight server. Use `--help` to see the full list of options and parameters.
 
-```bash
-Running the pipeline
+
+Log on to the Insight server, pull the latest version:
+
 - Pull the latest pipeline (optional):
 
 ```bash
 nextflow pull Pioneer-Research-Labs/long-read-qc
 ```
  
-- Run locally with Docker profile (example):
+- Run locally on the Insight serer with a sample sheet entitle `samples.csv` located in the same directory:
 
 ```bash
-nextflow run Pioneer-Research-Labs/long-read-qc -profile standard --samplesheet samples.csv
+nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet samples.csv
 ```
 
-- Run on AWS Batch (example):
+- Run on AWS Batch on the Insight server with a sample sheet entitled `samples.csv` located in the same directory:
 
 ```bash
 nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet samples.csv -profile awsbatch
 ```
 
-- Preprocess multiplexed (Tesseract) sample sheet and generate an aggregated sample sheet:
+- Preprocess multiplexed (Tesseract) sample sheet to generate an aggregated sample sheet and run on the Insight server:
 
 ```bash
 nextflow run Pioneer-Research-Labs/long-read-qc --tesseract_samplesheet my_multiplexed_samples.csv --preprocess_genome_tags true
 ```
+
+- Preprocess multiplexed (Tesseract) sample sheet on AWS Batch from the Insight server:
+
+```bash
+nextflow run Pioneer-Research-Labs/long-read-qc --tesseract_samplesheet my_multiplexed_samples.csv --preprocess_genome_tags true -profile awsbatch
+````
+
+If you wish to clone the repo locally from your machine, you can do so and run the pipeline from your local environment.
+Ensure you have access to the S3 paths for inputs and outputs and set up AWS credentials if running on AWS Batch, see these [instructions](https://www.notion.so/pioneer-labs/Running-developing-Nextflow-pipelines-locally-287c53344751809399a3f54bfc6cc337
+) for configuring your local environment to run the pipeline.
+
 
 Splitting large FASTQ files
 - For very large FASTQ files we recommend splitting into chunked files and using the `awsbatch` profile for scalable processing.
@@ -107,7 +129,7 @@ python bin/chunk_fastq.py <path to samplesheet>
 - `--tesseract_samplesheet <file>`: path to Tesseract multiplexed sample sheet for preprocessing
 - `--tech <str>`: sequencing tech hint (e.g., `map-ont`, `map-pb`, `map-hifi`)
 - `--map_genome <bool>`: map reads to donor genome (default: `false`)
-- `--preprocess_genome_tags <bool>`: run `preprocess_genome_tags` workflow instead of main
+- `--preprocess_genome_tags <bool>`: run `preprocess_genome_tags` workflow instead of the main `long_read_qc` workflow
 - `--error_rate <float>`: barcode search error rate (default: `0.1`)
 - `--min_overlap <int>`: minimum overlap for barcode searching (default: `3`)
 - `--min_bc_len` / `--max_bc_len`: minimum/maximum barcode lengths (default: `20` / `60`)

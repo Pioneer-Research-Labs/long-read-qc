@@ -82,7 +82,7 @@ def plot_insert_length_barplot(inserts):
                 y='insert_len',
                 x='sample',
                 ax=ax)
-
+    plt.xticks(rotation=90)
     ax.set_title('Distribution of insert lengths')
     plt.savefig('insert_length_barplot.png', bbox_inches='tight')
 

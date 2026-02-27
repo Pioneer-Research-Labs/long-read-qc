@@ -85,7 +85,7 @@ workflow preprocess_genome_tags {
             [meta, genome_tags_tsv, file(params.tesseract_oligo_file), fastq, construct]
         }
     sample_sheet_map = process_8bp_genome_tags(process_inputs).collectFile(){
-        meta, genome_fastqs, sample_sheet ->
+        meta, genome_fastqs, sample_sheet, combined_seq_summary, barplot ->
         ["sample_sheet_map.tsv", "${meta.id}\t${params.path_prefix}${sample_sheet}\n"]
     }
 
