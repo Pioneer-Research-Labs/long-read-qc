@@ -32,6 +32,9 @@ include { get_truncated_inserts_as_tsv } from './modules/get_truncated_inserts_a
 include { aggregate_sample_sheets } from './modules/aggregate_sample_sheets'
 include { barcode_counts } from './modules/barcode_counts'
 include { process_8bp_genome_tags} from './modules/process_8bp_genome_tags'
+include { csv_to_fasta } from './modules/csv_to_fasta'
+include { map_catalog } from './modules/map_catalog'
+include { catalog_summary } from './modules/catalog_summary'
 include { samplesheetToList } from 'plugin/nf-schema'
 
 def helpMessage() {
@@ -39,16 +42,18 @@ def helpMessage() {
 Usage: nextflow run Pioneer-Research-Labs/long-read-qc -latest
 
 Options:
---samplesheet <file>      Path to the sample sheet (default: samplesheet.csv)
---outdir <dir>            Output directory (default: results)
---tech <str>              Sequencing technology, map-ont/map-pb/map-hifi (default: map-ont)
---map_genome <bool>       Map all reads to genome (default: false)
---error_rate <float>      Error rate for barcode searching (default: 0.1)
---min_overlap <int>       Minimum overlap for barcode searching (default: 3)
---min_bc_len <int>        Minimum barcode length (default: 20)
---max_bc_len <int>        Maximum barcode length (default: 60)
---cores <int>             Number of cores to use (default: 4)
---preprocess_genome_tags  <bool>  Preprocess genome tags (default: false)
+--samplesheet <file>         Path to the sample sheet (default: samplesheet.csv)
+--outdir <dir>               Output directory (default: results)
+--tech <str>                 Sequencing technology, map-ont/map-pb/map-hifi (default: map-ont)
+--map_genome <bool>          Map all reads to genome (default: false)
+--error_rate <float>         Error rate for barcode searching (default: 0.1)
+--min_overlap <int>          Minimum overlap for barcode searching (default: 3)
+--min_bc_len <int>           Minimum barcode length (default: 20)
+--max_bc_len <int>           Maximum barcode length (default: 60)
+--cores <int>                Number of cores to use (default: 4)
+--preprocess_genome_tags     Preprocess genome tags / Tesseract mode (default: false)
+--catalog_qc                 Map to a known sequence catalog instead of a reference genome (default: false)
+--catalog_samplesheet <file> Path to catalog-mode sample sheet (default: catalog_samplesheet.csv)
 """
 }
 
@@ -252,6 +257,62 @@ workflow long_read_qc{
 
 }
 
+// Workflow for libraries where sequences are mapped to a known sequence catalog rather than a reference genome.
+// Use this mode when your reads come from a synthesized or otherwise pre-defined set of sequences
+// and you want to assess representation against that catalog.
+workflow catalog_qc {
+
+    input_ch = Channel.fromList(samplesheetToList(params.catalog_samplesheet, "assets/catalog_samplesheet_validation_schema.json"))
+        .map { meta, construct, catalog, sequence ->
+            [meta, file(sequence), file(params.constructs + construct, checkIfExists:true), file(catalog, checkIfExists:true)]
+        }
+
+    input_ch
+        .map { meta, reads, construct, catalog -> [meta, construct] }
+        | set { constructs }
+
+    // Generate quality report using fastplong
+    quality_report(input_ch.map { meta, reads, construct, catalog -> [meta, reads, construct] })
+
+    // Map reads to vector/construct
+    map_vector(input_ch.map { meta, reads, construct, catalog -> [meta, reads, construct] })
+
+    // Get flanking sequences from construct .dna file
+    flanking = get_flanks(constructs)
+
+    joinChannel = input_ch
+        .map { meta, reads, construct, catalog -> [meta, reads, construct] }
+        .join(flanking)
+
+    // Extract barcodes, inserts, and sites
+    barcodes = extract_barcodes(joinChannel)
+    (inserts, untrimmed_meta) = extract_inserts(joinChannel)
+    sites = extract_sites(joinChannel)
+
+    // Sequence statistics
+    barcode_and_inserts = input_ch
+        .map { meta, reads, construct, catalog -> [meta, reads, construct] }
+        .join(inserts)
+        .join(barcodes)
+
+    seq_stats(barcode_and_inserts)
+    barcode_counts(barcodes)
+    get_barcodes_as_tsv(barcodes)
+    get_inserts_as_tsv(inserts)
+
+    // Convert catalog CSV to FASTA, then map inserts against it
+    catalog_fasta_ch = csv_to_fasta(input_ch.map { meta, reads, construct, catalog -> [meta, catalog] })
+
+    mapped = map_catalog(inserts.join(catalog_fasta_ch))
+
+    // Summarize which sequences in the catalog have reads mapped to them
+    catalog_summary(
+        mapped
+            .map { meta, bam, bai, stats -> [meta, bam, bai] }
+            .join(input_ch.map { meta, reads, construct, catalog -> [meta, catalog] })
+    )
+}
+
 workflow {
 
     log.info """
@@ -270,11 +331,13 @@ Long Read Processing and QC Pipeline
         exit 0
     }
 
-    // If processing genome tags, the genome is not validated
     if (params.preprocess_genome_tags) {
-        log.info "Preprocessing genome tags..."
+        log.info "Preprocessing genome tags (Tesseract mode)..."
         preprocess_genome_tags()
-    } else{
+    } else if (params.catalog_qc) {
+        log.info "Running catalog QC (mapping to known sequence catalog, no reference genome)..."
+        catalog_qc()
+    } else {
         long_read_qc()
-     }
+    }
 }
