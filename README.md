@@ -92,6 +92,11 @@ nextflow pull Pioneer-Research-Labs/long-read-qc
 ```bash
 nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet samples.csv
 ```
+- Run without Docker using your own environment (ensure all required tools are installed and in PATH):
+
+```bash
+nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet samples.csv -profile local
+````
 
 - Run on AWS Batch on the Insight server with a sample sheet entitled `samples.csv` located in the same directory:
 
