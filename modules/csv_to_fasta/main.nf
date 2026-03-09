@@ -1,5 +1,6 @@
 process csv_to_fasta {
     tag "$meta.id"
+    publishDir "$params.outdir/$meta.id/primary_data", mode: 'copy'
 
     input:
     tuple val(meta), path(library_csv)

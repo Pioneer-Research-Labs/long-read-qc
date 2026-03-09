@@ -35,6 +35,7 @@ include { process_8bp_genome_tags} from './modules/process_8bp_genome_tags'
 include { csv_to_fasta } from './modules/csv_to_fasta'
 include { map_catalog } from './modules/map_catalog'
 include { catalog_summary } from './modules/catalog_summary'
+include { get_sites_as_tsv } from './modules/get_sites_as_tsv'
 include { samplesheetToList } from 'plugin/nf-schema'
 
 def helpMessage() {
@@ -299,6 +300,7 @@ workflow catalog_qc {
     barcode_counts(barcodes)
     get_barcodes_as_tsv(barcodes)
     get_inserts_as_tsv(inserts)
+    get_sites_as_tsv(sites)
 
     // Convert catalog CSV to FASTA, then map inserts against it
     catalog_fasta_ch = csv_to_fasta(input_ch.map { meta, reads, construct, catalog -> [meta, catalog] })
