@@ -34,9 +34,10 @@ cd long-read-qc
 ```
 
 ## High-level workflow
-- The pipeline has two main entry workflows implemented in `main.nf`:
+- The pipeline has three entry workflows implemented in `main.nf`:
+  - `long_read_qc` *(default)*: the primary QC and analysis workflow that extracts barcodes and inserts, maps inserts to vector/genome, and generates per-sample and aggregate summaries.
   - `preprocess_genome_tags`: processes Tesseract multiplexed sample sheets and generates an aggregated sample sheet suitable for the main pipeline.
-  - `long_read_qc`: the primary QC and analysis workflow that extracts barcodes and inserts, maps inserts to vector/genome, and generates per-sample and aggregate summaries.
+  - `catalog_qc`: for libraries where sequences come from a synthesized or otherwise pre-defined catalog. Maps reads to the catalog sequences instead of a reference genome. See [Catalog QC mode](#catalog-qc-mode-synthesized-libraries) below.
 
 ## Preparing construct files
 - The pipeline uses SnapGene `.dna` annotations to determine flanking sequences for barcode and insert extraction. Annotate plasmids with the following feature names:
@@ -86,8 +87,36 @@ Log on to the Insight server, pull the latest version:
 ```bash
 nextflow pull Pioneer-Research-Labs/long-read-qc
 ```
- 
-- Run locally on the Insight serer with a sample sheet entitle `samples.csv` located in the same directory:
+
+### Generating samplesheets
+
+Use `bin/make_samplesheet.py` to generate a samplesheet from an S3 path. The script finds the FASTQ file automatically, infers the sample ID from the directory name, and uploads the samplesheet to the same S3 directory.
+
+**Standard mode** (one sample, one reference genome):
+
+```bash
+python bin/make_samplesheet.py \
+    --s3-path s3://pioneer-in-house-sequencing/ONT_minion/MY-001/ \
+    --construct c.00432.dna \
+    --genome H_elongata
+```
+
+**Tesseract mode** (multiplexed, genome-tagged library):
+
+```bash
+python bin/make_samplesheet.py \
+    --s3-path s3://pioneer-in-house-sequencing/ONT_minion/MY-001/ \
+    --construct c.00432.dna \
+    --mode tesseract
+```
+
+Both commands print the S3 path of the generated samplesheet and the exact `nextflow run` command to use. Use `--id MY_SAMPLE_ID` to override the inferred sample name.
+
+For **catalog QC mode** (synthesized library), see [Catalog QC mode](#catalog-qc-mode-synthesized-libraries) below which has its own helper script `bin/make_catalog_samplesheet.py`.
+
+### Running the pipeline
+
+- Run locally on the Insight server with a sample sheet entitled `samples.csv` located in the same directory:
 
 ```bash
 nextflow run Pioneer-Research-Labs/long-read-qc --samplesheet samples.csv
@@ -114,7 +143,7 @@ nextflow run Pioneer-Research-Labs/long-read-qc --tesseract_samplesheet my_multi
 
 ```bash
 nextflow run Pioneer-Research-Labs/long-read-qc --tesseract_samplesheet my_multiplexed_samples.csv --preprocess_genome_tags true -profile awsbatch
-````
+```
 
 If you wish to clone the repo locally from your machine, you can do so and run the pipeline from your local environment.
 Ensure you have access to the S3 paths for inputs and outputs and set up AWS credentials if running on AWS Batch, see these [instructions](https://www.notion.so/pioneer-labs/Running-developing-Nextflow-pipelines-locally-287c53344751809399a3f54bfc6cc337
@@ -129,6 +158,77 @@ Splitting large FASTQ files
 python bin/chunk_fastq.py <path to samplesheet>
 ```
 
+- Run catalog QC mode (synthesized library mapped against a known sequence catalog):
+
+```bash
+nextflow run Pioneer-Research-Labs/long-read-qc --catalog_qc --catalog_samplesheet catalog_samplesheet.csv -profile awsbatch
+```
+
+---
+
+## Catalog QC mode (synthesized libraries)
+
+Use this mode when your FASTQ reads come from a library of synthesized sequences and you have a CSV of all designed sequences to compare against. Instead of aligning inserts to a reference genome, the pipeline converts your catalog CSV to a FASTA and maps extracted inserts against it.
+
+All standard QC steps are preserved (quality report, vector mapping, barcode extraction, insert extraction, site extraction, seq stats), and the genome alignment step is replaced with a catalog alignment.
+
+### Catalog samplesheet format
+
+| column | description |
+|---|---|
+| `id` | unique sample identifier |
+| `construct` | construct `.dna` filename (under `s3://pioneer-sequencing/constructs/`) |
+| `catalog` | S3 path to the synthesized sequence catalog CSV |
+| `file` | S3 path to the FASTQ reads |
+
+The catalog CSV must have these columns: `Name`, `Insert Length`, `Insert Sequence`.
+
+### Step 1 — Generate the samplesheet
+
+Use the helper script `bin/make_catalog_samplesheet.py` to auto-detect the FASTQ file in an S3 directory and write a ready-to-use samplesheet back to that same directory:
+
+```bash
+python bin/make_catalog_samplesheet.py \
+    --s3-path s3://pioneer-in-house-sequencing/ONT_minion/HEM-003/ \
+    --construct c.00631.dna \
+    --catalog s3://pioneer-data/HEM-001_SUBMITTED_SEQUENCES_to_TWIST.csv
+```
+
+The script will print the S3 path of the generated samplesheet and the exact `nextflow run` command to copy-paste.
+
+Optional flag: `--id MY_SAMPLE_ID` to override the sample ID inferred from the S3 path.
+
+### Step 2 — Run the pipeline
+
+```bash
+nextflow run Pioneer-Research-Labs/long-read-qc \
+    --catalog_qc \
+    --catalog_samplesheet s3://pioneer-in-house-sequencing/ONT_minion/HEM-003/catalog_samplesheet.csv \
+    -profile awsbatch
+```
+
+### Catalog QC outputs (per sample)
+
+| file | location | description |
+|---|---|---|
+| `fastplong.html` | `raw_qc/` | raw read QC report |
+| `mapped_vector.bam` | `primary_data/` | reads mapped to construct |
+| `barcodes.fasta` | `primary_data/` | extracted barcodes |
+| `inserts.fasta` | `primary_data/` | extracted inserts |
+| `sites.fasta` | `primary_data/` | extracted site sequences |
+| `mapped_inserts.bam` | `primary_data/` | inserts mapped to catalog sequences |
+| `mapped_inserts_stats.tsv` | `primary_data/` | flagstat summary for catalog mapping |
+| `sites.tsv` | `primary_data/` | site sequences as TSV |
+| `barcodes.tsv` | `primary_data/` | barcodes as TSV |
+| `inserts.tsv` | `primary_data/` | inserts as TSV |
+| `barcode_counts.tsv` | `summary_and_plots/` | barcode frequency counts |
+| `seq_stats.tsv` | `summary_and_plots/` | read/insert/barcode counts and lengths |
+| `catalog_coverage_summary.tsv` | `summary_and_plots/` | per-sequence read counts and presence/absence across the catalog |
+
+The `catalog_coverage_summary.tsv` has columns `Name`, `Insert_Length`, `Reads_Mapped`, `Present` and reports how many reads mapped to each designed sequence.
+
+---
+
 ### Parameters overview
 - `--samplesheet <file>`: path to the sample sheet (default: `samplesheet.csv`)
 - `--tesseract_samplesheet <file>`: path to Tesseract multiplexed sample sheet for preprocessing
@@ -139,6 +239,8 @@ python bin/chunk_fastq.py <path to samplesheet>
 - `--min_overlap <int>`: minimum overlap for barcode searching (default: `3`)
 - `--min_bc_len` / `--max_bc_len`: minimum/maximum barcode lengths (default: `20` / `60`)
 - `--cores <int>`: number of CPU cores to allocate
+- `--catalog_qc <bool>`: run `catalog_qc` workflow (synthesized library mode, no reference genome; default: `false`)
+- `--catalog_samplesheet <file>`: path to catalog-mode sample sheet (default: `catalog_samplesheet.csv`)
 - Use `--help` or inspect `main.nf`'s `helpMessage()` for the full list and defaults.
 
 ### Outputs
