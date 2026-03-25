@@ -236,9 +236,11 @@ workflow long_read_qc{
      plot_depth(mapped)
 
      // Here we generate various summary files and plots for all the sequences processed
-     summarize_inserts(insert_map)
-     summarize_barcodes(barcode_map)
-     seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map, sites_sample_map)
+     if (params.generate_summary) {
+         summarize_inserts(insert_map)
+         summarize_barcodes(barcode_map)
+         seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map, sites_sample_map)
+     }
 
 
     // If we want to, map all reads to the donor genome
