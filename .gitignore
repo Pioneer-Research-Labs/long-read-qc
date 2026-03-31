@@ -9,3 +9,4 @@ work
 .nf-test/
 .nextflow.log*
 
+nf-test-work/
