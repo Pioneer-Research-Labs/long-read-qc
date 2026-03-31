@@ -2,21 +2,23 @@
     "Should process 8bp genome tags and generate sample sheet": {
         "content": [
             [
-                "B_subtilus.fq.gz:md5,dbdfc25f791ee57693c38ff111d55d65",
-                "C_necator.fq.gz:md5,06a020a40da4a13636eb61bb65ae29b5",
-                "C_psychrerythraea.fq.gz:md5,44f3286cafc92cdc9212083f1812e33d",
-                "D_radiodurans.fq.gz:md5,bafe14cafd4f03aa77b813b26a1c05d1",
-                "E_coli_K12.fq.gz:md5,5e6cad41ac32c18a4cf8b1c8754782b8",
-                "G_obscurus.fq.gz:md5,e459f4a5fafcf405b485d74300955f00",
-                "H_elongata.fq.gz:md5,f2d96b3dda9deefa05024e5d2be7af3e",
-                "K_variicola.fq.gz:md5,379fff25204f24b32a931161e0ee69a4",
-                "P_halocryophilus.fq.gz:md5,47fcd987e896e7f68a6e9f3fede8c176",
-                "P_putida.fq.gz:md5,2922957dc1d0b67de011bad9fcee9c81",
-                "R_radiotolerans.fq.gz:md5,bda04626067a070aab72f5f89f50d969",
-                "test_sample_sample_sheet.csv:md5,e033a366ccbe84a45f9d2784d72315ec"
+                "genome_fastqs/B_subtilus.fq.gz",
+                "genome_fastqs/C_necator.fq.gz",
+                "genome_fastqs/C_psychrerythraea.fq.gz",
+                "genome_fastqs/D_radiodurans.fq.gz",
+                "genome_fastqs/E_coli_K12.fq.gz",
+                "genome_fastqs/G_obscurus.fq.gz",
+                "genome_fastqs/H_elongata.fq.gz",
+                "genome_fastqs/K_variicola.fq.gz",
+                "genome_fastqs/P_halocryophilus.fq.gz",
+                "genome_fastqs/P_putida.fq.gz",
+                "genome_fastqs/R_radiotolerans.fq.gz",
+                "primary_data/test_sample_sample_sheet.csv",
+                "summary_and_plots/combined_seq_summary.tsv",
+                "summary_and_plots/num_sequences_per_genome.png"
             ]
         ],
-        "timestamp": "2026-02-25T15:49:30.190283",
+        "timestamp": "2026-03-31T15:15:04.202264",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.04.2"
