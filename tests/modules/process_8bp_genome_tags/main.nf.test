@@ -25,7 +25,7 @@ nextflow_process {
             def stable_name_genome_tags = getAllFilesFromDir("$outputDir/test_sample" , relative: true, includeDir: false )
 
             assert process.success
-            assert path("$outputDir/test_sample/test_sample_sample_sheet.csv").readLines().size() == 11
+            assert path("$outputDir/test_sample/primary_data/test_sample_sample_sheet.csv").readLines().size() == 11
             assert snapshot(stable_name_genome_tags).match("Should process 8bp genome tags and generate sample sheet")
         }
 
