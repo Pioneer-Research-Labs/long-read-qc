@@ -12,7 +12,7 @@ process map_inserts {
 
     script:
     """
-    minimap2 -ax $params.tech -t $task.cpus $fna $ins_seqs | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o mapped_inserts.bam
+    minimap2 -ax $params.tech -t $task.cpus --secondary=no $fna $ins_seqs | samtools view -@ $task.cpus -b - | samtools sort - -@ $task.cpus -o mapped_inserts.bam
     samtools index -@ $task.cpus mapped_inserts.bam
     samtools flagstats -@ $task.cpus -O tsv mapped_inserts.bam > mapped_insert_stats.tsv
     """
