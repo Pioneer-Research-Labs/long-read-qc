@@ -18,6 +18,7 @@ process extract_sites {
         --revcomp \
         -e $params.error_rate \
         -O $params.min_overlap \
+        --discard-untrimmed \
         -o sites_cutadapt.fasta \
         -j $task.cpus \
         $reads
