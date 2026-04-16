@@ -111,10 +111,10 @@ def concatenate_files(file_map, summary_type, output_file, save_file=True):
 
             if summary_type == 'insert':
                 print(f'Processing {val} for sample {key}')
-                df = pd.read_table(val, names=['read', 'insert_seq', 'insert_len'], usecols=[0, 1, 3], engine='c', quoting=csv.QUOTE_NONE, sep="\t")
+                df = pd.read_table(val, names=['read', 'insert_len'], usecols=[0, 3], engine='c', quoting=csv.QUOTE_NONE, sep="\t")
 
             if summary_type == 'sites':
-                df = pd.read_table(val, names=['read', 'site_seq', 'site_len'], usecols=[0, 1, 3], engine='c',
+                df = pd.read_table(val, names=['read', 'site_len'], usecols=[0, 3], engine='c',
                                    quoting=csv.QUOTE_NONE, sep="\t")
             if summary_type == 'insert_coverage':
                 cov = pd.read_table(val, header=None, engine='c', sep="\t")
@@ -231,7 +231,7 @@ def process(sample_file_map, summary_type, **kwargs):
             plot_copy_number(concatenated_df)
 
         case 'insert_histogram':
-            df = pd.read_table(sample_file_map, names=['read', 'insert_seq', 'insert_len'], usecols=[0, 1, 3], engine='c', quoting=csv.QUOTE_NONE, sep="\t")
+            df = pd.read_table(sample_file_map, names=['read', 'insert_len'], usecols=[0, 3], engine='c', quoting=csv.QUOTE_NONE, sep="\t")
             plot_insert_length_histogram(df)
         case 'insert':
             concatenated_df = concatenate_files(sample_file_map, summary_type, None, False)
