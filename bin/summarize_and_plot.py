@@ -113,9 +113,6 @@ def concatenate_files(file_map, summary_type, output_file, save_file=True):
                 print(f'Processing {val} for sample {key}')
                 df = pd.read_table(val, names=['read', 'insert_len'], usecols=[0, 3], engine='c', quoting=csv.QUOTE_NONE, sep="\t")
 
-            if summary_type == 'sites':
-                df = pd.read_table(val, names=['read', 'site_len'], usecols=[0, 3], engine='c',
-                                   quoting=csv.QUOTE_NONE, sep="\t")
             if summary_type == 'insert_coverage':
                 cov = pd.read_table(val, header=None, engine='c', sep="\t")
                 df = cov.loc[:, [3, 6, 7, 8, 9]].rename(
@@ -149,7 +146,7 @@ def concatenate_files(file_map, summary_type, output_file, save_file=True):
     return concatenated_df
 
 
-def seq_summary(barcode_data, insert_data, seq_stat, vec_map_stats, site_data, samp_info=None):
+def seq_summary(barcode_data, insert_data, seq_stat, vec_map_stats, samp_info=None):
     """
     Generate a sequence summary table
     :param barcode_data: DataFrame containing barcode data
@@ -162,8 +159,6 @@ def seq_summary(barcode_data, insert_data, seq_stat, vec_map_stats, site_data, s
         .groupby('sample', as_index=False) \
         .size().rename(columns={'size': 'both'})
 
-    sites_df = site_data.groupby('sample', as_index=False).size().rename(columns={'size': 'sites'})
-
     map_stats = vec_map_stats \
         .pivot(columns='key', values='value', index='sample').reset_index() \
         [['sample', 'primary mapped']]
@@ -175,13 +170,11 @@ def seq_summary(barcode_data, insert_data, seq_stat, vec_map_stats, site_data, s
         .pivot(columns="name", values="num_seqs", index="sample") \
         .merge(both, on='sample', how='left') \
         .merge(map_stats) \
-        .merge(sites_df, on='sample', how='left') \
-        [['sample', 'raw_reads', 'primary mapped', 'barcodes', 'inserts', 'both','sites']] \
+        [['sample', 'raw_reads', 'primary mapped', 'barcodes', 'inserts', 'both']] \
         .assign(pct_mapped=lambda x: round(100 * (x['primary mapped'].astype(int) / x.raw_reads), 2)) \
         .assign(bc_pct=lambda x: round(100 * (x.barcodes / x.raw_reads), 2)) \
         .assign(ins_pct=lambda x: round(100 * (x.inserts / x.raw_reads), 2)) \
         .assign(both_pct=lambda x: round(100 * (x.both / x.raw_reads), 2)) \
-        .assign(site_pct=lambda x: round(100 * (x.sites / x.raw_reads), 2)) \
         .fillna(0) \
         .rename(columns={'raw_reads': 'Raw Reads',
                          'primary mapped': 'Reads mapped to plasmid',
@@ -191,7 +184,6 @@ def seq_summary(barcode_data, insert_data, seq_stat, vec_map_stats, site_data, s
                          'both': 'Reads with both barcodes & inserts',
                          'bc_pct': '% with barcode',
                          'ins_pct': '% with insert',
-                         'site_pct': '% with sites',
                          'both_pct': '% with both barcodes & inserts', 'Sample': 'sample'})
 
     if samp_info is not None:
@@ -250,20 +242,18 @@ def process(sample_file_map, summary_type, **kwargs):
             barcode_map = kwargs.get('barcode')
             insert_map = kwargs.get('insert')
             vector_map = kwargs.get('vector')
-            sites_map = kwargs.get('sites')
 
             seq_stats_df = concatenate_files(sample_file_map, summary_type, None, False)
             barcode_df = concatenate_files(barcode_map, 'barcode',
                                            None, False)
             insert_df = concatenate_files(insert_map, 'insert', None, False)
             vector_df = concatenate_files(vector_map, 'vec_map', None, False)
-            site_df = concatenate_files(sites_map, 'sites', None, False)
             # Combine all if possible
-            if barcode_df.empty  or insert_df.empty  or seq_stats_df.empty or vector_df.empty or site_df.empty:
+            if barcode_df.empty or insert_df.empty or seq_stats_df.empty or vector_df.empty:
                 write_empty_file('seq_summary.csv')
                 print('No seq data to summarize')
             else:
-                num_seqs_df = seq_summary(barcode_df, insert_df, seq_stats_df, vector_df, site_df)
+                num_seqs_df = seq_summary(barcode_df, insert_df, seq_stats_df, vector_df)
                 num_seqs_df.to_csv('seq_summary.csv', index=False)
 
 
@@ -272,6 +262,6 @@ if __name__ == '__main__':
         process(sys.argv[1], sys.argv[2])
     elif len(sys.argv) == 4:
         process(sys.argv[1], sys.argv[2], seqstat=sys.argv[3])
-    elif len(sys.argv) == 7:
-        process(sys.argv[1], sys.argv[2], barcode=sys.argv[3], vector=sys.argv[4], insert=sys.argv[5], sites=sys.argv[6])
+    elif len(sys.argv) == 6:
+        process(sys.argv[1], sys.argv[2], barcode=sys.argv[3], vector=sys.argv[4], insert=sys.argv[5])
 

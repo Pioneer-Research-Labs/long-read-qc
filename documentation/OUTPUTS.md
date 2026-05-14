@@ -11,7 +11,7 @@ This default pipeline produces the following outputs grouped by sample id (e.g. 
 |   |   |-- barcode_counts.tsv - tsv file of counts of each barcode found in the sample
 |   |   |-- barcodes.fasta -fasta file of all reads with a min length of 0 in which a barcode UP/DOWN match was found
 |   |   |-- barcodes.tsv - tsv file of all fastq reads with a min length of 0 in which a barcode UP/DOWN match was found
-|   |   |-- flanking.gb - Genbank file of the flanking regions used for searching for barcodes, inserts, sites, and genome tags
+|   |   |-- flanking.gb - Genbank file of the flanking regions used for searching for barcodes, inserts, and genome tags
 |   |   |-- inserts.fasta - fasta file of all reads with a min length of 0 in which a insert UP/DOWN match was found
 |   |   |-- inserts.tsv - tsv file of all fastq reads with a min length of 0 in which a insert UP/DOWN match was found
 |   |   |-- inserts_from_truncated_flanks.fasta
@@ -21,8 +21,6 @@ This default pipeline produces the following outputs grouped by sample id (e.g. 
 |   |   |-- mapped_vector.bam - bam output from mapping inserts to the plasmid using minimap2
 |   |   |-- mapped_vector.bam.bai
 |   |   |-- mapped_vector_stats.tsv -tsv output from samtools flagstats using the mapped_vector.bam file
-|   |   |-- sites.fasta -- fasta file of all reads with a min length of 0 in which a site SITEUP/DN match was found.
-        `-- sites.tsv -  tsv file of all fastq reads with a min length of 0 in which a SITE UP/DOWN match was found
 |   |   `-- untrimmed.fastq - fastq file of untrimmed reads in which no insert flanking region match was found.
 |   |-- raw_qc
 |   |   |-- fastplong.fq - qc of fastq reads
@@ -31,7 +29,6 @@ This default pipeline produces the following outputs grouped by sample id (e.g. 
 |   |-- summary_and_plots
 |   |   |-- counts_of_inserts_barcodes_flanking_site_sequences.csv
 |   |   |-- coverage_plot.png - plot of insert length across genome based on the samtools depth output
-|   |   |-- histogram_of_sites_with_barcode_no_insert.png - histogram of counts of reads in which a barcode was found but no insert
 |   |   |-- insert_length_histogram.png - histogram of insert lengths for reads
 |   |   |-- seq_stats.tsv - a tsv file summarizing the reads in barcode, insert, and sample reads - including num_seqs, total length, min_len, avg_len, and max_len.
 |   |
@@ -46,13 +43,13 @@ This default pipeline produces the following outputs grouped by sample id (e.g. 
     |-- barcode_copy_number.png - barplot of counts of barcodes found in each sample
     |-- genome_mapping_summary.csv - csv summarizing raw_reads, reads mapped to genome, read with inserts, and reads with barcodes for each sample (if `--map_genome true`)
     |-- insert_length_barplot.png - barplot of counts of insert lengths for each sample
-    `-- seq_summary.csv - csv summarizing count of raws reads, count of reads that mapped to the plasmid, the count of reads with barcodes, the count of reads with inserts, the count of reads with barcodes and inserts and the count of reads with sites for each sample. Note that the count of reads mapped to plasmid is derived from mapped_vector_stats.tsv.
+    `-- seq_summary.csv - csv summarizing count of raws reads, count of reads that mapped to the plasmid, the count of reads with barcodes, the count of reads with inserts, and the count of reads with both barcodes and inserts for each sample. Note that the count of reads mapped to plasmid is derived from mapped_vector_stats.tsv.
 ```
 For samtools flagstats outputs, see the [samtools documentation](https://www.htslib.org/doc/samtools.html#flagstat) for details on the fields in the output tsv files. 
 
 When processing multiplexed samples, there are two main outputs - 1) the sample name folder with subdirectories for genome, containing subdirectories for 
 primary data, and summary_and_plots and 2) an aggregated sample sheet that contains the genomes extracted from the multiplexed sample. The
-aggregated_sample_sheet.csv is used in the default long-read-qc pipeline to identify barcodes, inserts, sites, etc.
+aggregated_sample_sheet.csv is used in the default long-read-qc pipeline to identify barcodes, inserts, etc.
 ```
 
 |-- PPDT_010_inhouse_minion_02182026

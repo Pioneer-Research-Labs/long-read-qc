@@ -43,10 +43,9 @@ cd long-read-qc
 - The pipeline uses SnapGene `.dna` annotations to determine flanking sequences for barcode and insert extraction. Annotate plasmids with the following feature names:
   - `BARCODEUP`, `BARCODEDN` — 5' and 3' flanking regions for the barcode
   - `INSERTUP`, `INSERTDN` — 5' and 3' flanking regions for the insert
-  - `SITEUP`, `SITEDN` — 5' and 3' flanking regions surrounding insertion site(s)
   - `Secondary_Barcode_for_Donor_gDNA` — optional: for mixed genome libraries to denote donor-specific barcode
 - Save and upload `.dna` files to your constructs S3 path ( `s3://pioneer-sequencing/constructs/`).
-- Below is a schematic showing the layout of the barcode, insert, and site features in a vector. The SITEUP and SITEDN features are used to detect reads with empty or partial barcodes/inserts and other cloning artifacts. 
+- Below is a schematic showing the layout of the barcode and insert features in a vector.
 <img width="801" height="258" alt="Screenshot 2026-02-17 at 2 57 49 PM" src="https://github.com/user-attachments/assets/4e4fb731-90bf-4a5e-90c0-4e8772899ee6" />
 
 - For mixed genome libraries, the `Secondary_Barcode_for_Donor_gDNA` feature can be used to denote a donor-specific barcode region that is expected to be present in reads originating from the donor genome.
@@ -170,7 +169,7 @@ nextflow run Pioneer-Research-Labs/long-read-qc --catalog_qc --catalog_sampleshe
 
 Use this mode when your FASTQ reads come from a library of synthesized sequences and you have a CSV of all designed sequences to compare against. Instead of aligning inserts to a reference genome, the pipeline converts your catalog CSV to a FASTA and maps extracted inserts against it.
 
-All standard QC steps are preserved (quality report, vector mapping, barcode extraction, insert extraction, site extraction, seq stats), and the genome alignment step is replaced with a catalog alignment.
+All standard QC steps are preserved (quality report, vector mapping, barcode extraction, insert extraction, seq stats), and the genome alignment step is replaced with a catalog alignment.
 
 ### Catalog samplesheet format
 
@@ -215,10 +214,8 @@ nextflow run Pioneer-Research-Labs/long-read-qc \
 | `mapped_vector.bam` | `primary_data/` | reads mapped to construct |
 | `barcodes.fasta` | `primary_data/` | extracted barcodes |
 | `inserts.fasta` | `primary_data/` | extracted inserts |
-| `sites.fasta` | `primary_data/` | extracted site sequences |
 | `mapped_inserts.bam` | `primary_data/` | inserts mapped to catalog sequences |
 | `mapped_inserts_stats.tsv` | `primary_data/` | flagstat summary for catalog mapping |
-| `sites.tsv` | `primary_data/` | site sequences as TSV |
 | `barcodes.tsv` | `primary_data/` | barcodes as TSV |
 | `inserts.tsv` | `primary_data/` | inserts as TSV |
 | `barcode_counts.tsv` | `summary_and_plots/` | barcode frequency counts |
