@@ -6,16 +6,20 @@ def empty_insert_plots(barcode_file, insert_file, title):
     barcodes = pd.read_csv(barcode_file, sep='\t', names=['id', 'seq', 'quality', 'length'])
     inserts = pd.read_csv(insert_file, sep='\t', names=['id', 'seq', 'quality', 'length'])
 
+    both = len(barcodes.merge(inserts, on='id'))
+
     with open("counts_of_inserts_barcodes_flanking_site_sequences.csv", "w") as summary_file:
         summary_file.write(
             f"Sample name,"
             f"Count of sequences with inserts,"
-            f"Count of sequences with barcodes\n"
+            f"Count of sequences with barcodes,"
+            f"Count of sequences with inserts and barcodes\n"
         )
         summary_file.write(
             f"{title},"
             f"{len(inserts)},"
-            f"{len(barcodes)}\n"
+            f"{len(barcodes)},"
+            f"{both}\n"
         )
 
 if __name__ == '__main__':
