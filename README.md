@@ -215,7 +215,7 @@ nextflow run Pioneer-Research-Labs/long-read-qc \
 | `inserts.fasta` | `primary_data/` | extracted inserts |
 | `mapped_inserts.bam` | `primary_data/` | inserts mapped to catalog sequences |
 | `mapped_inserts_stats.tsv` | `primary_data/` | flagstat summary for catalog mapping |
-| `barcodes.tsv` | `primary_data/` | barcodes as TSV |
+| `barcodes.fasta` | `primary_data/` | extracted barcodes |
 | `barcode_counts.tsv` | `summary_and_plots/` | barcode frequency counts |
 | `seq_stats.tsv` | `summary_and_plots/` | read/insert/barcode counts and lengths |
 | `catalog_coverage_summary.tsv` | `summary_and_plots/` | per-sequence read counts and presence/absence across the catalog |

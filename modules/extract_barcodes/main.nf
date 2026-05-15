@@ -1,4 +1,5 @@
 process extract_barcodes {
+    publishDir "$params.outdir/$meta.id/primary_data",  mode: 'copy'
     tag("$meta.id")
 
     cpus params.cores
