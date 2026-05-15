@@ -10,6 +10,7 @@ This default pipeline produces the following outputs grouped by sample id (e.g. 
 |   |-- primary_data
 |   |   |-- barcode_counts.tsv - tsv file of counts of each barcode found in the sample
 |   |   |-- barcodes.fasta - fasta file of all reads with a min length of 0 in which a barcode UP/DOWN match was found
+|   |   |-- barcodes.tsv - tsv file of all fastq reads with a min length of 0 in which a barcode UP/DOWN match was found
 |   |   |-- flanking.gb - Genbank file of the flanking regions used for searching for barcodes, inserts, and genome tags
 |   |   |-- inserts.fasta - fasta file of all reads with a min length of 0 in which a insert UP/DOWN match was found
 |   |   |-- inserts_from_truncated_flanks.fasta
