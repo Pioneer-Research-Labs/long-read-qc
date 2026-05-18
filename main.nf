@@ -12,7 +12,6 @@ include { map_vector } from './modules/map_vector'
 include { seq_stats } from './modules/seq_stats'
 include { extract_barcodes } from './modules/extract_barcodes'
 include { extract_inserts } from './modules/extract_inserts'
-include { extract_sites } from './modules/extract_sites'
 include { empty_insert_histogram } from './modules/plot_empty_insert_histogram'
 include { extract_inserts_with_truncated_flanks } from './modules/extract_inserts_with_truncated_flanks'
 include { extract_genome_tags } from './modules/extract_genome_tags'
@@ -35,7 +34,6 @@ include { process_8bp_genome_tags} from './modules/process_8bp_genome_tags'
 include { csv_to_fasta } from './modules/csv_to_fasta'
 include { map_catalog } from './modules/map_catalog'
 include { catalog_summary } from './modules/catalog_summary'
-include { get_sites_as_tsv } from './modules/get_sites_as_tsv'
 include { samplesheetToList } from 'plugin/nf-schema'
 
 def helpMessage() {
@@ -152,22 +150,14 @@ workflow long_read_qc{
     // plot histogram of insert lengths
     plot_insert_histogram(inserts)
 
-    //extract fasta between cut sites in construct
-    sites = extract_sites(joinChannel)
-
     input_ch
         .join(barcodes)
         .join(inserts)
-        .join(sites)
-        .map { meta, reads, construct, barcodes, inserts, sites ->
-            // Return the meta data, barcodes, inserts, and cut sites
-            [meta, barcodes, inserts, sites]
+        .map { meta, reads, construct, barcodes, inserts ->
+            [meta, barcodes, inserts]
         } | set {dataChannel}
 
-    sites_sample_map = empty_insert_histogram(dataChannel).collectFile(){
-         id, histogram, count_csv, tsv ->
-        ["sites_map.tsv", "${id}\t${params.path_prefix}${tsv}\n"]
-        }
+    empty_insert_histogram(dataChannel)
 
     // Optional analysis of truncated flanking sequences, which can occur either end of the insert is truncated.
     //This analysis extracts any inserts with truncated flanks, generates a .tsv of the truncated insert data,
@@ -239,7 +229,7 @@ workflow long_read_qc{
      if (params.generate_summary) {
          summarize_inserts(insert_map)
          summarize_barcodes(barcode_map)
-         seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map, sites_sample_map)
+         seq_summary_results = generate_seq_summary(seq_stats_results, barcode_map, vector_map, insert_map)
      }
 
 
@@ -287,10 +277,9 @@ workflow catalog_qc {
         .map { meta, reads, construct, catalog -> [meta, reads, construct] }
         .join(flanking)
 
-    // Extract barcodes, inserts, and sites
+    // Extract barcodes and inserts
     barcodes = extract_barcodes(joinChannel)
     (inserts, untrimmed_meta) = extract_inserts(joinChannel)
-    sites = extract_sites(joinChannel)
 
     // Sequence statistics
     barcode_and_inserts = input_ch
@@ -302,7 +291,6 @@ workflow catalog_qc {
     barcode_counts(barcodes)
     get_barcodes_as_tsv(barcodes)
     get_inserts_as_tsv(inserts)
-    get_sites_as_tsv(sites)
 
     // Convert catalog CSV to FASTA, then map inserts against it
     catalog_fasta_ch = csv_to_fasta(input_ch.map { meta, reads, construct, catalog -> [meta, catalog] })
